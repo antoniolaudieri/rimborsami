@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +24,10 @@ const signUpSchema = loginSchema.extend({
 });
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode');
+  
+  const [isLogin, setIsLogin] = useState(mode !== 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,11 +41,32 @@ export default function Auth() {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect based on onboarding status
   useEffect(() => {
-    if (user && !authLoading) {
-      navigate('/dashboard');
-    }
+    const checkOnboardingAndRedirect = async () => {
+      if (user && !authLoading) {
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (profile?.onboarding_completed) {
+          navigate('/dashboard');
+        } else {
+          navigate('/quiz');
+        }
+      }
+    };
+    
+    checkOnboardingAndRedirect();
   }, [user, authLoading, navigate]);
+  
+  // Update isLogin when URL params change
+  useEffect(() => {
+    setIsLogin(mode !== 'signup');
+  }, [mode]);
 
   const validateForm = () => {
     setValidationErrors({});

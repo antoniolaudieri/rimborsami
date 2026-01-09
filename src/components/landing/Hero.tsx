@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Sparkles, TrendingUp } from "lucide-react";
@@ -58,12 +59,14 @@ const Hero = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
           >
-            <Button variant="hero" size="xl" className="group">
-              Scopri quanto puoi recuperare
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            <Button variant="hero" size="xl" className="group" asChild>
+              <Link to="/auth?mode=signup">
+                Scopri quanto puoi recuperare
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
-            <Button variant="outline" size="xl">
-              Come funziona
+            <Button variant="outline" size="xl" asChild>
+              <a href="#come-funziona">Come funziona</a>
             </Button>
           </motion.div>
 

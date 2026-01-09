@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Shield, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,14 @@ const plans = [
     description: "Scopri quanto puoi recuperare, senza impegno.",
     features: [
       "Analisi base delle opportunità",
-      "Fino a 3 reclami / anno",
-      "Database rimborsi base",
+      "Vedi numero di rimborsi trovati",
+      "Range stimato del recupero",
       "Supporto via email",
     ],
     cta: "Inizia gratis",
     variant: "outline" as const,
     popular: false,
+    href: "/auth?mode=signup&plan=free",
   },
   {
     name: "Premium",
@@ -24,17 +26,18 @@ const plans = [
     period: "al mese",
     description: "Massimizza il tuo recupero con strumenti avanzati.",
     features: [
-      "Scanner email illimitato",
-      "Reclami illimitati",
-      "Accesso anticipato class action",
-      "Generatore documenti AI",
-      "Notifiche prioritarie",
+      "Dettagli completi opportunità",
+      "Generatore email/PEC automatico",
+      "Importi precisi per pratica",
+      "Dashboard con stato pratiche",
+      "Notifiche e reminder",
       "Supporto prioritario",
     ],
     cta: "Prova 7 giorni gratis",
     variant: "hero" as const,
     popular: true,
     badge: "Più popolare",
+    href: "/auth?mode=signup&plan=monthly",
   },
   {
     name: "Pro",
@@ -52,6 +55,7 @@ const plans = [
     variant: "gold" as const,
     popular: false,
     savings: "Risparmi €41",
+    href: "/auth?mode=signup&plan=annual",
   },
 ];
 
@@ -154,8 +158,8 @@ const Pricing = () => {
               </ul>
 
               {/* CTA */}
-              <Button variant={plan.variant} size="lg" className="w-full">
-                {plan.cta}
+              <Button variant={plan.variant} size="lg" className="w-full" asChild>
+                <Link to={plan.href}>{plan.cta}</Link>
               </Button>
             </motion.div>
           ))}

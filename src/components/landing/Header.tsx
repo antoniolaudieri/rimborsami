@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -33,9 +34,9 @@ const Header = () => {
     >
       <div className="container flex items-center justify-between h-16 md:h-20">
         {/* Logo */}
-        <a href="/" className="font-display text-xl md:text-2xl font-bold">
+        <Link to="/" className="font-display text-xl md:text-2xl font-bold">
           <span className="text-gradient-hero">Rimborsami</span>
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
@@ -52,11 +53,11 @@ const Header = () => {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm">
-            Accedi
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/auth">Accedi</Link>
           </Button>
-          <Button variant="hero" size="sm">
-            Inizia gratis
+          <Button variant="hero" size="sm" asChild>
+            <Link to="/auth?mode=signup">Inizia gratis</Link>
           </Button>
         </div>
 
@@ -91,11 +92,15 @@ const Header = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="ghost" className="w-full justify-center">
-                  Accedi
+                <Button variant="ghost" className="w-full justify-center" asChild>
+                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+                    Accedi
+                  </Link>
                 </Button>
-                <Button variant="hero" className="w-full justify-center">
-                  Inizia gratis
+                <Button variant="hero" className="w-full justify-center" asChild>
+                  <Link to="/auth?mode=signup" onClick={() => setIsMobileMenuOpen(false)}>
+                    Inizia gratis
+                  </Link>
                 </Button>
               </div>
             </nav>
