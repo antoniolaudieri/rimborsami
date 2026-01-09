@@ -1,0 +1,464 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import {
+  ArrowLeft,
+  Clock,
+  Euro,
+  FileText,
+  Copy,
+  Download,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Mail,
+  Send,
+  Plane,
+  ShoppingCart,
+  Landmark,
+  Shield,
+  Package,
+  FileQuestion,
+} from 'lucide-react';
+
+interface OpportunityDetail {
+  id: string;
+  status: string;
+  estimated_amount: number;
+  deadline: string | null;
+  created_at: string;
+  notes: string | null;
+  matched_data: Record<string, unknown>;
+  opportunities: {
+    id: string;
+    title: string;
+    category: string;
+    short_description: string;
+    description: string;
+    min_amount: number;
+    max_amount: number;
+    legal_reference: string | null;
+    template_email: string | null;
+    template_pec: string | null;
+  } | null;
+}
+
+const statusColors: Record<string, string> = {
+  found: 'bg-blue-100 text-blue-700',
+  started: 'bg-amber-100 text-amber-700',
+  sent: 'bg-purple-100 text-purple-700',
+  completed: 'bg-green-100 text-green-700',
+  expired: 'bg-gray-100 text-gray-500',
+};
+
+const statusLabels: Record<string, string> = {
+  found: 'Trovata',
+  started: 'Avviata',
+  sent: 'Inviata',
+  completed: 'Completata',
+  expired: 'Scaduta',
+};
+
+const categoryIcons: Record<string, React.ReactNode> = {
+  flight: <Plane className="w-6 h-6" />,
+  ecommerce: <ShoppingCart className="w-6 h-6" />,
+  bank: <Landmark className="w-6 h-6" />,
+  insurance: <Shield className="w-6 h-6" />,
+  warranty: <Package className="w-6 h-6" />,
+  other: <FileQuestion className="w-6 h-6" />,
+};
+
+export default function DashboardOpportunityDetail() {
+  const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [opportunity, setOpportunity] = useState<OpportunityDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generatedText, setGeneratedText] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    if (user && id) {
+      fetchOpportunity();
+    }
+  }, [user, id]);
+
+  const fetchOpportunity = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_opportunities')
+        .select(`
+          id,
+          status,
+          estimated_amount,
+          deadline,
+          created_at,
+          notes,
+          matched_data,
+          opportunities (
+            id,
+            title,
+            category,
+            short_description,
+            description,
+            min_amount,
+            max_amount,
+            legal_reference,
+            template_email,
+            template_pec
+          )
+        `)
+        .eq('id', id)
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        navigate('/dashboard/opportunities');
+        return;
+      }
+
+      setOpportunity(data as OpportunityDetail);
+    } catch (error) {
+      console.error('Error fetching opportunity:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile caricare i dettagli dell\'opportunità',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateRequest = async (type: 'email' | 'pec') => {
+    if (!opportunity?.opportunities) return;
+
+    setGenerating(true);
+    
+    const template = type === 'email' 
+      ? opportunity.opportunities.template_email 
+      : opportunity.opportunities.template_pec;
+
+    if (!template) {
+      toast({
+        title: 'Template non disponibile',
+        description: `Il template ${type.toUpperCase()} non è ancora disponibile per questa opportunità`,
+        variant: 'destructive',
+      });
+      setGenerating(false);
+      return;
+    }
+
+    // Replace placeholders with user data
+    let text = template
+      .replace(/\[NOME_COMPLETO\]/g, user?.user_metadata?.full_name || '[Il tuo nome]')
+      .replace(/\[EMAIL\]/g, user?.email || '[La tua email]')
+      .replace(/\[DATA\]/g, new Date().toLocaleDateString('it-IT'))
+      .replace(/\[IMPORTO\]/g, opportunity.estimated_amount?.toString() || '[Importo]');
+
+    setGeneratedText(text);
+
+    // Save to database
+    try {
+      await supabase.from('generated_requests').insert({
+        user_opportunity_id: opportunity.id,
+        type: type,
+        content: text,
+      });
+
+      // Update opportunity status
+      if (opportunity.status === 'found') {
+        await updateStatus('started');
+      }
+    } catch (error) {
+      console.error('Error saving request:', error);
+    }
+
+    setGenerating(false);
+  };
+
+  const updateStatus = async (newStatus: string) => {
+    if (!opportunity) return;
+
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('user_opportunities')
+        .update({ 
+          status: newStatus,
+          ...(newStatus === 'completed' ? { completed_at: new Date().toISOString() } : {})
+        })
+        .eq('id', opportunity.id);
+
+      if (error) throw error;
+
+      setOpportunity({ ...opportunity, status: newStatus });
+      toast({
+        title: 'Stato aggiornato',
+        description: `La pratica è ora "${statusLabels[newStatus]}"`,
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile aggiornare lo stato',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(generatedText);
+    toast({
+      title: 'Copiato!',
+      description: 'Il testo è stato copiato negli appunti',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!opportunity) {
+    return null;
+  }
+
+  const opp = opportunity.opportunities;
+
+  return (
+    <div className="space-y-6">
+      {/* Back button */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="-ml-2">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Torna alle opportunità
+        </Button>
+      </motion.div>
+
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-start gap-4"
+      >
+        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+          {categoryIcons[opp?.category || 'other']}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{opp?.title}</h1>
+              <p className="text-muted-foreground mt-1">
+                {opp?.legal_reference && <span className="mr-2">{opp.legal_reference}</span>}
+              </p>
+            </div>
+            <Badge className={`${statusColors[opportunity.status]} text-base px-3 py-1`}>
+              {statusLabels[opportunity.status]}
+            </Badge>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Amount card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="bg-gradient-hero text-white">
+              <CardContent className="py-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/80 text-sm">Importo stimato recuperabile</p>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <Euro className="w-6 h-6" />
+                      <span className="text-4xl font-bold">
+                        {opportunity.estimated_amount?.toLocaleString('it-IT')}
+                      </span>
+                    </div>
+                    {opp && (
+                      <p className="text-sm text-white/80 mt-2">
+                        Range: €{opp.min_amount} - €{opp.max_amount}
+                      </p>
+                    )}
+                  </div>
+                  {opportunity.deadline && (
+                    <div className="text-right">
+                      <p className="text-white/80 text-sm">Scadenza</p>
+                      <p className="font-semibold flex items-center gap-2 mt-1">
+                        <Clock className="w-4 h-4" />
+                        {new Date(opportunity.deadline).toLocaleDateString('it-IT')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Description */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Descrizione</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground whitespace-pre-wrap">
+                  {opp?.description}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Request generator */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Genera richiesta
+                </CardTitle>
+                <CardDescription>
+                  Genera automaticamente il testo per richiedere il tuo rimborso
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => generateRequest('email')}
+                    disabled={generating || !opp?.template_email}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {generating ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Mail className="w-4 h-4 mr-2" />
+                    )}
+                    Email
+                  </Button>
+                  <Button
+                    onClick={() => generateRequest('pec')}
+                    disabled={generating || !opp?.template_pec}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {generating ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    PEC
+                  </Button>
+                </div>
+
+                {generatedText && (
+                  <div className="space-y-3">
+                    <Textarea
+                      value={generatedText}
+                      onChange={(e) => setGeneratedText(e.target.value)}
+                      rows={12}
+                      className="font-mono text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button onClick={copyToClipboard} variant="secondary">
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copia
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      💡 Modifica il testo sopra inserendo i tuoi dati personali dove indicato,
+                      poi copialo e invialo all'azienda interessata.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Right column - Actions */}
+        <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Aggiorna stato</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {(['found', 'started', 'sent', 'completed'] as const).map((status) => (
+                  <Button
+                    key={status}
+                    variant={opportunity.status === status ? 'default' : 'outline'}
+                    className="w-full justify-start"
+                    onClick={() => updateStatus(status)}
+                    disabled={updating || opportunity.status === status}
+                  >
+                    {opportunity.status === status && (
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                    )}
+                    {statusLabels[status]}
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Tips */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Suggerimento</p>
+                    <p className="text-muted-foreground">
+                      Per aumentare le probabilità di successo, invia la richiesta tramite PEC 
+                      se disponibile. La PEC ha valore legale.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
