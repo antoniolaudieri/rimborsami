@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Paywall } from '@/components/Paywall';
 import {
   Search,
   Filter,
@@ -22,6 +24,8 @@ import {
   Shield,
   Package,
   FileQuestion,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 
 interface UserOpportunity {
@@ -78,10 +82,13 @@ const categoryLabels: Record<string, string> = {
 
 export default function DashboardOpportunities() {
   const { user } = useAuth();
+  const { isPremium, isFree } = useSubscription();
+  const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState<UserOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -133,19 +140,51 @@ export default function DashboardOpportunities() {
     return matchesSearch && opp.opportunities?.category === activeTab;
   });
 
-  const totalEstimated = filteredOpportunities.reduce((sum, o) => sum + (o.estimated_amount || 0), 0);
+  // Calculate ranges for free users
+  const totalEstimatedMin = filteredOpportunities.reduce((sum, o) => 
+    sum + (o.opportunities?.min_amount || o.estimated_amount || 0), 0);
+  const totalEstimatedMax = filteredOpportunities.reduce((sum, o) => 
+    sum + (o.opportunities?.max_amount || o.estimated_amount || 0), 0);
+
+  const handleOpportunityClick = (oppId: string) => {
+    if (isFree) {
+      setShowPaywall(true);
+    } else {
+      navigate(`/dashboard/opportunities/${oppId}`);
+    }
+  };
 
   return (
     <div className="space-y-6">
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <Paywall
+          opportunitiesCount={opportunities.length}
+          estimatedRange={{ min: totalEstimatedMin, max: totalEstimatedMax }}
+          onClose={() => setShowPaywall(false)}
+        />
+      )}
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
-        <h1 className="text-2xl md:text-3xl font-bold">Le tue opportunità</h1>
-        <p className="text-muted-foreground mt-1">
-          Gestisci e monitora tutte le tue richieste di rimborso
-        </p>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Le tue opportunità</h1>
+          <p className="text-muted-foreground mt-1">
+            {isFree 
+              ? 'Passa a Premium per vedere i dettagli e avviare le pratiche' 
+              : 'Gestisci e monitora tutte le tue richieste di rimborso'}
+          </p>
+        </div>
+        {isFree && (
+          <Button onClick={() => setShowPaywall(true)} className="bg-gradient-hero hover:opacity-90">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Sblocca dettagli
+          </Button>
+        )}
       </motion.div>
 
       {/* Summary card */}
@@ -158,10 +197,18 @@ export default function DashboardOpportunities() {
           <CardContent className="py-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <p className="text-white/80 text-sm">Totale recuperabile (filtro attuale)</p>
+                <p className="text-white/80 text-sm">
+                  {isFree ? 'Range recuperabile stimato' : 'Totale recuperabile'}
+                </p>
                 <div className="flex items-baseline gap-2 mt-1">
                   <Euro className="w-6 h-6" />
-                  <span className="text-4xl font-bold">{totalEstimated.toLocaleString('it-IT')}</span>
+                  {isFree ? (
+                    <span className="text-3xl font-bold">
+                      {totalEstimatedMin.toLocaleString('it-IT')} - {totalEstimatedMax.toLocaleString('it-IT')}
+                    </span>
+                  ) : (
+                    <span className="text-4xl font-bold">{totalEstimatedMax.toLocaleString('it-IT')}</span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -182,7 +229,7 @@ export default function DashboardOpportunities() {
         </Card>
       </motion.div>
 
-      {/* Filters */}
+      {/* Filters - Only searchable for premium */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -192,10 +239,11 @@ export default function DashboardOpportunities() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Cerca opportunità..."
+            placeholder={isPremium ? "Cerca opportunità..." : "Cerca (Premium)"}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            disabled={isFree}
           />
         </div>
       </motion.div>
@@ -256,8 +304,8 @@ export default function DashboardOpportunities() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Link to={`/dashboard/opportunities/${opp.id}`}>
-                    <Card className="hover:shadow-md transition-all hover:border-primary/30">
+                  <div onClick={() => handleOpportunityClick(opp.id)} className="cursor-pointer">
+                    <Card className={`hover:shadow-md transition-all ${isFree ? 'hover:border-primary/30' : 'hover:border-primary/30'}`}>
                       <CardContent className="py-4">
                         <div className="flex items-start gap-4">
                           {/* Category icon */}
@@ -269,35 +317,70 @@ export default function DashboardOpportunities() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <div>
-                                <h3 className="font-semibold truncate">
-                                  {opp.opportunities?.title}
-                                </h3>
-                                <p className="text-sm text-muted-foreground mt-0.5">
-                                  {categoryLabels[opp.opportunities?.category || 'other']}
-                                  {opp.opportunities?.legal_reference && (
-                                    <span className="ml-2">• {opp.opportunities.legal_reference}</span>
-                                  )}
-                                </p>
+                                {isFree ? (
+                                  <>
+                                    <h3 className="font-semibold text-muted-foreground">
+                                      Opportunità di rimborso • {categoryLabels[opp.opportunities?.category || 'other']}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground/70 mt-0.5 blur-[3px] select-none">
+                                      Nome azienda nascosto
+                                    </p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <h3 className="font-semibold truncate">
+                                      {opp.opportunities?.title}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground mt-0.5">
+                                      {categoryLabels[opp.opportunities?.category || 'other']}
+                                      {opp.opportunities?.legal_reference && (
+                                        <span className="ml-2">• {opp.opportunities.legal_reference}</span>
+                                      )}
+                                    </p>
+                                  </>
+                                )}
                               </div>
-                              <Badge className={statusColors[opp.status]}>
-                                {statusLabels[opp.status]}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge className={statusColors[opp.status]}>
+                                  {statusLabels[opp.status]}
+                                </Badge>
+                                {isFree && <Lock className="w-4 h-4 text-muted-foreground" />}
+                              </div>
                             </div>
 
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                              {opp.opportunities?.short_description}
-                            </p>
+                            {isFree ? (
+                              <p className="text-sm text-muted-foreground mt-2 blur-[3px] select-none">
+                                Descrizione dettagliata dell'opportunità nascosta. Sblocca per vedere...
+                              </p>
+                            ) : (
+                              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                                {opp.opportunities?.short_description}
+                              </p>
+                            )}
 
                             <div className="flex items-center justify-between mt-3">
                               <div className="flex items-center gap-4 text-sm">
-                                <span className="flex items-center gap-1 font-medium text-primary">
-                                  <Euro className="w-4 h-4" />
-                                  {opp.estimated_amount?.toLocaleString('it-IT')}
-                                </span>
-                                {opp.deadline && (
+                                {isFree ? (
+                                  <span className="flex items-center gap-1 font-medium text-primary">
+                                    <Euro className="w-4 h-4" />
+                                    {opp.opportunities?.min_amount?.toLocaleString('it-IT')} - {opp.opportunities?.max_amount?.toLocaleString('it-IT')}
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 font-medium text-primary">
+                                    <Euro className="w-4 h-4" />
+                                    {opp.estimated_amount?.toLocaleString('it-IT')}
+                                  </span>
+                                )}
+                                {isPremium && opp.deadline && (
                                   <span className="flex items-center gap-1 text-muted-foreground">
                                     <Clock className="w-4 h-4" />
                                     Scade: {new Date(opp.deadline).toLocaleDateString('it-IT')}
+                                  </span>
+                                )}
+                                {isFree && (
+                                  <span className="flex items-center gap-1 text-muted-foreground blur-[3px]">
+                                    <Clock className="w-4 h-4" />
+                                    Scadenza nascosta
                                   </span>
                                 )}
                               </div>
@@ -307,13 +390,39 @@ export default function DashboardOpportunities() {
                         </div>
                       </CardContent>
                     </Card>
-                  </Link>
+                  </div>
                 </motion.div>
               ))}
             </div>
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Bottom CTA for free users */}
+      {isFree && filteredOpportunities.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30">
+            <CardContent className="py-6 text-center">
+              <Lock className="w-8 h-8 mx-auto mb-3 text-primary" />
+              <h3 className="font-semibold text-lg mb-2">
+                Sblocca i dettagli di tutte le {filteredOpportunities.length} opportunità
+              </h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                Vedi il nome delle aziende, gli importi esatti, le scadenze e genera 
+                automaticamente le richieste di rimborso.
+              </p>
+              <Button onClick={() => setShowPaywall(true)} size="lg" className="bg-gradient-hero hover:opacity-90">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Passa a Premium
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 }

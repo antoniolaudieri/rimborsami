@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Paywall } from '@/components/Paywall';
 import {
   ArrowLeft,
   Clock,
@@ -26,6 +28,8 @@ import {
   Shield,
   Package,
   FileQuestion,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 
 interface OpportunityDetail {
@@ -78,6 +82,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 export default function DashboardOpportunityDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { isPremium, isFree, loading: subscriptionLoading } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -86,12 +91,17 @@ export default function DashboardOpportunityDetail() {
   const [generatedText, setGeneratedText] = useState('');
   const [generating, setGenerating] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [opportunitiesCount, setOpportunitiesCount] = useState(0);
+  const [estimatedRange, setEstimatedRange] = useState({ min: 0, max: 0 });
 
   useEffect(() => {
     if (user && id) {
       fetchOpportunity();
+      if (isFree) {
+        fetchOpportunitiesStats();
+      }
     }
-  }, [user, id]);
+  }, [user, id, isFree]);
 
   const fetchOpportunity = async () => {
     try {
@@ -138,6 +148,33 @@ export default function DashboardOpportunityDetail() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOpportunitiesStats = async () => {
+    try {
+      const { data } = await supabase
+        .from('user_opportunities')
+        .select(`
+          estimated_amount,
+          opportunities (min_amount, max_amount)
+        `)
+        .eq('user_id', user?.id);
+
+      if (data) {
+        setOpportunitiesCount(data.length);
+        const min = data.reduce((sum, o) => {
+          const opp = o.opportunities as { min_amount?: number } | null;
+          return sum + (opp?.min_amount || o.estimated_amount || 0);
+        }, 0);
+        const max = data.reduce((sum, o) => {
+          const opp = o.opportunities as { max_amount?: number } | null;
+          return sum + (opp?.max_amount || o.estimated_amount || 0);
+        }, 0);
+        setEstimatedRange({ min, max });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -228,10 +265,30 @@ export default function DashboardOpportunityDetail() {
     });
   };
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show paywall for free users
+  if (isFree) {
+    return (
+      <div className="space-y-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="-ml-2">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Torna alle opportunità
+          </Button>
+        </motion.div>
+
+        <Paywall
+          opportunitiesCount={opportunitiesCount}
+          estimatedRange={estimatedRange}
+          variant="fullpage"
+        />
       </div>
     );
   }
