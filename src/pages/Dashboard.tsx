@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Paywall, LockedContent, PremiumBadge } from '@/components/Paywall';
 import {
   TrendingUp,
   Clock,
@@ -18,13 +20,15 @@ import {
   Bell,
   ArrowRight,
   Euro,
+  Lock,
 } from 'lucide-react';
 
 interface DashboardStats {
   totalOpportunities: number;
   completedOpportunities: number;
   pendingOpportunities: number;
-  estimatedRecovery: number;
+  estimatedRecoveryMin: number;
+  estimatedRecoveryMax: number;
   actualRecovery: number;
   unreadNotifications: number;
 }
@@ -69,17 +73,20 @@ const categoryIcons: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { isPremium, isFree, loading: subscriptionLoading } = useSubscription();
   const [stats, setStats] = useState<DashboardStats>({
     totalOpportunities: 0,
     completedOpportunities: 0,
     pendingOpportunities: 0,
-    estimatedRecovery: 0,
+    estimatedRecoveryMin: 0,
+    estimatedRecoveryMax: 0,
     actualRecovery: 0,
     unreadNotifications: 0,
   });
   const [recentOpportunities, setRecentOpportunities] = useState<UserOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<{ full_name: string; onboarding_completed: boolean } | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -111,7 +118,9 @@ export default function Dashboard() {
           opportunities (
             title,
             category,
-            short_description
+            short_description,
+            min_amount,
+            max_amount
           )
         `)
         .eq('user_id', user?.id)
@@ -128,11 +137,22 @@ export default function Dashboard() {
         const completed = opportunities.filter(o => o.status === 'completed');
         const pending = opportunities.filter(o => o.status !== 'completed' && o.status !== 'expired');
         
+        // Calculate min/max ranges for free users
+        const minTotal = opportunities.reduce((sum, o) => {
+          const opp = o.opportunities as { min_amount?: number } | null;
+          return sum + (opp?.min_amount || o.estimated_amount || 0);
+        }, 0);
+        const maxTotal = opportunities.reduce((sum, o) => {
+          const opp = o.opportunities as { max_amount?: number } | null;
+          return sum + (opp?.max_amount || o.estimated_amount || 0);
+        }, 0);
+        
         setStats({
           totalOpportunities: opportunities.length,
           completedOpportunities: completed.length,
           pendingOpportunities: pending.length,
-          estimatedRecovery: opportunities.reduce((sum, o) => sum + (o.estimated_amount || 0), 0),
+          estimatedRecoveryMin: minTotal,
+          estimatedRecoveryMax: maxTotal,
           actualRecovery: completed.reduce((sum, o) => sum + (o.actual_amount || o.estimated_amount || 0), 0),
           unreadNotifications: notifCount || 0,
         });
@@ -152,8 +172,21 @@ export default function Dashboard() {
 
   const firstName = profile?.full_name?.split(' ')[0] || 'Utente';
 
+  const handleLockedClick = () => {
+    setShowPaywall(true);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <Paywall
+          opportunitiesCount={stats.totalOpportunities}
+          estimatedRange={{ min: stats.estimatedRecoveryMin, max: stats.estimatedRecoveryMax }}
+          onClose={() => setShowPaywall(false)}
+        />
+      )}
+
       {/* Welcome header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -166,14 +199,22 @@ export default function Dashboard() {
             Ecco il riepilogo dei tuoi rimborsi
           </p>
         </div>
-        {!profile?.onboarding_completed && (
-          <Button asChild>
-            <Link to="/quiz">
+        <div className="flex items-center gap-3">
+          {isFree && (
+            <Button variant="outline" onClick={() => setShowPaywall(true)}>
               <Sparkles className="w-4 h-4 mr-2" />
-              Completa il quiz
-            </Link>
-          </Button>
-        )}
+              Passa a Premium
+            </Button>
+          )}
+          {!profile?.onboarding_completed && (
+            <Button asChild>
+              <Link to="/quiz">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Completa il quiz
+              </Link>
+            </Button>
+          )}
+        </div>
       </motion.div>
 
       {/* Stats cards */}
@@ -185,12 +226,22 @@ export default function Dashboard() {
         >
           <Card className="bg-gradient-hero text-white">
             <CardHeader className="pb-2">
-              <CardDescription className="text-white/80">Importo stimato</CardDescription>
+              <CardDescription className="text-white/80">
+                {isFree ? 'Range stimato' : 'Importo stimato'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-1">
                 <Euro className="w-5 h-5" />
-                <span className="text-3xl font-bold">{stats.estimatedRecovery.toLocaleString('it-IT')}</span>
+                {isFree ? (
+                  <span className="text-2xl font-bold">
+                    {stats.estimatedRecoveryMin.toLocaleString('it-IT')} - {stats.estimatedRecoveryMax.toLocaleString('it-IT')}
+                  </span>
+                ) : (
+                  <span className="text-3xl font-bold">
+                    {stats.estimatedRecoveryMax.toLocaleString('it-IT')}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-white/80 mt-1">recuperabile</p>
             </CardContent>
@@ -223,18 +274,39 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Tasso di successo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold">{completionRate}%</span>
+          {isPremium ? (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Tasso di successo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold">{completionRate}%</span>
+                </div>
+                <Progress value={completionRate} className="mt-2 h-2" />
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="relative overflow-hidden cursor-pointer" onClick={handleLockedClick}>
+              <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <Lock className="w-4 h-4" />
+                  <span>Sblocca con Premium</span>
+                </div>
               </div>
-              <Progress value={completionRate} className="mt-2 h-2" />
-            </CardContent>
-          </Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Tasso di successo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold blur-sm">75%</span>
+                </div>
+                <Progress value={75} className="mt-2 h-2 blur-sm" />
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
 
         <motion.div
@@ -242,20 +314,43 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
         >
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Recuperato</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-1">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold text-primary">€{stats.actualRecovery.toLocaleString('it-IT')}</span>
+          {isPremium ? (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Recuperato</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-1">
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold text-primary">€{stats.actualRecovery.toLocaleString('it-IT')}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  da {stats.completedOpportunities} pratiche
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="relative overflow-hidden cursor-pointer" onClick={handleLockedClick}>
+              <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <Lock className="w-4 h-4" />
+                  <span>Sblocca con Premium</span>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                da {stats.completedOpportunities} pratiche
-              </p>
-            </CardContent>
-          </Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Recuperato</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-1">
+                  <CheckCircle2 className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold text-primary blur-sm">€1.250</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 blur-sm">
+                  da 3 pratiche
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
       </div>
 
@@ -276,7 +371,7 @@ export default function Dashboard() {
                 <Link to="/dashboard/opportunities">
                   <span className="flex items-center gap-2">
                     <FileSearch className="w-4 h-4" />
-                    Cerca nuove opportunità
+                    Vedi opportunità
                   </span>
                   <ChevronRight className="w-4 h-4" />
                 </Link>
@@ -351,31 +446,58 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-3">
                   {recentOpportunities.map((opp) => (
-                    <Link
+                    <div
                       key={opp.id}
-                      to={`/dashboard/opportunities/${opp.id}`}
-                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                      onClick={isFree ? handleLockedClick : undefined}
+                      className={isFree ? 'cursor-pointer' : ''}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">
-                        {categoryIcons[opp.opportunities?.category || 'other']}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
-                          {opp.opportunities?.title || 'Opportunità'}
-                        </p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {opp.opportunities?.short_description}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <Badge className={statusColors[opp.status]}>
-                          {statusLabels[opp.status]}
-                        </Badge>
-                        <p className="text-sm font-medium mt-1">
-                          €{opp.estimated_amount?.toLocaleString('it-IT')}
-                        </p>
-                      </div>
-                    </Link>
+                      {isFree ? (
+                        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 relative">
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">
+                            {categoryIcons[opp.opportunities?.category || 'other']}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-muted-foreground">
+                              Opportunità di rimborso
+                            </p>
+                            <p className="text-sm text-muted-foreground/70 blur-[3px]">
+                              {opp.opportunities?.short_description || 'Dettagli nascosti'}
+                            </p>
+                          </div>
+                          <div className="text-right flex items-center gap-2">
+                            <Badge className={statusColors[opp.status]}>
+                              {statusLabels[opp.status]}
+                            </Badge>
+                            <Lock className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        </div>
+                      ) : (
+                        <Link
+                          to={`/dashboard/opportunities/${opp.id}`}
+                          className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">
+                            {categoryIcons[opp.opportunities?.category || 'other']}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">
+                              {opp.opportunities?.title || 'Opportunità'}
+                            </p>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {opp.opportunities?.short_description}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge className={statusColors[opp.status]}>
+                              {statusLabels[opp.status]}
+                            </Badge>
+                            <p className="text-sm font-medium mt-1">
+                              €{opp.estimated_amount?.toLocaleString('it-IT')}
+                            </p>
+                          </div>
+                        </Link>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -384,34 +506,68 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Tips section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-          <CardContent className="py-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Suggerimento del giorno</h3>
-                <p className="text-sm text-muted-foreground">
-                  Collega la tua email per scansionare automaticamente conferme di volo, 
-                  ricevute e documenti bancari. Troveremo rimborsi che potresti aver dimenticato!
-                </p>
-                <Button variant="link" className="px-0 mt-2" asChild>
-                  <Link to="/dashboard/documents">
-                    Collega email <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
+      {/* Upgrade CTA for free users */}
+      {isFree && stats.totalOpportunities > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-primary/30">
+            <CardContent className="py-6">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">Sblocca il tuo potenziale di recupero</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Hai trovato <strong>{stats.totalOpportunities} opportunità</strong> per un valore 
+                    tra <strong>€{stats.estimatedRecoveryMin.toLocaleString('it-IT')}</strong> e{' '}
+                    <strong>€{stats.estimatedRecoveryMax.toLocaleString('it-IT')}</strong>. 
+                    Passa a Premium per sbloccare i dettagli e iniziare a recuperare i tuoi soldi.
+                  </p>
+                </div>
+                <Button onClick={() => setShowPaywall(true)} size="lg" className="bg-gradient-hero hover:opacity-90">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Sblocca tutto
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Tips section - Only for premium */}
+      {isPremium && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="py-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Suggerimento del giorno</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Collega la tua email per scansionare automaticamente conferme di volo, 
+                    ricevute e documenti bancari. Troveremo rimborsi che potresti aver dimenticato!
+                  </p>
+                  <Button variant="link" className="px-0 mt-2" asChild>
+                    <Link to="/dashboard/documents">
+                      Collega email <ArrowRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 }
