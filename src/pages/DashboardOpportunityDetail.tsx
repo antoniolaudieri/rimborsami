@@ -188,7 +188,7 @@ export default function DashboardOpportunityDetail() {
     setGenerating(false);
   };
 
-  const updateStatus = async (newStatus: string) => {
+  const updateStatus = async (newStatus: 'found' | 'started' | 'sent' | 'completed' | 'expired') => {
     if (!opportunity) return;
 
     setUpdating(true);
