@@ -1,142 +1,97 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDocuments } from '@/hooks/useDocuments';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
-  Upload,
+  Loader2,
+  File,
+  Mail,
+  Search,
+  Filter,
   FileText,
   Image,
-  Mail,
-  Loader2,
-  Trash2,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  File,
+  X,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { DocumentUploader } from '@/components/documents/DocumentUploader';
+import { DocumentCard } from '@/components/documents/DocumentCard';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-interface Document {
-  id: string;
-  type: string;
-  source: string;
-  file_name: string | null;
-  file_url: string | null;
-  processing_status: string;
-  created_at: string;
-}
-
-const typeIcons: Record<string, React.ReactNode> = {
-  pdf: <FileText className="w-5 h-5" />,
-  image: <Image className="w-5 h-5" />,
-  email: <Mail className="w-5 h-5" />,
-};
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-700',
-  processing: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  error: 'bg-red-100 text-red-700',
-};
-
-const statusLabels: Record<string, string> = {
-  pending: 'In attesa',
-  processing: 'Elaborazione',
-  completed: 'Completato',
-  error: 'Errore',
-};
+type FilterStatus = 'all' | 'pending' | 'processing' | 'completed' | 'error';
+type FilterType = 'all' | 'pdf' | 'image' | 'email';
 
 export default function DashboardDocuments() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const {
+    documents,
+    loading,
+    uploading,
+    uploadProgress,
+    uploadDocument,
+    deleteDocument,
+    reprocessDocument,
+    getPreviewUrl,
+  } = useDocuments();
 
-  useEffect(() => {
-    if (user) {
-      fetchDocuments();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Filter documents
+  const filteredDocuments = documents.filter((doc) => {
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const fileName = doc.file_name?.toLowerCase() || '';
+      if (!fileName.includes(query)) return false;
     }
-  }, [user]);
 
-  const fetchDocuments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDocuments(data || []);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-    } finally {
-      setLoading(false);
+    // Status filter
+    if (filterStatus !== 'all' && doc.processing_status !== filterStatus) {
+      return false;
     }
-  };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    // Type filter
+    if (filterType !== 'all' && doc.type !== filterType) {
+      return false;
+    }
 
-    setUploading(true);
-    const file = files[0];
+    return true;
+  });
 
-    try {
-      // Determine file type
-      let fileType: 'pdf' | 'image' | 'email' = 'pdf';
-      if (file.type.startsWith('image/')) {
-        fileType = 'image';
-      } else if (file.type === 'application/pdf') {
-        fileType = 'pdf';
-      }
-
-      // For now, just create a document record (storage bucket would be needed for actual upload)
-      const { error } = await supabase.from('documents').insert({
-        user_id: user?.id,
-        type: fileType,
-        source: 'upload',
-        file_name: file.name,
-        processing_status: 'pending',
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Documento caricato',
-        description: 'Il documento verrà analizzato a breve',
-      });
-
-      fetchDocuments();
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      toast({
-        title: 'Errore',
-        description: 'Impossibile caricare il documento',
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-      e.target.value = '';
+  const handlePreview = async (fileUrl: string) => {
+    const url = await getPreviewUrl(fileUrl);
+    if (url) {
+      setPreviewUrl(url);
+      setPreviewOpen(true);
     }
   };
 
-  const deleteDocument = async (id: string) => {
-    try {
-      await supabase.from('documents').delete().eq('id', id);
-      setDocuments(documents.filter(d => d.id !== id));
-      toast({
-        title: 'Eliminato',
-        description: 'Il documento è stato eliminato',
-      });
-    } catch (error) {
-      console.error('Error deleting document:', error);
-    }
+  const handleDelete = async (id: string, fileUrl: string | null) => {
+    return deleteDocument(id, fileUrl);
   };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('all');
+    setFilterType('all');
+  };
+
+  const hasActiveFilters = searchQuery || filterStatus !== 'all' || filterType !== 'all';
 
   if (loading) {
     return (
@@ -152,7 +107,7 @@ export default function DashboardDocuments() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl md:text-3xl font-bold">Documenti</h1>
         <p className="text-muted-foreground mt-1">
-          Carica documenti per trovare nuove opportunità di rimborso
+          Carica documenti per trovare automaticamente nuove opportunità di rimborso
         </p>
       </motion.div>
 
@@ -162,47 +117,11 @@ export default function DashboardDocuments() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5" />
-              Carica documenti
-            </CardTitle>
-            <CardDescription>
-              Carica scontrini, conferme di prenotazione, estratti conto e altri documenti
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <label className="block">
-              <div className="border-2 border-dashed rounded-xl p-8 text-center hover:border-primary/50 hover:bg-muted/50 transition-colors cursor-pointer">
-                {uploading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                    <p className="font-medium mb-1">Trascina qui i tuoi file</p>
-                    <p className="text-sm text-muted-foreground">
-                      oppure clicca per selezionare
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      PDF, JPG, PNG fino a 10MB
-                    </p>
-                  </>
-                )}
-              </div>
-              <input
-                type="file"
-                className="hidden"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                disabled={uploading}
-              />
-            </label>
-          </CardContent>
-        </Card>
+        <DocumentUploader
+          onUpload={uploadDocument}
+          uploading={uploading}
+          uploadProgress={uploadProgress}
+        />
       </motion.div>
 
       {/* Connect email */}
@@ -239,56 +158,131 @@ export default function DashboardDocuments() {
         transition={{ delay: 0.2 }}
       >
         <Card>
-          <CardHeader>
+          <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>I tuoi documenti</CardTitle>
+            <span className="text-sm text-muted-foreground">
+              {filteredDocuments.length} {filteredDocuments.length === 1 ? 'documento' : 'documenti'}
+            </span>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Filters */}
+            {documents.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Cerca per nome file..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select
+                  value={filterStatus}
+                  onValueChange={(v) => setFilterStatus(v as FilterStatus)}
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Stato" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tutti gli stati</SelectItem>
+                    <SelectItem value="pending">In attesa</SelectItem>
+                    <SelectItem value="processing">Elaborazione</SelectItem>
+                    <SelectItem value="completed">Completati</SelectItem>
+                    <SelectItem value="error">Errori</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={filterType}
+                  onValueChange={(v) => setFilterType(v as FilterType)}
+                >
+                  <SelectTrigger className="w-full sm:w-36">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tutti i tipi</SelectItem>
+                    <SelectItem value="pdf">
+                      <span className="flex items-center gap-2">
+                        <FileText className="w-3.5 h-3.5" /> PDF
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="image">
+                      <span className="flex items-center gap-2">
+                        <Image className="w-3.5 h-3.5" /> Immagini
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="icon" onClick={clearFilters}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Empty state */}
             {documents.length === 0 ? (
-              <div className="text-center py-8">
-                <File className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <h3 className="font-medium mb-1">Nessun documento</h3>
-                <p className="text-sm text-muted-foreground">
-                  Carica il tuo primo documento per iniziare
+              <div className="text-center py-12">
+                <File className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2">Nessun documento</h3>
+                <p className="text-muted-foreground max-w-sm mx-auto">
+                  Carica il tuo primo documento per iniziare a trovare opportunità di rimborso automaticamente
                 </p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {documents.map((doc, index) => (
-                  <motion.div
-                    key={doc.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center">
-                      {typeIcons[doc.type] || <FileText className="w-5 h-5" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {doc.file_name || 'Documento'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(doc.created_at).toLocaleDateString('it-IT')}
-                      </p>
-                    </div>
-                    <Badge className={statusColors[doc.processing_status]}>
-                      {statusLabels[doc.processing_status]}
-                    </Badge>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => deleteDocument(doc.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </motion.div>
-                ))}
+            ) : filteredDocuments.length === 0 ? (
+              <div className="text-center py-8">
+                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <h3 className="font-medium mb-1">Nessun risultato</h3>
+                <p className="text-sm text-muted-foreground">
+                  Prova a modificare i filtri di ricerca
+                </p>
+                <Button variant="link" onClick={clearFilters} className="mt-2">
+                  Rimuovi filtri
+                </Button>
               </div>
+            ) : (
+              <AnimatePresence mode="popLayout">
+                <div className="space-y-3">
+                  {filteredDocuments.map((doc) => (
+                    <DocumentCard
+                      key={doc.id}
+                      document={doc}
+                      onDelete={handleDelete}
+                      onReprocess={reprocessDocument}
+                      onPreview={handlePreview}
+                    />
+                  ))}
+                </div>
+              </AnimatePresence>
             )}
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Preview dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Anteprima documento</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 overflow-auto max-h-[70vh] rounded-lg bg-muted">
+            {previewUrl && (
+              <img
+                src={previewUrl}
+                alt="Document preview"
+                className="w-full h-auto object-contain"
+                onError={() => {
+                  // If image fails to load, it might be a PDF - open in new tab
+                  window.open(previewUrl, '_blank');
+                  setPreviewOpen(false);
+                }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
