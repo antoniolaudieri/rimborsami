@@ -17,12 +17,80 @@ export interface Document {
   created_at: string;
 }
 
+export interface BankAnalysis {
+  account_type?: 'conto_corrente' | 'mutuo' | 'prestito' | 'fido' | 'carta_credito';
+  bank_name?: string;
+  period?: { from: string; to: string };
+  interest_analysis?: {
+    nominal_rate?: number;
+    effective_rate?: number;
+    usury_threshold?: number;
+    is_usurious?: boolean;
+    excess_amount?: number;
+  };
+  fees_analysis?: {
+    total_fees?: number;
+    suspicious_fees?: Array<{
+      name: string;
+      amount: number;
+      issue: string;
+    }>;
+  };
+  late_fees_analysis?: {
+    total_late_fees?: number;
+    legal_limit?: number;
+    excess_amount?: number;
+    is_excessive?: boolean;
+  };
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+  estimated_refund?: number;
+  anomalies_found?: string[];
+}
+
 export interface ParsedDocumentData {
   document_type?: string;
   confidence?: number;
   extracted_data?: Record<string, unknown>;
   potential_issues?: string[];
   suggested_categories?: string[];
+  bank_analysis?: BankAnalysis;
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+}
+
+// Helper function to check if document has anomalies
+export function hasAnomalies(parsedData: ParsedDocumentData | null): boolean {
+  if (!parsedData) return false;
+  
+  const { bank_analysis, risk_level } = parsedData;
+  
+  if (risk_level === 'high' || risk_level === 'critical') return true;
+  
+  if (bank_analysis) {
+    if (bank_analysis.interest_analysis?.is_usurious) return true;
+    if (bank_analysis.late_fees_analysis?.is_excessive) return true;
+    if (bank_analysis.fees_analysis?.suspicious_fees?.length) return true;
+    if ((bank_analysis.risk_score ?? 0) >= 50) return true;
+  }
+  
+  return false;
+}
+
+// Helper function to get risk score from parsed data
+export function getRiskScore(parsedData: ParsedDocumentData | null): number {
+  if (!parsedData) return 0;
+  if (parsedData.risk_score !== undefined) return parsedData.risk_score;
+  if (parsedData.bank_analysis?.risk_score !== undefined) return parsedData.bank_analysis.risk_score;
+  return 0;
+}
+
+// Helper function to get risk level from parsed data
+export function getRiskLevel(parsedData: ParsedDocumentData | null): 'low' | 'medium' | 'high' | 'critical' | null {
+  if (!parsedData) return null;
+  if (parsedData.risk_level) return parsedData.risk_level;
+  if (parsedData.bank_analysis?.risk_level) return parsedData.bank_analysis.risk_level;
+  return null;
 }
 
 export function useDocuments() {
