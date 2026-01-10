@@ -120,8 +120,9 @@ export function useDocuments() {
         const filePath = `${user.id}/${Date.now()}_${file.name}`;
         
         setUploadProgress(20);
+        console.log('Uploading file to storage:', filePath);
 
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('documents')
           .upload(filePath, file, {
             cacheControl: '3600',
@@ -130,8 +131,10 @@ export function useDocuments() {
 
         if (uploadError) {
           console.error('Storage upload error:', uploadError);
-          throw new Error('Errore durante l\'upload del file');
+          throw new Error(`Errore upload: ${uploadError.message}`);
         }
+        
+        console.log('File uploaded successfully:', uploadData);
 
         setUploadProgress(60);
 
