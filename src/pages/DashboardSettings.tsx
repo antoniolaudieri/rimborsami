@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Paywall } from '@/components/Paywall';
 import {
   User,
   Mail,
@@ -44,6 +45,7 @@ export default function DashboardSettings() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -258,7 +260,7 @@ export default function DashboardSettings() {
               </ul>
 
               {subscription?.plan === 'free' && (
-                <Button className="w-full">
+                <Button className="w-full" onClick={() => setShowPaywall(true)}>
                   <Crown className="w-4 h-4 mr-2" />
                   Passa a Premium
                 </Button>
@@ -333,6 +335,14 @@ export default function DashboardSettings() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <Paywall
+          opportunitiesCount={0}
+          onClose={() => setShowPaywall(false)}
+        />
+      )}
     </div>
   );
 }

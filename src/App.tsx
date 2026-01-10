@@ -19,6 +19,8 @@ import DashboardDocuments from "./pages/DashboardDocuments";
 import DashboardRequests from "./pages/DashboardRequests";
 import DashboardNotifications from "./pages/DashboardNotifications";
 import DashboardSettings from "./pages/DashboardSettings";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             
             {/* Quiz route - protected */}
             <Route
