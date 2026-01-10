@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      class_actions: {
+        Row: {
+          adhesion_deadline: string | null
+          adhesion_url: string | null
+          case_number: string | null
+          created_at: string | null
+          id: string
+          last_checked_at: string | null
+          opportunity_id: string | null
+          organizer: string
+          source_url: string | null
+          status: string | null
+          tribunal: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          adhesion_deadline?: string | null
+          adhesion_url?: string | null
+          case_number?: string | null
+          created_at?: string | null
+          id?: string
+          last_checked_at?: string | null
+          opportunity_id?: string | null
+          organizer: string
+          source_url?: string | null
+          status?: string | null
+          tribunal?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          adhesion_deadline?: string | null
+          adhesion_url?: string | null
+          case_number?: string | null
+          created_at?: string | null
+          id?: string
+          last_checked_at?: string | null
+          opportunity_id?: string | null
+          organizer?: string
+          source_url?: string | null
+          status?: string | null
+          tribunal?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_actions_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -361,6 +414,12 @@ export type Database = {
         | "insurance"
         | "warranty"
         | "other"
+        | "telecom"
+        | "energy"
+        | "transport"
+        | "automotive"
+        | "tech"
+        | "class_action"
       opportunity_status: "found" | "started" | "sent" | "completed" | "expired"
       request_type: "email" | "pec" | "form"
       subscription_plan: "free" | "monthly" | "annual"
@@ -502,6 +561,12 @@ export const Constants = {
         "insurance",
         "warranty",
         "other",
+        "telecom",
+        "energy",
+        "transport",
+        "automotive",
+        "tech",
+        "class_action",
       ],
       opportunity_status: ["found", "started", "sent", "completed", "expired"],
       request_type: ["email", "pec", "form"],
