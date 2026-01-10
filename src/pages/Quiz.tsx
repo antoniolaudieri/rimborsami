@@ -146,14 +146,75 @@ const questions: QuizQuestion[] = [
     ],
   },
   {
-    id: 'subscriptions',
+    id: 'telecom',
     icon: <Wifi className="w-6 h-6" />,
-    question: 'Hai abbonamenti attivi (telefono, internet, streaming)?',
-    description: 'Spesso ci sono addebiti errati o servizi non richiesti',
-    category: 'other',
+    question: 'Hai avuto problemi con operatori telefonici/internet?',
+    description: 'Fatturazione errata, servizi non richiesti, disservizi',
+    category: 'telecom',
     options: [
-      { label: 'Sì, più di 3', value: 'many', points: 100 },
-      { label: 'Sì, 1-3', value: 'few', points: 50 },
+      { label: 'Sì, spesso', value: 'often', points: 150 },
+      { label: 'Sì, qualche volta', value: 'sometimes', points: 80 },
+      { label: 'No', value: 'no', points: 0 },
+    ],
+  },
+  {
+    id: 'energy',
+    icon: <Wifi className="w-6 h-6" />,
+    question: 'Hai notato anomalie nelle bollette luce/gas?',
+    description: 'Importi eccessivi, conguagli sproporzionati, bonus non applicati',
+    category: 'energy',
+    options: [
+      { label: 'Sì, spesso', value: 'often', points: 300 },
+      { label: 'Sì, qualche volta', value: 'sometimes', points: 150 },
+      { label: 'No', value: 'no', points: 0 },
+    ],
+  },
+  {
+    id: 'transport',
+    icon: <Truck className="w-6 h-6" />,
+    question: 'Usi spesso treni o autobus?',
+    description: 'Ritardi, cancellazioni, bagagli smarriti',
+    category: 'transport',
+    options: [
+      { label: 'Sì, ogni settimana', value: 'weekly', points: 100 },
+      { label: 'Sì, ogni mese', value: 'monthly', points: 50 },
+      { label: 'Raramente', value: 'rarely', points: 20 },
+      { label: 'Mai', value: 'never', points: 0 },
+    ],
+  },
+  {
+    id: 'auto',
+    icon: <Truck className="w-6 h-6" />,
+    question: 'Possiedi un\'auto acquistata negli ultimi 5 anni?',
+    description: 'Potrebbero esserci richiami o class action attive',
+    category: 'automotive',
+    options: [
+      { label: 'Sì, nuova', value: 'new', points: 200 },
+      { label: 'Sì, usata', value: 'used', points: 150 },
+      { label: 'No', value: 'no', points: 0 },
+    ],
+  },
+  {
+    id: 'tech_accounts',
+    icon: <Wifi className="w-6 h-6" />,
+    question: 'Hai account su piattaforme come ePrice, InfoCert, Apple?',
+    description: 'Ci sono class action attive per data breach e obsolescenza',
+    category: 'tech',
+    options: [
+      { label: 'Sì, più di una', value: 'multiple', points: 200 },
+      { label: 'Sì, una', value: 'once', points: 100 },
+      { label: 'No', value: 'no', points: 0 },
+    ],
+  },
+  {
+    id: 'class_actions',
+    icon: <Wifi className="w-6 h-6" />,
+    question: 'Sei interessato a partecipare a class action?',
+    description: 'Azioni legali collettive contro grandi aziende',
+    category: 'class_action',
+    options: [
+      { label: 'Sì, molto', value: 'very', points: 500 },
+      { label: 'Sì, se non costa nulla', value: 'free', points: 300 },
       { label: 'No', value: 'no', points: 0 },
     ],
   },
@@ -262,6 +323,36 @@ export default function Quiz() {
             case 'warranty':
               if ((answers.electronics && answers.electronics !== 'no') || 
                   (answers.defects && answers.defects !== 'no')) {
+                shouldMatch = true;
+              }
+              break;
+            case 'telecom':
+              if (answers.telecom && answers.telecom !== 'no') {
+                shouldMatch = true;
+              }
+              break;
+            case 'energy':
+              if (answers.energy && answers.energy !== 'no') {
+                shouldMatch = true;
+              }
+              break;
+            case 'transport':
+              if (answers.transport && answers.transport !== 'never') {
+                shouldMatch = true;
+              }
+              break;
+            case 'automotive':
+              if (answers.auto && answers.auto !== 'no') {
+                shouldMatch = true;
+              }
+              break;
+            case 'tech':
+              if (answers.tech_accounts && answers.tech_accounts !== 'no') {
+                shouldMatch = true;
+              }
+              break;
+            case 'class_action':
+              if (answers.class_actions && answers.class_actions !== 'no') {
                 shouldMatch = true;
               }
               break;

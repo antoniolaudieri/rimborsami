@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.check-deadlines]
 verify_jwt = false
+
+[functions.sync-class-actions]
+verify_jwt = false

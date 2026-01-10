@@ -26,6 +26,12 @@ import {
   FileQuestion,
   Lock,
   Sparkles,
+  Phone,
+  Zap,
+  Train,
+  Car,
+  Smartphone,
+  Users,
 } from 'lucide-react';
 
 interface UserOpportunity {
@@ -68,6 +74,12 @@ const categoryIcons: Record<string, React.ReactNode> = {
   bank: <Landmark className="w-5 h-5" />,
   insurance: <Shield className="w-5 h-5" />,
   warranty: <Package className="w-5 h-5" />,
+  telecom: <Phone className="w-5 h-5" />,
+  energy: <Zap className="w-5 h-5" />,
+  transport: <Train className="w-5 h-5" />,
+  automotive: <Car className="w-5 h-5" />,
+  tech: <Smartphone className="w-5 h-5" />,
+  class_action: <Users className="w-5 h-5" />,
   other: <FileQuestion className="w-5 h-5" />,
 };
 
@@ -77,6 +89,12 @@ const categoryLabels: Record<string, string> = {
   bank: 'Banche',
   insurance: 'Assicurazioni',
   warranty: 'Garanzia',
+  telecom: 'Telecomunicazioni',
+  energy: 'Energia',
+  transport: 'Trasporti',
+  automotive: 'Auto',
+  tech: 'Tech/Privacy',
+  class_action: 'Class Action',
   other: 'Altro',
 };
 
