@@ -16,9 +16,11 @@ import {
   AlertTriangle,
   ArrowUpDown,
   ShieldAlert,
+  FileDown,
 } from 'lucide-react';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
 import { DocumentCard } from '@/components/documents/DocumentCard';
+import { ReportGenerator } from '@/components/documents/ReportGenerator';
 import {
   Dialog,
   DialogContent,
@@ -239,14 +241,20 @@ export default function DashboardDocuments() {
                         : 'Espandi i documenti per visualizzare i dettagli delle anomalie'}
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setFilterAnomaly('with_anomalies')}
-                    className="gap-2"
-                  >
-                    <AlertTriangle className="w-4 h-4" />
-                    Mostra solo anomalie
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <ReportGenerator 
+                      documents={documents} 
+                      variant="compact"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => setFilterAnomaly('with_anomalies')}
+                      className="gap-2"
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      Mostra solo anomalie
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
