@@ -67,6 +67,42 @@ export type Database = {
           },
         ]
       }
+      company_contacts: {
+        Row: {
+          category: string
+          created_at: string
+          email_reclami: string | null
+          id: string
+          indirizzo_sede_legale: string | null
+          name: string
+          note: string | null
+          pec_reclami: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          email_reclami?: string | null
+          id?: string
+          indirizzo_sede_legale?: string | null
+          name: string
+          note?: string | null
+          pec_reclami?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          email_reclami?: string | null
+          id?: string
+          indirizzo_sede_legale?: string | null
+          name?: string
+          note?: string | null
+          pec_reclami?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -323,6 +359,7 @@ export type Database = {
           matched_data: Json | null
           notes: string | null
           opportunity_id: string
+          outcome: string | null
           status: Database["public"]["Enums"]["opportunity_status"]
           updated_at: string
           user_id: string
@@ -337,6 +374,7 @@ export type Database = {
           matched_data?: Json | null
           notes?: string | null
           opportunity_id: string
+          outcome?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
           updated_at?: string
           user_id: string
@@ -351,6 +389,7 @@ export type Database = {
           matched_data?: Json | null
           notes?: string | null
           opportunity_id?: string
+          outcome?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
           updated_at?: string
           user_id?: string
