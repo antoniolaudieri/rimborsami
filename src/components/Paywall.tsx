@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Logo from '@/components/Logo';
 import {
   Lock,
   Sparkles,
@@ -40,14 +41,14 @@ export function Paywall({
 
   const content = (
     <div className="space-y-6">
-      {/* Header con valore scoperto */}
+      {/* Header con logo e valore scoperto */}
       <div className="text-center space-y-4">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="w-16 h-16 mx-auto rounded-full bg-gradient-gold flex items-center justify-center shadow-gold"
+          className="flex justify-center"
         >
-          <Sparkles className="w-8 h-8 text-white" />
+          <Logo size="xl" showText={false} linkTo={undefined} />
         </motion.div>
 
         <div>
@@ -139,13 +140,13 @@ export function Paywall({
 
   if (variant === 'fullpage') {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center p-4">
+      <div className="min-h-[80vh] flex items-center justify-center p-4 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-lg w-full"
+          className="max-w-lg w-full my-auto"
         >
-          <Card className="border-primary/30 shadow-glow">
+          <Card className="border-primary/30 shadow-glow max-h-[85vh] overflow-y-auto">
             <CardContent className="py-8">{content}</CardContent>
           </Card>
         </motion.div>
@@ -159,20 +160,20 @@ export function Paywall({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative max-w-lg w-full"
+        className="relative max-w-lg w-full my-auto"
       >
-        <Card className="border-primary/30 shadow-glow">
+        <Card className="border-primary/30 shadow-glow max-h-[90vh] overflow-y-auto">
           {onClose && (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-2"
+              className="absolute right-2 top-2 z-10"
               onClick={onClose}
             >
               <X className="w-4 h-4" />
