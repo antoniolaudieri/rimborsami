@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/Logo';
 import {
   Home,
   Search,
@@ -49,10 +50,7 @@ export function DashboardLayout() {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl">💰</span>
-            <span className="font-bold text-lg">Rimborsami</span>
-          </Link>
+          <Logo size="sm" />
           <div className="w-9" /> {/* Spacer for centering */}
         </div>
       </header>
@@ -117,10 +115,7 @@ function SidebarContent({ user, currentPath, onSignOut, onClose }: SidebarConten
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="p-4 border-b flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl">💰</span>
-          <span className="font-bold text-xl">Rimborsami</span>
-        </Link>
+        <Logo size="lg" />
         {onClose && (
           <button onClick={onClose} className="p-1 hover:bg-muted rounded lg:hidden">
             <X className="w-5 h-5" />
