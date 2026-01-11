@@ -106,15 +106,16 @@ const getSchemaForCategory = (category: string) => {
   }
 };
 
+// Company names matching company_contacts table for proper lookup
 const airlines = [
-  'Ryanair', 'Wizz Air', 'ITA Airways', 'EasyJet', 'Vueling', 'Volotea', 
-  'Lufthansa', 'Air France', 'British Airways', 'KLM', 'Altro'
+  'Ryanair', 'Wizz Air', 'ITA Airways', 'EasyJet', 'Vueling', 'Volotea', 'Altro'
 ];
 
 const telecomOperators = ['TIM', 'Vodafone', 'WindTre', 'Fastweb', 'Iliad', 'Altro'];
 const energySuppliers = ['Enel Energia', 'Eni Plenitude', 'A2A Energia', 'Hera Comm', 'Edison Energia', 'Altro'];
 const banks = ['Intesa Sanpaolo', 'UniCredit', 'Banco BPM', 'Fineco', 'ING', 'Hype', 'Altro'];
 const insurances = ['Generali', 'Allianz', 'UnipolSai', 'AXA', 'Altro'];
+const ecommerceVendors = ['Amazon', 'Zalando', 'eBay', 'Shein', 'Temu', 'Altro'];
 
 export default function DataCollectionForm({
   category,
@@ -286,10 +287,19 @@ export default function DataCollectionForm({
         name="seller_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nome venditore/piattaforma</FormLabel>
-            <FormControl>
-              <Input placeholder="es: Amazon, Zalando" {...field} />
-            </FormControl>
+            <FormLabel>Venditore/Piattaforma</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona venditore" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {ecommerceVendors.map((v) => (
+                  <SelectItem key={v} value={v}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}
