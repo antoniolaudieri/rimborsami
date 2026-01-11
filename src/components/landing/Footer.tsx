@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Mail, Shield, MapPin } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -23,9 +24,7 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
           >
-            <Link to="/" className="font-display text-2xl font-bold mb-4 block">
-              <span className="text-primary">Rimborsami</span>
-            </Link>
+            <Logo size="lg" textClassName="text-primary" className="mb-4" />
             <p className="text-primary-foreground/70 text-sm mb-4">
               La piattaforma italiana per recuperare rimborsi, compensazioni e indennizzi 
               che ti spettano.

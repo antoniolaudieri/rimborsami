@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import Logo from "@/components/Logo";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -34,9 +35,7 @@ const Header = () => {
     >
       <div className="container flex items-center justify-between h-16 md:h-20">
         {/* Logo */}
-        <Link to="/" className="font-display text-xl md:text-2xl font-bold">
-          <span className="text-gradient-hero">Rimborsami</span>
-        </Link>
+        <Logo size="md" />
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
