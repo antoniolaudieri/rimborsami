@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Paywall } from '@/components/Paywall';
+import DataCollectionForm from '@/components/opportunities/DataCollectionForm';
+import OutcomeFeedback from '@/components/opportunities/OutcomeFeedback';
 import {
   ArrowLeft,
   Clock,
@@ -30,6 +33,8 @@ import {
   FileQuestion,
   Lock,
   Sparkles,
+  ClipboardList,
+  MessageSquare,
 } from 'lucide-react';
 
 interface OpportunityDetail {
@@ -93,6 +98,8 @@ export default function DashboardOpportunityDetail() {
   const [updating, setUpdating] = useState(false);
   const [opportunitiesCount, setOpportunitiesCount] = useState(0);
   const [estimatedRange, setEstimatedRange] = useState({ min: 0, max: 0 });
+  const [hasUserData, setHasUserData] = useState(false);
+  const [activeTab, setActiveTab] = useState('data');
 
   useEffect(() => {
     if (user && id) {
@@ -139,6 +146,17 @@ export default function DashboardOpportunityDetail() {
       }
 
       setOpportunity(data as OpportunityDetail);
+      
+      // Check if user has filled in their data
+      const matchedData = data.matched_data as Record<string, unknown>;
+      const hasData = matchedData && Object.keys(matchedData).length > 0 && 
+        !('quiz_answers' in matchedData && Object.keys(matchedData).length === 1);
+      setHasUserData(hasData);
+      
+      // If data exists, switch to request tab
+      if (hasData) {
+        setActiveTab('request');
+      }
     } catch (error) {
       console.error('Error fetching opportunity:', error);
       toast({
@@ -392,74 +410,136 @@ export default function DashboardOpportunityDetail() {
             </Card>
           </motion.div>
 
-          {/* Request generator */}
+          {/* Tabs for data collection and request generation */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Genera richiesta
-                </CardTitle>
-                <CardDescription>
-                  Genera automaticamente il testo per richiedere il tuo rimborso
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => generateRequest('email')}
-                    disabled={generating || !opp?.template_email}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {generating ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Mail className="w-4 h-4 mr-2" />
-                    )}
-                    Email
-                  </Button>
-                  <Button
-                    onClick={() => generateRequest('pec')}
-                    disabled={generating || !opp?.template_pec}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {generating ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4 mr-2" />
-                    )}
-                    PEC
-                  </Button>
-                </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="data" className="flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4" />
+                  <span className="hidden sm:inline">Dati</span>
+                </TabsTrigger>
+                <TabsTrigger value="request" className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  <span className="hidden sm:inline">Richiesta</span>
+                </TabsTrigger>
+                <TabsTrigger value="outcome" className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden sm:inline">Esito</span>
+                </TabsTrigger>
+              </TabsList>
 
-                {generatedText && (
-                  <div className="space-y-3">
-                    <Textarea
-                      value={generatedText}
-                      onChange={(e) => setGeneratedText(e.target.value)}
-                      rows={12}
-                      className="font-mono text-sm"
-                    />
-                    <div className="flex gap-2">
-                      <Button onClick={copyToClipboard} variant="secondary">
-                        <Copy className="w-4 h-4 mr-2" />
-                        Copia
+              <TabsContent value="data">
+                <DataCollectionForm
+                  category={opp?.category || 'other'}
+                  userOpportunityId={opportunity.id}
+                  existingData={opportunity.matched_data as Record<string, unknown>}
+                  onComplete={(data) => {
+                    setHasUserData(true);
+                    setOpportunity(prev => prev ? { ...prev, matched_data: data } : null);
+                    setActiveTab('request');
+                  }}
+                />
+              </TabsContent>
+
+              <TabsContent value="request">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Genera richiesta
+                    </CardTitle>
+                    <CardDescription>
+                      {hasUserData 
+                        ? 'Genera automaticamente il testo con i tuoi dati' 
+                        : 'Compila prima i tuoi dati nella scheda "Dati"'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {!hasUserData && (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                        <AlertCircle className="w-4 h-4 inline mr-2" />
+                        Per generare una richiesta personalizzata, inserisci prima i tuoi dati specifici.
+                        <Button 
+                          variant="link" 
+                          className="text-amber-800 underline p-0 h-auto ml-1"
+                          onClick={() => setActiveTab('data')}
+                        >
+                          Vai ai dati →
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => generateRequest('email')}
+                        disabled={generating || !opp?.template_email}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        {generating ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Mail className="w-4 h-4 mr-2" />
+                        )}
+                        Email
+                      </Button>
+                      <Button
+                        onClick={() => generateRequest('pec')}
+                        disabled={generating || !opp?.template_pec}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        {generating ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4 mr-2" />
+                        )}
+                        PEC
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      💡 Modifica il testo sopra inserendo i tuoi dati personali dove indicato,
-                      poi copialo e invialo all'azienda interessata.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+
+                    {generatedText && (
+                      <div className="space-y-3">
+                        <Textarea
+                          value={generatedText}
+                          onChange={(e) => setGeneratedText(e.target.value)}
+                          rows={12}
+                          className="font-mono text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <Button onClick={copyToClipboard} variant="secondary">
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copia
+                          </Button>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          💡 Controlla il testo generato e invialo all'azienda. 
+                          Una volta inviato, aggiorna lo stato a "Inviata".
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="outcome">
+                <OutcomeFeedback
+                  userOpportunityId={opportunity.id}
+                  currentOutcome={(opportunity as any).outcome || 'pending'}
+                  estimatedAmount={opportunity.estimated_amount}
+                  onUpdate={(outcome, actualAmount) => {
+                    setOpportunity(prev => prev ? { 
+                      ...prev, 
+                      status: outcome === 'success' || outcome === 'partial' ? 'completed' : prev.status 
+                    } : null);
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
           </motion.div>
         </div>
 
