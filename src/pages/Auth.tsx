@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
+import Logo from '@/components/Logo';
 
 const loginSchema = z.object({
   email: z.string().email('Inserisci un indirizzo email valido'),
@@ -159,8 +160,8 @@ export default function Auth() {
         >
           <Card className="border-0 shadow-lg">
             <CardHeader className="text-center pb-2">
-              <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-gradient-hero flex items-center justify-center">
-                <span className="text-2xl">💰</span>
+              <div className="mx-auto mb-4">
+                <Logo size="xl" showText={false} linkTo={undefined} />
               </div>
               <CardTitle className="text-2xl font-bold">
                 {isLogin ? 'Bentornato!' : 'Crea il tuo account'}
