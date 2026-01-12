@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/opportunities/CompanyLogo";
 import DeadlineCountdown from "@/components/opportunities/DeadlineCountdown";
 import { differenceInDays, parseISO } from "date-fns";
+import { getCategoryIcon, getCategoryColor } from "@/lib/categoryIcons";
 
 interface OpportunityCardProps {
   opportunity: {
@@ -50,6 +51,11 @@ const OpportunityCard = ({
   // Check if deadline is urgent
   const isUrgent = opp.deadline && differenceInDays(parseISO(opp.deadline), new Date()) <= 7;
 
+  // Get category icon and color
+  const category = opp.opportunities?.category || 'other';
+  const CategoryIcon = getCategoryIcon(category);
+  const categoryColor = getCategoryColor(category);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -76,8 +82,9 @@ const OpportunityCard = ({
                   <div className="min-w-0 flex-1">
                     {isFree ? (
                       <>
-                        <h3 className="font-semibold text-muted-foreground">
-                          Opportunità • {categoryLabels[opp.opportunities?.category || 'other']}
+                        <h3 className="font-semibold text-muted-foreground flex items-center gap-1.5">
+                          <CategoryIcon className={`w-4 h-4 ${categoryColor.text}`} />
+                          Opportunità • {categoryLabels[category]}
                         </h3>
                         <p className="text-sm text-muted-foreground/70 mt-0.5 blur-[3px] select-none">
                           Nome azienda nascosto
@@ -85,11 +92,12 @@ const OpportunityCard = ({
                       </>
                     ) : (
                       <>
-                        <h3 className="font-semibold line-clamp-2 sm:line-clamp-1 pr-8">
+                        <h3 className="font-semibold line-clamp-2 sm:line-clamp-1 pr-8 flex items-center gap-1.5">
+                          <CategoryIcon className={`w-4 h-4 ${categoryColor.text} flex-shrink-0`} />
                           {opp.opportunities?.title}
                         </h3>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {categoryLabels[opp.opportunities?.category || 'other']}
+                          {categoryLabels[category]}
                           {opp.opportunities?.legal_reference && (
                             <span className="hidden sm:inline ml-2">• {opp.opportunities.legal_reference}</span>
                           )}

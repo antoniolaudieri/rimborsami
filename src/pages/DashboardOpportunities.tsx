@@ -9,18 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Paywall } from '@/components/Paywall';
 import OpportunityCard from '@/components/opportunities/OpportunityCard';
+import { categoryIcons, categoryLabels, getCategoryIcon } from '@/lib/categoryIcons';
 import {
   Search,
   Euro,
   AlertCircle,
   Lock,
   Sparkles,
-  LayoutGrid,
-  List,
-  SlidersHorizontal,
+  Clock,
+  CheckCircle2,
+  ListFilter,
 } from 'lucide-react';
 
 interface UserOpportunity {
@@ -56,21 +56,6 @@ const statusLabels: Record<string, string> = {
   sent: 'Inviata',
   completed: 'Completata',
   expired: 'Scaduta',
-};
-
-const categoryLabels: Record<string, string> = {
-  flight: 'Voli',
-  ecommerce: 'E-commerce',
-  bank: 'Banche',
-  insurance: 'Assicurazioni',
-  warranty: 'Garanzia',
-  telecom: 'Telecomunicazioni',
-  energy: 'Energia',
-  transport: 'Trasporti',
-  automotive: 'Auto',
-  tech: 'Tech/Privacy',
-  class_action: 'Class Action',
-  other: 'Altro',
 };
 
 export default function DashboardOpportunities() {
@@ -245,21 +230,24 @@ export default function DashboardOpportunities() {
       {/* Tabs */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex flex-wrap h-auto gap-1 p-1 overflow-x-auto">
-          <TabsTrigger value="all" className="text-xs sm:text-sm">Tutte</TabsTrigger>
-          <TabsTrigger value="pending" className="text-xs sm:text-sm">In corso</TabsTrigger>
-          <TabsTrigger value="completed" className="text-xs sm:text-sm">Completate</TabsTrigger>
-          <TabsTrigger value="flight" className="text-xs sm:text-sm">Voli</TabsTrigger>
-          <TabsTrigger value="ecommerce" className="text-xs sm:text-sm">E-commerce</TabsTrigger>
-          <TabsTrigger value="bank" className="text-xs sm:text-sm">Banche</TabsTrigger>
-          <TabsTrigger value="telecom" className="text-xs sm:text-sm">Telecom</TabsTrigger>
-          <TabsTrigger value="energy" className="text-xs sm:text-sm">Energia</TabsTrigger>
-          <TabsTrigger value="transport" className="text-xs sm:text-sm">Trasporti</TabsTrigger>
-          <TabsTrigger value="insurance" className="text-xs sm:text-sm">Assicurazioni</TabsTrigger>
-          <TabsTrigger value="warranty" className="text-xs sm:text-sm">Garanzia</TabsTrigger>
-          <TabsTrigger value="automotive" className="text-xs sm:text-sm">Auto</TabsTrigger>
-          <TabsTrigger value="tech" className="text-xs sm:text-sm">Tech/Privacy</TabsTrigger>
-          <TabsTrigger value="class_action" className="text-xs sm:text-sm">Class Action</TabsTrigger>
-          <TabsTrigger value="other" className="text-xs sm:text-sm">Altro</TabsTrigger>
+          <TabsTrigger value="all" className="text-xs sm:text-sm gap-1.5">
+            <ListFilter className="w-3.5 h-3.5" />
+            Tutte
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="text-xs sm:text-sm gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            In corso
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="text-xs sm:text-sm gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Completate
+          </TabsTrigger>
+          {Object.entries(categoryIcons).map(([key, Icon]) => (
+            <TabsTrigger key={key} value={key} className="text-xs sm:text-sm gap-1.5">
+              <Icon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{categoryLabels[key]}</span>
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
