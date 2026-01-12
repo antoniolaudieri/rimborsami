@@ -165,6 +165,15 @@ const companyLogos: Record<string, string> = {
   'samsung': 'https://logo.clearbit.com/samsung.com',
   'xiaomi': 'https://logo.clearbit.com/xiaomi.com',
   'huawei': 'https://logo.clearbit.com/huawei.com',
+  
+  // Class Action / Organizzatori
+  'altroconsumo': 'https://logo.clearbit.com/altroconsumo.it',
+  'codacons': 'https://logo.clearbit.com/codacons.it',
+  'adiconsum': 'https://logo.clearbit.com/adiconsum.it',
+  'federconsumatori': 'https://logo.clearbit.com/federconsumatori.it',
+  'unione consumatori': 'https://logo.clearbit.com/consumatori.it',
+  'adusbef': 'https://logo.clearbit.com/adusbef.it',
+  'confconsumatori': 'https://logo.clearbit.com/confconsumatori.it',
 };
 
 // Icone categoria come fallback
@@ -226,9 +235,14 @@ function extractCompanyName(matchedData?: Record<string, unknown>, opportunityTi
   if (opportunityTitle) {
     const titleLower = opportunityTitle.toLowerCase();
     
+    // Ordina le chiavi per lunghezza decrescente per matchare prima i nomi più specifici
+    const sortedKeys = Object.keys(companyLogos).sort((a, b) => b.length - a.length);
+    
     // Cerca se il titolo contiene un nome azienda conosciuto
-    for (const companyKey of Object.keys(companyLogos)) {
-      if (titleLower.includes(companyKey)) {
+    for (const companyKey of sortedKeys) {
+      // Usa una regex per trovare la parola come parola intera o parte di parola composta
+      const regex = new RegExp(`\\b${companyKey}\\b|${companyKey}`, 'i');
+      if (regex.test(titleLower)) {
         return companyKey;
       }
     }
