@@ -762,12 +762,43 @@ export default function DataCollectionForm({
     defaultValues: (existingData as Record<string, string>) || {},
   });
 
+  // Estrai il nome dell'azienda in base alla categoria
+  const extractCompanyName = (data: Record<string, unknown>, cat: string): string | null => {
+    const companyFields: Record<string, string> = {
+      flight: 'airline',
+      ecommerce: 'seller_name',
+      bank: 'bank_name',
+      telecom: 'operator_name',
+      energy: 'supplier_name',
+      insurance: 'insurance_company',
+      warranty: 'seller_name',
+      transport: 'company_name',
+      automotive: 'company_name',
+      tech: 'company_name',
+      class_action: 'company_name',
+      other: 'company_name',
+    };
+    
+    const fieldName = companyFields[cat];
+    if (fieldName && data[fieldName]) {
+      return String(data[fieldName]);
+    }
+    return null;
+  };
+
   const onSubmit = async (data: Record<string, unknown>) => {
     setSaving(true);
     try {
+      // Estrai e salva il nome dell'azienda in un campo standardizzato
+      const companyName = extractCompanyName(data, category);
+      const dataWithCompany = {
+        ...data,
+        ...(companyName && { company_name: companyName }),
+      };
+
       const { error } = await supabase
         .from('user_opportunities')
-        .update({ matched_data: data as any })
+        .update({ matched_data: dataWithCompany as any })
         .eq('id', userOpportunityId);
 
       if (error) throw error;
@@ -777,7 +808,7 @@ export default function DataCollectionForm({
         title: 'Dati salvati!',
         description: 'Ora puoi generare la richiesta',
       });
-      onComplete(data);
+      onComplete(dataWithCompany);
     } catch (error) {
       console.error('Error saving data:', error);
       toast({
