@@ -15,133 +15,63 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mappa loghi aziendali - usando API logo affidabili
-// Logo.dev API (gratuito, affidabile) - formato: https://img.logo.dev/{domain}?token=pk_X5gcGTSoSOyPOv0M3xLMhg
-const LOGO_TOKEN = 'pk_X5gcGTSoSOyPOv0M3xLMhg';
-const logoUrl = (domain: string) => `https://img.logo.dev/${domain}?token=${LOGO_TOKEN}`;
+// Import local SVG logos
+import ryanairLogo from "@/assets/logos/ryanair.svg";
+import easyjetLogo from "@/assets/logos/easyjet.svg";
+import lufthansaLogo from "@/assets/logos/lufthansa.svg";
+import vodafoneLogo from "@/assets/logos/vodafone.svg";
+import googleLogo from "@/assets/logos/google.svg";
+import appleLogo from "@/assets/logos/apple.svg";
+import metaLogo from "@/assets/logos/meta.svg";
+import zalandoLogo from "@/assets/logos/zalando.svg";
+import netflixLogo from "@/assets/logos/netflix.svg";
+import spotifyLogo from "@/assets/logos/spotify.svg";
+import airbnbLogo from "@/assets/logos/airbnb.svg";
+import paypalLogo from "@/assets/logos/paypal.svg";
+import aliexpressLogo from "@/assets/logos/aliexpress.svg";
+import uberLogo from "@/assets/logos/uber.svg";
+import bookingLogo from "@/assets/logos/booking.svg";
+import revolutLogo from "@/assets/logos/revolut.svg";
+import n26Logo from "@/assets/logos/n26.svg";
+import ebayLogo from "@/assets/logos/ebay.svg";
+import samsungLogo from "@/assets/logos/samsung.svg";
 
+// Mappa loghi aziendali locali
 const companyLogos: Record<string, string> = {
-  // Big Tech / Class Action
-  google: logoUrl('google.com'),
-  apple: logoUrl('apple.com'),
-  meta: logoUrl('meta.com'),
-  facebook: logoUrl('facebook.com'),
-  tiktok: logoUrl('tiktok.com'),
-  amazon: logoUrl('amazon.com'),
-  microsoft: logoUrl('microsoft.com'),
-  netflix: logoUrl('netflix.com'),
-  spotify: logoUrl('spotify.com'),
-  paypal: logoUrl('paypal.com'),
-  twitter: logoUrl('twitter.com'),
-  x: logoUrl('x.com'),
-  instagram: logoUrl('instagram.com'),
-  whatsapp: logoUrl('whatsapp.com'),
-  linkedin: logoUrl('linkedin.com'),
-  
-  // Travel & Booking
-  booking: logoUrl('booking.com'),
-  'booking.com': logoUrl('booking.com'),
-  airbnb: logoUrl('airbnb.com'),
-  expedia: logoUrl('expedia.com'),
-  tripadvisor: logoUrl('tripadvisor.com'),
-  skyscanner: logoUrl('skyscanner.com'),
-  
-  // Automotive
-  volkswagen: logoUrl('volkswagen.com'),
-  stellantis: logoUrl('stellantis.com'),
-  citroen: logoUrl('citroen.com'),
-  citroën: logoUrl('citroen.com'),
-  opel: logoUrl('opel.com'),
-  fiat: logoUrl('fiat.com'),
-  peugeot: logoUrl('peugeot.com'),
-  renault: logoUrl('renault.com'),
-  bmw: logoUrl('bmw.com'),
-  mercedes: logoUrl('mercedes-benz.com'),
-  'mercedes-benz': logoUrl('mercedes-benz.com'),
-  audi: logoUrl('audi.com'),
-  toyota: logoUrl('toyota.com'),
-  ford: logoUrl('ford.com'),
-  jeep: logoUrl('jeep.com'),
-  alfa: logoUrl('alfaromeo.com'),
-  'alfa romeo': logoUrl('alfaromeo.com'),
-  porsche: logoUrl('porsche.com'),
-  tesla: logoUrl('tesla.com'),
-  
   // Airlines
-  ryanair: logoUrl('ryanair.com'),
-  easyjet: logoUrl('easyjet.com'),
-  vueling: logoUrl('vueling.com'),
-  wizzair: logoUrl('wizzair.com'),
-  'wizz air': logoUrl('wizzair.com'),
-  lufthansa: logoUrl('lufthansa.com'),
-  'air france': logoUrl('airfrance.com'),
-  airfrance: logoUrl('airfrance.com'),
-  alitalia: logoUrl('alitalia.com'),
-  ita: logoUrl('ita-airways.com'),
-  'ita airways': logoUrl('ita-airways.com'),
-  emirates: logoUrl('emirates.com'),
-  klm: logoUrl('klm.com'),
-  volotea: logoUrl('volotea.com'),
-  'british airways': logoUrl('britishairways.com'),
+  ryanair: ryanairLogo,
+  easyjet: easyjetLogo,
+  lufthansa: lufthansaLogo,
   
-  // Banks
-  intesa: logoUrl('intesasanpaolo.com'),
-  'intesa sanpaolo': logoUrl('intesasanpaolo.com'),
-  unicredit: logoUrl('unicredit.it'),
-  bnl: logoUrl('bnl.it'),
-  fineco: logoUrl('finecobank.com'),
-  ing: logoUrl('ing.com'),
-  n26: logoUrl('n26.com'),
-  revolut: logoUrl('revolut.com'),
-  mediolanum: logoUrl('bancamediolanum.it'),
-  hype: logoUrl('hype.it'),
-  'monte paschi': logoUrl('mps.it'),
-  mps: logoUrl('mps.it'),
+  // Big Tech
+  google: googleLogo,
+  apple: appleLogo,
+  meta: metaLogo,
+  facebook: metaLogo,
+  netflix: netflixLogo,
+  spotify: spotifyLogo,
+  samsung: samsungLogo,
   
   // Telecom
-  tim: logoUrl('tim.it'),
-  vodafone: logoUrl('vodafone.it'),
-  windtre: logoUrl('windtre.it'),
-  'wind tre': logoUrl('windtre.it'),
-  wind: logoUrl('windtre.it'),
-  iliad: logoUrl('iliad.it'),
-  fastweb: logoUrl('fastweb.it'),
-  sky: logoUrl('sky.it'),
-  
-  // Energy
-  enel: logoUrl('enel.it'),
-  eni: logoUrl('eni.com'),
-  a2a: logoUrl('a2a.eu'),
-  iren: logoUrl('irenenergia.it'),
-  edison: logoUrl('edison.it'),
-  sorgenia: logoUrl('sorgenia.it'),
+  vodafone: vodafoneLogo,
   
   // E-commerce
-  ebay: logoUrl('ebay.com'),
-  zalando: logoUrl('zalando.com'),
-  shein: logoUrl('shein.com'),
-  temu: logoUrl('temu.com'),
-  mediaworld: logoUrl('mediaworld.it'),
-  unieuro: logoUrl('unieuro.it'),
-  eprice: logoUrl('eprice.it'),
+  zalando: zalandoLogo,
+  ebay: ebayLogo,
+  aliexpress: aliexpressLogo,
+  
+  // Travel & Booking
+  airbnb: airbnbLogo,
+  booking: bookingLogo,
+  'booking.com': bookingLogo,
+  
+  // Fintech
+  paypal: paypalLogo,
+  revolut: revolutLogo,
+  n26: n26Logo,
   
   // Transport
-  trenitalia: logoUrl('trenitalia.com'),
-  italo: logoUrl('italotreno.it'),
-  flixbus: logoUrl('flixbus.com'),
-  
-  // Insurance
-  generali: logoUrl('generali.it'),
-  allianz: logoUrl('allianz.it'),
-  unipol: logoUrl('unipolsai.it'),
-  unipolsai: logoUrl('unipolsai.it'),
-  axa: logoUrl('axa.it'),
-  zurich: logoUrl('zurich.it'),
-  
-  // Other
-  infocert: logoUrl('infocert.it'),
-  poste: logoUrl('poste.it'),
-  'poste italiane': logoUrl('poste.it'),
+  uber: uberLogo,
 };
 
 // Estrai nome azienda dai dati salvati o dal titolo
@@ -272,7 +202,7 @@ export function CompanyLogo({
   const [imageError, setImageError] = useState(false);
   
   const companyName = extractCompanyName(matchedData, opportunityTitle);
-  const logoUrl = companyName ? companyLogos[companyName] : null;
+  const logoSrc = companyName ? companyLogos[companyName] : null;
   const config = categoryConfig[category] || categoryConfig.other;
   
   // Genera iniziali per fallback
@@ -295,20 +225,20 @@ export function CompanyLogo({
     return `hsl(${hue}, 65%, 45%)`;
   };
   
-  // Se abbiamo un logo e non c'è errore, mostra il logo
-  if (logoUrl && !imageError) {
+  // Se abbiamo un logo locale e non c'è errore, mostra il logo
+  if (logoSrc && !imageError) {
     return (
       <div 
         className={cn(
-          "rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-white p-1.5 border border-border/50",
+          "rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-white p-2 border border-border/50",
           sizeClasses[size],
           className
         )}
       >
         <img
-          src={logoUrl}
+          src={logoSrc}
           alt={companyName || 'Company logo'}
-          className="w-full h-full object-contain rounded-lg"
+          className="w-full h-full object-contain"
           onError={() => setImageError(true)}
           loading="lazy"
         />
