@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDocuments, hasAnomalies, getRiskScore, type ParsedDocumentData } from '@/hooks/useDocuments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +43,7 @@ type FilterAnomaly = 'all' | 'with_anomalies' | 'without_anomalies';
 type SortOption = 'date_desc' | 'date_asc' | 'risk_desc' | 'risk_asc';
 
 export default function DashboardDocuments() {
+  const navigate = useNavigate();
   const {
     documents,
     loading,
@@ -293,9 +295,9 @@ export default function DashboardDocuments() {
                   Scansiona automaticamente conferme di volo, ricevute e documenti bancari
                 </p>
               </div>
-              <Button variant="outline" disabled>
+              <Button onClick={() => navigate('/dashboard/email-scanner')}>
                 <Mail className="w-4 h-4 mr-2" />
-                Prossimamente
+                Collega Email
               </Button>
             </div>
           </CardContent>
