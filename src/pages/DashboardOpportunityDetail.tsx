@@ -344,11 +344,12 @@ export default function DashboardOpportunityDetail() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-start gap-4"
+        className="flex items-start gap-3 sm:gap-4"
       >
         <CompanyLogo 
           category={opp?.category || 'other'}
           matchedData={opportunity.matched_data as Record<string, unknown> | undefined}
+          opportunityTitle={opp?.title}
           size="lg"
         />
         <div className="flex-1">

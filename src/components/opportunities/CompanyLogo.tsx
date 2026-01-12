@@ -201,22 +201,35 @@ const companyFields = [
   'shop',
 ];
 
-function extractCompanyName(matchedData?: Record<string, unknown>): string | null {
-  if (!matchedData) return null;
-  
-  for (const field of companyFields) {
-    const value = matchedData[field];
-    if (value && typeof value === 'string' && value.trim()) {
-      return value.trim().toLowerCase();
+function extractCompanyName(matchedData?: Record<string, unknown>, opportunityTitle?: string): string | null {
+  // Prima cerca nei matchedData
+  if (matchedData) {
+    for (const field of companyFields) {
+      const value = matchedData[field];
+      if (value && typeof value === 'string' && value.trim()) {
+        return value.trim().toLowerCase();
+      }
+    }
+    
+    // Cerca anche in campi con nomi simili
+    for (const [key, value] of Object.entries(matchedData)) {
+      if (typeof value === 'string' && value.trim()) {
+        const keyLower = key.toLowerCase();
+        if (companyFields.some(f => keyLower.includes(f))) {
+          return value.trim().toLowerCase();
+        }
+      }
     }
   }
   
-  // Cerca anche in campi con nomi simili
-  for (const [key, value] of Object.entries(matchedData)) {
-    if (typeof value === 'string' && value.trim()) {
-      const keyLower = key.toLowerCase();
-      if (companyFields.some(f => keyLower.includes(f))) {
-        return value.trim().toLowerCase();
+  // Se non trovato, prova a estrarre dal titolo dell'opportunità
+  if (opportunityTitle) {
+    const titleLower = opportunityTitle.toLowerCase();
+    
+    // Cerca se il titolo contiene un nome azienda conosciuto
+    for (const companyKey of Object.keys(companyLogos)) {
+      if (titleLower.includes(companyKey)) {
+        return companyKey;
       }
     }
   }
@@ -243,6 +256,7 @@ function findLogoUrl(companyName: string): string | null {
 interface CompanyLogoProps {
   category: string;
   matchedData?: Record<string, unknown>;
+  opportunityTitle?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -262,12 +276,13 @@ const iconSizeClasses = {
 export function CompanyLogo({ 
   category, 
   matchedData, 
+  opportunityTitle,
   size = 'md',
   className 
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
   
-  const companyName = extractCompanyName(matchedData);
+  const companyName = extractCompanyName(matchedData, opportunityTitle);
   const logoUrl = companyName ? findLogoUrl(companyName) : null;
   
   const showLogo = logoUrl && !imageError;
@@ -276,7 +291,7 @@ export function CompanyLogo({
     <div 
       className={cn(
         "rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden",
-        showLogo ? "bg-white p-1.5" : "bg-primary/10 text-primary",
+        showLogo ? "bg-white p-1.5 border border-border/50" : "bg-primary/10 text-primary",
         sizeClasses[size],
         className
       )}
