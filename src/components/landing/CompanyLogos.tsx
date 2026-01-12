@@ -45,15 +45,15 @@ const companies = [
 
 const CompanyLogos = () => {
   return (
-    <section className="py-16 bg-background overflow-hidden">
-      <div className="container">
+    <section className="py-12 sm:py-16 bg-background overflow-hidden">
+      <div className="container px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="text-center mb-6 sm:mb-10 px-2"
         >
-          <h2 className="font-display text-xl sm:text-2xl font-semibold text-muted-foreground">
+          <h2 className="font-display text-lg sm:text-xl md:text-2xl font-semibold text-muted-foreground">
             Queste aziende potrebbero <span className="text-foreground">doverti soldi</span>
           </h2>
         </motion.div>

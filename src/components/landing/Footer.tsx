@@ -14,9 +14,9 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-foreground text-primary-foreground py-16">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+    <footer className="bg-foreground text-primary-foreground py-12 sm:py-16 overflow-hidden">
+      <div className="container px-4 sm:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-10 mb-10 sm:mb-12">
           {/* Brand */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -29,13 +29,13 @@ const Footer = () => {
               La piattaforma italiana per recuperare rimborsi, compensazioni e indennizzi 
               che ti spettano.
             </p>
-          <div className="flex items-center gap-2 text-sm text-primary-foreground/70">
-              <MapPin className="w-4 h-4" />
-              <span>Via Alessandro Manzoni, 18100 Imperia (IM)</span>
+          <div className="flex items-start gap-2 text-xs sm:text-sm text-primary-foreground/70">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span className="break-words">Via Alessandro Manzoni, 18100 Imperia (IM)</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-primary-foreground/70 mt-2">
-              <Mail className="w-4 h-4" />
-              <a href="mailto:ciao@rimborsami.it" className="hover:text-primary transition-colors">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-primary-foreground/70 mt-2">
+              <Mail className="w-4 h-4 flex-shrink-0" />
+              <a href="mailto:ciao@rimborsami.it" className="hover:text-primary transition-colors break-all">
                 ciao@rimborsami.it
               </a>
             </div>
@@ -158,8 +158,8 @@ const Footer = () => {
           transition={{ duration: 0.4, delay: 0.4 }}
           className="pt-8 border-t border-primary-foreground/10 flex flex-col sm:flex-row justify-between items-center gap-4"
         >
-          <div className="text-sm text-primary-foreground/50">
-            © {currentYear} Riccardo Casagrande - P.IVA 01538960087 - Tutti i diritti riservati.
+          <div className="text-xs sm:text-sm text-primary-foreground/50 text-center sm:text-left">
+            © {currentYear} Riccardo Casagrande - P.IVA 01538960087
           </div>
           <div className="flex items-center gap-2 text-sm text-primary-foreground/70">
             <Shield className="w-4 h-4 text-primary" />
