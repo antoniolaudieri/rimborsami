@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Loader2, FileText, Image, X, CheckCircle2 } from 'lucide-react';
+import { Upload, Loader2, FileText, Image, X, CheckCircle2, Plane, ShoppingBag, Smartphone, Zap, Building2, Shield, Car, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface DocumentUploaderProps {
@@ -18,6 +19,16 @@ interface QueuedFile {
   preview?: string;
 }
 
+const SUPPORTED_CATEGORIES = [
+  { id: 'flight', label: 'Voli', icon: Plane, examples: 'Biglietti aerei, carte imbarco' },
+  { id: 'ecommerce', label: 'E-commerce', icon: ShoppingBag, examples: 'Ordini Amazon, Zalando, eBay' },
+  { id: 'telecom', label: 'Telecom', icon: Smartphone, examples: 'Bollette TIM, Vodafone, Wind' },
+  { id: 'energy', label: 'Energia', icon: Zap, examples: 'Bollette luce e gas' },
+  { id: 'bank', label: 'Banche', icon: Building2, examples: 'Estratti conto, mutui, prestiti' },
+  { id: 'insurance', label: 'Assicurazioni', icon: Shield, examples: 'Polizze, contratti' },
+  { id: 'automotive', label: 'Auto', icon: Car, examples: 'Contratti, finanziamenti' },
+];
+
 export function DocumentUploader({
   onUpload,
   uploading,
@@ -26,6 +37,7 @@ export function DocumentUploader({
 }: DocumentUploaderProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [queue, setQueue] = useState<QueuedFile[]>([]);
+  const [showCategories, setShowCategories] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -117,15 +129,23 @@ export function DocumentUploader({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="w-5 h-5" />
-          Carica documenti
-        </CardTitle>
-        <CardDescription>
-          Carica scontrini, conferme di prenotazione, estratti conto e bollette per trovare rimborsi
-        </CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Carica documenti
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Carica i tuoi documenti e scopriremo automaticamente nuove opportunità di rimborso
+            </CardDescription>
+          </div>
+          <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+            <Sparkles className="w-3 h-3 mr-1" />
+            AI Analysis
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Drop zone */}
@@ -210,6 +230,49 @@ export function DocumentUploader({
             disabled={disabled || uploading}
           />
         </label>
+
+        {/* Categories info */}
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => setShowCategories(!showCategories)}
+            className="text-sm text-primary hover:underline flex items-center gap-1"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            {showCategories ? 'Nascondi categorie supportate' : 'Quali documenti posso caricare?'}
+          </button>
+          
+          <AnimatePresence>
+            {showCategories && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-3 bg-muted/50 rounded-lg">
+                  {SUPPORTED_CATEGORIES.map((cat) => (
+                    <div
+                      key={cat.id}
+                      className="flex items-start gap-2 p-2 rounded-md bg-background"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <cat.icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm">{cat.label}</p>
+                        <p className="text-xs text-muted-foreground truncate">{cat.examples}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  💡 Ogni documento caricato viene analizzato dall'AI per trovare nuove opportunità di rimborso
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Upload queue */}
         <AnimatePresence>
