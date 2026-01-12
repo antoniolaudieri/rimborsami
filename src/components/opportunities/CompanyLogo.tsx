@@ -498,11 +498,35 @@ export function CompanyLogo({
   className 
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const companyName = extractCompanyName(matchedData, opportunityTitle);
   const logoUrl = companyName ? findLogoUrl(companyName) : null;
   
+  // Debug log
+  console.log('CompanyLogo render:', { opportunityTitle, companyName, logoUrl, imageError });
+  
   const showLogo = logoUrl && !imageError;
+  
+  // Genera iniziali per fallback colorato
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+  
+  // Genera colore basato sul nome
+  const getColorFromName = (name: string) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = hash % 360;
+    return `hsl(${hue}, 65%, 45%)`;
+  };
   
   return (
     <div 
@@ -512,15 +536,30 @@ export function CompanyLogo({
         sizeClasses[size],
         className
       )}
+      style={companyName && !showLogo ? { backgroundColor: getColorFromName(companyName) } : undefined}
     >
       {showLogo ? (
         <img
           src={logoUrl}
           alt={companyName || 'Company logo'}
           className="w-full h-full object-contain rounded-lg"
-          onError={() => setImageError(true)}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            console.log('CompanyLogo image error for:', logoUrl);
+            setImageError(true);
+          }}
           loading="lazy"
         />
+      ) : companyName ? (
+        // Fallback con iniziali colorate
+        <span 
+          className={cn(
+            "font-bold text-white",
+            size === 'sm' ? 'text-xs' : size === 'md' ? 'text-sm' : 'text-base'
+          )}
+        >
+          {getInitials(companyName)}
+        </span>
       ) : (
         <div className={iconSizeClasses[size]}>
           {categoryIcons[category] || categoryIcons.other}
