@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Paywall, LockedContent, PremiumBadge } from '@/components/Paywall';
+import { CompanyLogo } from '@/components/opportunities/CompanyLogo';
 import {
   TrendingUp,
   Clock,
@@ -39,6 +40,7 @@ interface UserOpportunity {
   estimated_amount: number;
   deadline: string | null;
   created_at: string;
+  matched_data: Record<string, unknown> | null;
   opportunities: {
     title: string;
     category: string;
@@ -115,6 +117,7 @@ export default function Dashboard() {
           actual_amount,
           deadline,
           created_at,
+          matched_data,
           opportunities (
             title,
             category,
@@ -453,9 +456,12 @@ export default function Dashboard() {
                     >
                       {isFree ? (
                         <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 relative">
-                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">
-                            {categoryIcons[opp.opportunities?.category || 'other']}
-                          </div>
+                          <CompanyLogo
+                            category={opp.opportunities?.category || 'other'}
+                            matchedData={opp.matched_data as Record<string, unknown> | undefined}
+                            opportunityTitle={opp.opportunities?.title}
+                            size="sm"
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-muted-foreground">
                               Opportunità di rimborso
@@ -476,9 +482,12 @@ export default function Dashboard() {
                           to={`/dashboard/opportunities/${opp.id}`}
                           className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">
-                            {categoryIcons[opp.opportunities?.category || 'other']}
-                          </div>
+                          <CompanyLogo
+                            category={opp.opportunities?.category || 'other'}
+                            matchedData={opp.matched_data as Record<string, unknown> | undefined}
+                            opportunityTitle={opp.opportunities?.title}
+                            size="sm"
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">
                               {opp.opportunities?.title || 'Opportunità'}
