@@ -107,13 +107,15 @@ serve(async (req: Request) => {
         matched_data,
         estimated_amount,
         deadline,
+        opportunity_id,
         opportunity:opportunities (
           title,
           category,
           template_email,
           template_pec,
           template_form,
-          legal_reference
+          legal_reference,
+          source_url
         )
       `)
       .eq("id", user_opportunity_id)
@@ -125,8 +127,11 @@ serve(async (req: Request) => {
       throw new Error("User opportunity not found or access denied");
     }
 
-    const opportunityArray = userOpp.opportunity as OpportunityData[];
-    const opportunity = opportunityArray[0] || {} as OpportunityData;
+    // FIXED: opportunity is an object, not an array when using .single()
+    const opportunityData = userOpp.opportunity;
+    const opportunity: OpportunityData = Array.isArray(opportunityData) 
+      ? (opportunityData[0] || {} as OpportunityData)
+      : (opportunityData as unknown as OpportunityData || {} as OpportunityData);
     const matchedData = (userOpp.matched_data || {}) as MatchedData;
     const userData: UserData = {
       full_name: profile.full_name || "Nome Cognome",
@@ -134,13 +139,45 @@ serve(async (req: Request) => {
       phone: profile.phone || "",
     };
 
+    console.log(`Processing opportunity: ${opportunity.title}, category: ${opportunity.category}`);
+
     // Get the company name from matched_data based on category
-    const companyName = getCompanyNameFromMatchedData(opportunity.category, matchedData);
+    let companyName = getCompanyNameFromMatchedData(opportunity.category, matchedData);
     console.log(`Looking up company contact for: ${companyName} in category ${opportunity.category}`);
 
-    // Lookup real company contact from company_contacts table
+    // For class actions, look up the organizer from class_actions table
     let companyContact: CompanyContact | null = null;
-    if (companyName) {
+    let classActionInfo: { organizer: string; adhesion_url: string | null; source_url: string | null } | null = null;
+
+    if (opportunity.category === "class_action") {
+      // Fetch class action details
+      const { data: classAction } = await supabaseClient
+        .from("class_actions")
+        .select("organizer, adhesion_url, source_url")
+        .eq("opportunity_id", userOpp.opportunity_id)
+        .maybeSingle();
+
+      if (classAction) {
+        classActionInfo = classAction;
+        companyName = classAction.organizer; // Use organizer as company name
+        console.log(`Found class action organizer: ${classAction.organizer}`);
+      }
+
+      // Look up organizer contact in company_contacts
+      if (companyName) {
+        const { data: contact } = await supabaseClient
+          .from("company_contacts")
+          .select("name, category, email_reclami, pec_reclami, indirizzo_sede_legale")
+          .ilike("name", `%${companyName}%`)
+          .maybeSingle();
+
+        if (contact) {
+          companyContact = contact as CompanyContact;
+          console.log(`Found organizer contact: ${JSON.stringify(companyContact)}`);
+        }
+      }
+    } else if (companyName) {
+      // Standard lookup for other categories
       const { data: contact, error: contactError } = await supabaseClient
         .from("company_contacts")
         .select("name, category, email_reclami, pec_reclami, indirizzo_sede_legale")
@@ -183,7 +220,8 @@ serve(async (req: Request) => {
       opportunity,
       userOpp.estimated_amount,
       request_type,
-      companyContact
+      companyContact,
+      classActionInfo
     );
 
     // Determine the real recipient based on request_type and company contact
@@ -273,7 +311,8 @@ async function generateWithAI(
   opportunity: OpportunityData,
   estimatedAmount: number | null,
   requestType: string,
-  companyContact: CompanyContact | null
+  companyContact: CompanyContact | null,
+  classActionInfo?: { organizer: string; adhesion_url: string | null; source_url: string | null } | null
 ): Promise<{ content: string; subject: string; recipient: string }> {
   
   // Build company contact info for the prompt
@@ -284,6 +323,16 @@ async function generateWithAI(
 - Email reclami: ${companyContact.email_reclami || 'Non disponibile'}
 - PEC reclami: ${companyContact.pec_reclami || 'Non disponibile'}
 - Sede legale: ${companyContact.indirizzo_sede_legale || 'Non disponibile'}`;
+  }
+
+  // Add class action specific info
+  let classActionDetails = "";
+  if (classActionInfo) {
+    classActionDetails = `
+INFORMAZIONI CLASS ACTION:
+- Organizzatore: ${classActionInfo.organizer}
+- URL adesione: ${classActionInfo.adhesion_url || 'Non disponibile'}
+- Fonte: ${classActionInfo.source_url || 'Non disponibile'}`;
   }
 
   const prompt = `Sei un assistente legale italiano specializzato in richieste di rimborso e compensazione.
@@ -308,7 +357,7 @@ ${JSON.stringify(matchedData, null, 2)}
 
 CONTATTI AZIENDA DESTINATARIA:
 ${companyContactInfo}
-
+${classActionDetails}
 ISTRUZIONI:
 1. Sostituisci TUTTI i placeholder con i dati reali
 2. Mantieni un tono formale e professionale
