@@ -47,7 +47,16 @@ interface ParsedDocumentData {
   bank_analysis?: BankAnalysis;
 }
 
+// Valid opportunity_category enum values from database
+const VALID_CATEGORIES = [
+  "flight", "ecommerce", "bank", "insurance", "warranty", 
+  "other", "telecom", "energy", "transport", "automotive", 
+  "tech", "class_action"
+];
+
+// Map document types and AI-returned categories to valid enum values
 const CATEGORY_MAPPING: Record<string, string[]> = {
+  // Document types
   "biglietto_aereo": ["flight", "transport"],
   "carta_imbarco": ["flight", "transport"],
   "conferma_ordine": ["ecommerce", "warranty"],
@@ -65,6 +74,17 @@ const CATEGORY_MAPPING: Record<string, string[]> = {
   "assicurazione": ["insurance"],
   "contratto_auto": ["automotive"],
   "fattura": ["ecommerce", "other"],
+  "verbale_assemblea": ["other"],
+  "rendiconto_condominiale": ["other"],
+  "convocazione_assemblea": ["other"],
+  "busta_paga": ["other"],
+  "contratto_lavoro": ["other"],
+  "cud": ["other"],
+  "fattura_medica": ["other"],
+  "referto_medico": ["other"],
+  "bollo_auto": ["automotive"],
+  "revisione": ["automotive"],
+  "multa": ["automotive", "transport"],
   // Legacy types for backwards compatibility
   "flight": ["flight"],
   "order": ["ecommerce", "warranty"],
@@ -73,12 +93,55 @@ const CATEGORY_MAPPING: Record<string, string[]> = {
   "bank_statement": ["bank"],
   "warranty": ["warranty"],
   "other": ["other"],
+  "altro": ["other"],
+  // Normalize AI-returned categories to valid enums
+  "condominium": ["other"],
+  "condominio": ["other"],
+  "meeting_notice": ["other"],
+  "work": ["other"],
+  "lavoro": ["other"],
+  "health": ["other"],
+  "sanità": ["other"],
+  "auto": ["automotive"],
+  "service_agreement": ["other"],
+  "terms_and_conditions": ["other"],
+  "factura": ["ecommerce"],
+  "e-commerce_receipt": ["ecommerce"],
+  "invoice": ["ecommerce"],
+  "tax": ["other"],
+  "fisco": ["other"],
 };
 
-function getSystemPrompt(): string {
-  return `Sei un esperto analista di documenti italiani specializzato in diritto bancario e dei consumatori.
+// Normalize categories to valid enum values
+function normalizeCategories(categories: string[]): string[] {
+  const normalized = new Set<string>();
+  
+  for (const cat of categories) {
+    const lowerCat = cat.toLowerCase();
+    
+    // Check if already valid
+    if (VALID_CATEGORIES.includes(lowerCat)) {
+      normalized.add(lowerCat);
+      continue;
+    }
+    
+    // Try to map from known values
+    const mapped = CATEGORY_MAPPING[lowerCat];
+    if (mapped) {
+      mapped.forEach(c => normalized.add(c));
+    } else {
+      // Default to "other" for unknown categories
+      normalized.add("other");
+    }
+  }
+  
+  return Array.from(normalized);
+}
 
-COMPITO: Analizza il documento fornito ed estrai informazioni strutturate in formato JSON.
+function getSystemPrompt(): string {
+  return `Sei un esperto analista di documenti italiani specializzato in diritto bancario, del lavoro, condominiale e dei consumatori.
+
+COMPITO: Analizza OGNI documento fornito ed estrai informazioni strutturate in formato JSON, identificando SEMPRE eventuali anomalie.
 
 STEP 1 - IDENTIFICA IL TIPO DI DOCUMENTO:
 Classifica il documento in una di queste categorie:
@@ -88,88 +151,136 @@ Classifica il documento in una di queste categorie:
 - estratto_conto / mutuo / prestito / fido / carta_credito
 - scontrino / garanzia / assicurazione
 - contratto_auto / fattura
+- verbale_assemblea / rendiconto_condominiale / convocazione_assemblea
+- busta_paga / contratto_lavoro / cud
+- fattura_medica / referto_medico
+- bollo_auto / revisione / multa
 - altro
 
-STEP 2 - ESTRAI DATI CHIAVE:
-In base al tipo, estrai:
-- Per voli: compagnia, numero volo, data, tratta, passeggero
-- Per ordini: negozio, prodotti, importo, data, numero ordine
-- Per bollette: gestore, periodo, importo, scadenza
-- Per documenti bancari: banca, tipo conto, periodo, saldo, tassi, commissioni, spese
-- Per garanzie: prodotto, marca, durata, scadenza
+STEP 2 - ESTRAI DATI CHIAVE E FAI UN RIASSUNTO:
+- Estrai i dati principali del documento
+- Scrivi SEMPRE un "summary" di 1-2 frasi che sintetizza il contenuto
 
-STEP 3 - ANALISI ANOMALIE (CRITICO per documenti bancari):
-Se il documento è bancario, effettua queste verifiche:
+STEP 3 - VALUTAZIONE ANOMALIE (FONDAMENTALE PER OGNI DOCUMENTO):
+Analizza il documento per individuare qualsiasi problema:
 
-A) USURA:
-- Calcola il TAEG effettivo (tasso + commissioni + spese accessorie)
-- Confronta con soglie usura Banca d'Italia Q4 2024:
-  * Mutui: 6.52%
-  * Prestiti personali: 17.05%
-  * Carte credito: 21.12%
-  * Fidi: 14.25%
-- Segnala se supera la soglia
+📌 PER DOCUMENTI BANCARI:
+- Usura: TAEG > soglie Banca d'Italia (mutui 6.52%, prestiti 17.05%, carte 21.12%, fidi 14.25%)
+- Interessi di mora > BCE+8% (~12%)
+- CMS (abolita dal 2012), CIV > 0.5%, spese non giustificate
+- Anatocismo (capitalizzazione interessi vietata)
 
-B) INTERESSI DI MORA:
-- Verifica se gli interessi di mora superano BCE+8% (attualmente ~12%)
-- Calcola l'importo eccedente se applicabile
+📌 PER DOCUMENTI CONDOMINIALI:
+- Quorum non raggiunto (assemblea ordinaria 1/3 millesimi, straordinaria 1/2)
+- Delibere senza maggioranze corrette
+- Spese non documentate o eccessive
+- Mancanza ordine del giorno nella convocazione
+- Assenza verbale o firme
 
-C) COMMISSIONI SOSPETTE:
-- Commissione Massimo Scoperto (CMS): abolita dal 2012 per privati
-- Commissione Istruttoria Veloce (CIV) > 0.5%
-- Spese non previste da contratto o non giustificate
-- Spese tenuta conto eccessive (> €50/anno senza servizi premium)
-- Spese incasso > €1/operazione
+📌 PER BUSTE PAGA / LAVORO:
+- Ore lavorate non corrispondenti
+- Straordinari non pagati
+- INPS/IRPEF calcolati erroneamente
+- Mancato accantonamento TFR
+- Livello contrattuale non corrispondente
 
-D) ANATOCISMO:
-- Verifica capitalizzazione interessi illegittima (vietato dal 2000)
+📌 PER BOLLETTE / UTENZE:
+- Consumi anomali rispetto al periodo
+- Oneri di sistema eccessivi
+- Costi di recesso non previsti
+- Penali illegittime
+
+📌 PER FATTURE / RICEVUTE:
+- IVA errata
+- Sconti promessi non applicati
+- Voci non richieste
+
+📌 PER MULTE:
+- Scadenza contestazione (60 giorni)
+- Segnaletica non conforme
+- Violazioni procedurali
+
+📌 PER ASSICURAZIONI:
+- Clausole vessatorie
+- Franchigie nascoste
+- Esclusioni non evidenziate
 
 STEP 4 - CALCOLA RISK SCORE (0-100):
-- 0-25: Basso rischio (nessuna anomalia)
-- 26-50: Medio rischio (anomalie minori)
-- 51-75: Alto rischio (anomalie significative)
-- 76-100: Critico (usura o gravi irregolarità)
+OGNI documento deve avere un risk_score e risk_level:
+- 0-25: low (nessuna anomalia significativa)
+- 26-50: medium (anomalie minori, da monitorare)
+- 51-75: high (anomalie significative, azione consigliata)
+- 76-100: critical (gravi irregolarità, azione urgente)
 
-STEP 5 - STIMA RIMBORSO POTENZIALE:
-Calcola l'importo stimato recuperabile in base alle anomalie trovate.
+STEP 5 - STIMA RIMBORSO (se applicabile):
+Calcola eventuali importi recuperabili.
 
-FORMATO OUTPUT (SOLO JSON, nessun testo aggiuntivo):
+FORMATO OUTPUT (SOLO JSON VALIDO):
 {
   "document_type": "tipo_documento",
   "confidence": 0.85,
+  "summary": "Riassunto breve del documento e delle eventuali anomalie trovate",
+  "risk_score": 35,
+  "risk_level": "medium",
   "extracted_data": {
     // campi estratti in base al tipo
   },
-  "potential_issues": ["lista problemi trovati"],
+  "potential_issues": ["lista DETTAGLIATA di tutti i problemi trovati"],
   "suggested_categories": ["bank", "other"],
+  "estimated_refund": null,
+  
+  // AGGIUNGI UNO DEI SEGUENTI in base al tipo di documento:
+  
   "bank_analysis": {
-    // SOLO per documenti bancari
     "account_type": "conto_corrente",
     "bank_name": "Nome Banca",
     "period": {"from": "2024-01", "to": "2024-12"},
-    "interest_analysis": {
-      "nominal_rate": 5.5,
-      "effective_rate": 8.2,
-      "usury_threshold": 12.0,
-      "is_usurious": false,
-      "excess_amount": null
-    },
-    "fees_analysis": {
-      "total_fees": 150,
-      "suspicious_fees": [
-        {"name": "Commissione Massimo Scoperto", "amount": 45, "issue": "abolita dal 2012"}
-      ]
-    },
-    "late_fees_analysis": {
-      "total_late_fees": 80,
-      "legal_limit": 12.0,
-      "excess_amount": 20,
-      "is_excessive": true
-    },
+    "interest_analysis": {...},
+    "fees_analysis": {...},
+    "late_fees_analysis": {...},
     "risk_score": 65,
     "risk_level": "high",
     "estimated_refund": 120,
-    "anomalies_found": ["CMS illegittima", "More eccessive"]
+    "anomalies_found": ["descrizione anomalie"]
+  },
+  
+  "condominium_analysis": {
+    "document_subtype": "verbale_assemblea",
+    "assembly_info": {...},
+    "deliberations": [...],
+    "financial_info": {...},
+    "irregularities": [{"type": "tipo", "severity": "high", "description": "desc", "legal_reference": "art..."}],
+    "risk_score": 45,
+    "risk_level": "medium",
+    "actionable_advice": ["cosa fare"]
+  },
+  
+  "work_analysis": {
+    "document_subtype": "busta_paga",
+    "employer": "...",
+    "salary_info": {...},
+    "irregularities": [...],
+    "risk_score": 20,
+    "risk_level": "low"
+  },
+  
+  "health_analysis": {
+    "document_subtype": "fattura_medica",
+    "amount": 150,
+    "deductible_amount": 150,
+    "tax_info": {...},
+    "risk_score": 0,
+    "risk_level": "low"
+  },
+  
+  "auto_analysis": {
+    "document_subtype": "multa",
+    "vehicle_info": {...},
+    "fine_info": {...},
+    "irregularities": [...],
+    "risk_score": 30,
+    "risk_level": "medium",
+    "actionable_advice": ["puoi contestare entro..."]
   }
 }`;
 }
@@ -243,7 +354,9 @@ async function matchOpportunities(
 ): Promise<string[]> {
   const client = createClient(supabaseUrl, supabaseServiceKey);
   
-  const categories = parsedData.suggested_categories || [];
+  const rawCategories = parsedData.suggested_categories || [];
+  const categories = normalizeCategories(rawCategories);
+  
   if (categories.length === 0) return [];
 
   console.log("Searching opportunities for categories:", categories.join(", "));
@@ -443,10 +556,10 @@ serve(async (req) => {
 
         parsedData = JSON.parse(jsonStr);
 
-        // Add categories from mapping if not present
-        if (!parsedData.suggested_categories || parsedData.suggested_categories.length === 0) {
-          parsedData.suggested_categories = CATEGORY_MAPPING[parsedData.document_type] || ["other"];
-        }
+        // Normalize and add categories
+        const docTypeCategories = CATEGORY_MAPPING[parsedData.document_type] || ["other"];
+        const existingCategories = parsedData.suggested_categories || [];
+        parsedData.suggested_categories = normalizeCategories([...existingCategories, ...docTypeCategories]);
 
         console.log("Document parsed successfully:", parsedData.document_type);
 

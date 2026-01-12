@@ -251,17 +251,87 @@ export function getDocumentCategory(parsedData: ParsedDocumentData | null): stri
 // Helper function to get risk score from parsed data
 export function getRiskScore(parsedData: ParsedDocumentData | null): number {
   if (!parsedData) return 0;
+  
+  // Check top-level risk_score first
   if (parsedData.risk_score !== undefined) return parsedData.risk_score;
+  
+  // Check specialized analyses
   if (parsedData.bank_analysis?.risk_score !== undefined) return parsedData.bank_analysis.risk_score;
+  if (parsedData.condominium_analysis?.risk_score !== undefined) return parsedData.condominium_analysis.risk_score;
+  if (parsedData.work_analysis?.risk_score !== undefined) return parsedData.work_analysis.risk_score;
+  if (parsedData.health_analysis?.risk_score !== undefined) return parsedData.health_analysis.risk_score;
+  if (parsedData.auto_analysis?.risk_score !== undefined) return parsedData.auto_analysis.risk_score;
+  
+  // Calculate from potential_issues if present
+  if (parsedData.potential_issues?.length) {
+    return Math.min(100, parsedData.potential_issues.length * 15);
+  }
+  
   return 0;
 }
 
 // Helper function to get risk level from parsed data
 export function getRiskLevel(parsedData: ParsedDocumentData | null): 'low' | 'medium' | 'high' | 'critical' | null {
   if (!parsedData) return null;
+  
+  // Check top-level risk_level first
   if (parsedData.risk_level) return parsedData.risk_level;
+  
+  // Check specialized analyses
   if (parsedData.bank_analysis?.risk_level) return parsedData.bank_analysis.risk_level;
+  if (parsedData.condominium_analysis?.risk_level) return parsedData.condominium_analysis.risk_level;
+  if (parsedData.work_analysis?.risk_level) return parsedData.work_analysis.risk_level;
+  if (parsedData.health_analysis?.risk_level) return parsedData.health_analysis.risk_level;
+  if (parsedData.auto_analysis?.risk_level) return parsedData.auto_analysis.risk_level;
+  
+  // Calculate from risk score
+  const score = getRiskScore(parsedData);
+  if (score >= 76) return 'critical';
+  if (score >= 51) return 'high';
+  if (score >= 26) return 'medium';
+  if (score > 0) return 'low';
+  
   return null;
+}
+
+// Get all anomalies from any type of document
+export function getDocumentAnomalies(parsedData: ParsedDocumentData | null): string[] {
+  if (!parsedData) return [];
+  
+  const anomalies: string[] = [];
+  
+  // General potential issues
+  if (parsedData.potential_issues?.length) {
+    anomalies.push(...parsedData.potential_issues);
+  }
+  
+  // Bank anomalies
+  if (parsedData.bank_analysis?.anomalies_found?.length) {
+    anomalies.push(...parsedData.bank_analysis.anomalies_found);
+  }
+  
+  // Condominium irregularities
+  if (parsedData.condominium_analysis?.irregularities?.length) {
+    parsedData.condominium_analysis.irregularities.forEach(i => {
+      anomalies.push(i.description);
+    });
+  }
+  
+  // Work irregularities
+  if (parsedData.work_analysis?.irregularities?.length) {
+    parsedData.work_analysis.irregularities.forEach(i => {
+      anomalies.push(i.description);
+    });
+  }
+  
+  // Auto irregularities
+  if (parsedData.auto_analysis?.irregularities?.length) {
+    parsedData.auto_analysis.irregularities.forEach(i => {
+      anomalies.push(i.description);
+    });
+  }
+  
+  return [...new Set(anomalies)]; // Remove duplicates
 }
 
 export function useDocuments() {
