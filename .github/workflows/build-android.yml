@@ -42,7 +42,10 @@ jobs:
       
       - name: Update Gradle wrapper for Java 21
         run: |
-          sed -i 's/gradle-8.0.2-all.zip/gradle-8.5-all.zip/' android/gradle/wrapper/gradle-wrapper.properties
+          cat android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/gradle-[0-9.]*-all\.zip/gradle-8.5-all.zip/' android/gradle/wrapper/gradle-wrapper.properties
+          echo "--- After update ---"
+          cat android/gradle/wrapper/gradle-wrapper.properties
       
       - name: Sync Capacitor
         run: bunx cap sync android
