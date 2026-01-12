@@ -114,8 +114,24 @@ const companyLogos: Record<string, string> = {
   'poste italiane': 'https://logo.clearbit.com/poste.it',
 };
 
-// Estrai nome azienda dal titolo
-function extractCompanyName(title?: string): string | null {
+// Estrai nome azienda dai dati salvati o dal titolo
+function extractCompanyName(matchedData?: Record<string, unknown>, title?: string): string | null {
+  // Prima prova dal campo company_name salvato nel form
+  if (matchedData?.company_name && typeof matchedData.company_name === 'string') {
+    const savedName = matchedData.company_name.toLowerCase();
+    // Cerca corrispondenza esatta nella mappa
+    if (companyLogos[savedName]) {
+      return savedName;
+    }
+    // Cerca corrispondenza parziale
+    for (const company of Object.keys(companyLogos)) {
+      if (savedName.includes(company) || company.includes(savedName)) {
+        return company;
+      }
+    }
+  }
+  
+  // Fallback: cerca nel titolo dell'opportunità
   if (!title) return null;
   
   const lowerTitle = title.toLowerCase();
@@ -218,13 +234,14 @@ interface CompanyLogoProps {
 
 export function CompanyLogo({ 
   category, 
+  matchedData,
   opportunityTitle,
   size = 'md',
   className 
 }: CompanyLogoProps) {
   const [imageError, setImageError] = useState(false);
   
-  const companyName = extractCompanyName(opportunityTitle);
+  const companyName = extractCompanyName(matchedData, opportunityTitle);
   const logoUrl = companyName ? companyLogos[companyName] : null;
   const config = categoryConfig[category] || categoryConfig.other;
   
