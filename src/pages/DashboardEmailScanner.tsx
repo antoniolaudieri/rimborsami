@@ -74,17 +74,18 @@ export default function DashboardEmailScanner() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header - mobile responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Scanner Email</h1>
-          <p className="text-muted-foreground">
-            Collega le tue email per trovare automaticamente opportunità di rimborso
+          <h1 className="text-xl sm:text-2xl font-bold">Scanner Email</h1>
+          <p className="text-sm text-muted-foreground">
+            Collega le tue email per trovare opportunità di rimborso
           </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Collega Email
             </Button>
@@ -104,63 +105,65 @@ export default function DashboardEmailScanner() {
         </Dialog>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Stats - responsive grid */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Mail className="h-5 w-5 text-primary" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3 text-center sm:text-left">
+              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{connections.length}</p>
-                <p className="text-sm text-muted-foreground">Email collegate</p>
+                <p className="text-xl sm:text-2xl font-bold">{connections.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Email</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <Eye className="h-5 w-5 text-blue-500" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3 text-center sm:text-left">
+              <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
+                <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalEmails}</p>
-                <p className="text-sm text-muted-foreground">Email scansionate</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalEmails}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Scansionate</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <span className="text-xl">💰</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3 text-center sm:text-left">
+              <div className="p-2 rounded-lg bg-green-500/10 shrink-0">
+                <span className="text-lg sm:text-xl">💰</span>
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalOpportunities}</p>
-                <p className="text-sm text-muted-foreground">Opportunità trovate</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalOpportunities}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Opportunità</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Security notice */}
+      {/* Security notice - mobile responsive */}
       <Alert className="border-primary/20 bg-primary/5">
-        <Shield className="h-4 w-4 text-primary" />
-        <AlertDescription className="flex items-center gap-4">
-          <span className="flex items-center gap-1">
-            <Lock className="h-3 w-3" /> Connessione sicura
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="h-3 w-3" /> Solo lettura
-          </span>
-          <span>🇪🇺 GDPR Compliant</span>
-          <span className="ml-auto text-xs">
+        <Shield className="h-4 w-4 text-primary shrink-0" />
+        <AlertDescription>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm">
+            <span className="flex items-center gap-1">
+              <Lock className="h-3 w-3" /> Sicura
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="h-3 w-3" /> Solo lettura
+            </span>
+            <span>🇪🇺 GDPR</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
             Puoi scollegare le tue email in qualsiasi momento
-          </span>
+          </p>
         </AlertDescription>
       </Alert>
 
@@ -196,47 +199,47 @@ export default function DashboardEmailScanner() {
         </div>
       )}
 
-      {/* How it works */}
+      {/* How it works - mobile responsive */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Come funziona</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Come funziona</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <span className="font-bold text-primary">1</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <span className="font-bold text-primary text-sm sm:text-base">1</span>
               </div>
-              <h4 className="font-medium text-sm">Collega</h4>
-              <p className="text-xs text-muted-foreground">
-                Inserisci le credenziali della tua email
+              <h4 className="font-medium text-xs sm:text-sm">Collega</h4>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                Inserisci le credenziali
               </p>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <span className="font-bold text-primary">2</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <span className="font-bold text-primary text-sm sm:text-base">2</span>
               </div>
-              <h4 className="font-medium text-sm">Scansione</h4>
-              <p className="text-xs text-muted-foreground">
-                Cerchiamo email da compagnie aeree, banche, etc.
+              <h4 className="font-medium text-xs sm:text-sm">Scansione</h4>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                Cerchiamo le email
               </p>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <span className="font-bold text-primary">3</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <span className="font-bold text-primary text-sm sm:text-base">3</span>
               </div>
-              <h4 className="font-medium text-sm">Analisi AI</h4>
-              <p className="text-xs text-muted-foreground">
-                L'AI identifica opportunità di rimborso
+              <h4 className="font-medium text-xs sm:text-sm">Analisi AI</h4>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                Identifichiamo rimborsi
               </p>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                <span className="font-bold text-primary">4</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <span className="font-bold text-primary text-sm sm:text-base">4</span>
               </div>
-              <h4 className="font-medium text-sm">Recupera</h4>
-              <p className="text-xs text-muted-foreground">
-                Generiamo reclami pronti per l'invio
+              <h4 className="font-medium text-xs sm:text-sm">Recupera</h4>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                Generiamo reclami
               </p>
             </div>
           </div>
