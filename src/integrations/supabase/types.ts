@@ -142,6 +142,57 @@ export type Database = {
         }
         Relationships: []
       }
+      email_connections: {
+        Row: {
+          created_at: string
+          email_address: string
+          emails_scanned: number | null
+          encrypted_password: string
+          error_message: string | null
+          id: string
+          imap_port: number
+          imap_server: string
+          last_sync_at: string | null
+          opportunities_found: number | null
+          provider: string
+          status: Database["public"]["Enums"]["email_connection_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_address: string
+          emails_scanned?: number | null
+          encrypted_password: string
+          error_message?: string | null
+          id?: string
+          imap_port?: number
+          imap_server: string
+          last_sync_at?: string | null
+          opportunities_found?: number | null
+          provider?: string
+          status?: Database["public"]["Enums"]["email_connection_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_address?: string
+          emails_scanned?: number | null
+          encrypted_password?: string
+          error_message?: string | null
+          id?: string
+          imap_port?: number
+          imap_server?: string
+          last_sync_at?: string | null
+          opportunities_found?: number | null
+          provider?: string
+          status?: Database["public"]["Enums"]["email_connection_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       generated_requests: {
         Row: {
           content: string
@@ -312,6 +363,79 @@ export type Database = {
         }
         Relationships: []
       }
+      scanned_emails: {
+        Row: {
+          analysis_result: Json | null
+          analyzed: boolean | null
+          body_preview: string | null
+          connection_id: string
+          created_at: string
+          id: string
+          message_id: string
+          opportunity_id: string | null
+          received_at: string | null
+          sender: string | null
+          sender_domain: string | null
+          subject: string | null
+          user_id: string
+          user_opportunity_id: string | null
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analyzed?: boolean | null
+          body_preview?: string | null
+          connection_id: string
+          created_at?: string
+          id?: string
+          message_id: string
+          opportunity_id?: string | null
+          received_at?: string | null
+          sender?: string | null
+          sender_domain?: string | null
+          subject?: string | null
+          user_id: string
+          user_opportunity_id?: string | null
+        }
+        Update: {
+          analysis_result?: Json | null
+          analyzed?: boolean | null
+          body_preview?: string | null
+          connection_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          opportunity_id?: string | null
+          received_at?: string | null
+          sender?: string | null
+          sender_domain?: string | null
+          subject?: string | null
+          user_id?: string
+          user_opportunity_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scanned_emails_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "email_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scanned_emails_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scanned_emails_user_opportunity_id_fkey"
+            columns: ["user_opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "user_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -448,6 +572,11 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       document_type: "email" | "pdf" | "image"
+      email_connection_status:
+        | "connected"
+        | "error"
+        | "credentials_expired"
+        | "syncing"
       notification_type: "new_opportunity" | "deadline" | "reminder" | "system"
       opportunity_category:
         | "flight"
@@ -595,6 +724,12 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       document_type: ["email", "pdf", "image"],
+      email_connection_status: [
+        "connected",
+        "error",
+        "credentials_expired",
+        "syncing",
+      ],
       notification_type: ["new_opportunity", "deadline", "reminder", "system"],
       opportunity_category: [
         "flight",
