@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Paywall } from '@/components/Paywall';
+import { CompanyLogo } from '@/components/opportunities/CompanyLogo';
 import DataCollectionForm from '@/components/opportunities/DataCollectionForm';
 import OutcomeFeedback from '@/components/opportunities/OutcomeFeedback';
 import { generateRequestPdf } from '@/lib/generateRequestPdf';
@@ -26,12 +27,6 @@ import {
   Loader2,
   Mail,
   Send,
-  Plane,
-  ShoppingCart,
-  Landmark,
-  Shield,
-  Package,
-  FileQuestion,
   Lock,
   Sparkles,
   ClipboardList,
@@ -76,15 +71,6 @@ const statusLabels: Record<string, string> = {
   sent: 'Inviata',
   completed: 'Completata',
   expired: 'Scaduta',
-};
-
-const categoryIcons: Record<string, React.ReactNode> = {
-  flight: <Plane className="w-6 h-6" />,
-  ecommerce: <ShoppingCart className="w-6 h-6" />,
-  bank: <Landmark className="w-6 h-6" />,
-  insurance: <Shield className="w-6 h-6" />,
-  warranty: <Package className="w-6 h-6" />,
-  other: <FileQuestion className="w-6 h-6" />,
 };
 
 export default function DashboardOpportunityDetail() {
@@ -360,9 +346,11 @@ export default function DashboardOpportunityDetail() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row md:items-start gap-4"
       >
-        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-          {categoryIcons[opp?.category || 'other']}
-        </div>
+        <CompanyLogo 
+          category={opp?.category || 'other'}
+          matchedData={opportunity.matched_data as Record<string, unknown> | undefined}
+          size="lg"
+        />
         <div className="flex-1">
           <div className="flex items-start justify-between gap-4">
             <div>
