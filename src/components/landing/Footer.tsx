@@ -29,9 +29,9 @@ const Footer = () => {
               La piattaforma italiana per recuperare rimborsi, compensazioni e indennizzi 
               che ti spettano.
             </p>
-            <div className="flex items-center gap-2 text-sm text-primary-foreground/70">
+          <div className="flex items-center gap-2 text-sm text-primary-foreground/70">
               <MapPin className="w-4 h-4" />
-              <span>Milano, Italia</span>
+              <span>Via Alessandro Manzoni, 18100 Imperia (IM)</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-primary-foreground/70 mt-2">
               <Mail className="w-4 h-4" />
@@ -112,7 +112,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/privacy#cookie"
+                  to="/cookie"
                   className="text-sm text-primary-foreground/70 hover:text-primary transition-colors"
                 >
                   Cookie Policy
@@ -159,7 +159,7 @@ const Footer = () => {
           className="pt-8 border-t border-primary-foreground/10 flex flex-col sm:flex-row justify-between items-center gap-4"
         >
           <div className="text-sm text-primary-foreground/50">
-            © {currentYear} Rimborsami S.r.l. P.IVA 12345678901 - Tutti i diritti riservati.
+            © {currentYear} Riccardo Casagrande - P.IVA 01538960087 - Tutti i diritti riservati.
           </div>
           <div className="flex items-center gap-2 text-sm text-primary-foreground/70">
             <Shield className="w-4 h-4 text-primary" />

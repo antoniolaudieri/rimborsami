@@ -36,7 +36,7 @@ export default function Terms() {
             <section className="space-y-4">
               <h2 className="text-xl font-semibold">1. Definizioni</h2>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>"Rimborsami"</strong>: la piattaforma e i servizi offerti da Rimborsami S.r.l.</li>
+                <li><strong>"Rimborsami"</strong>: la piattaforma e i servizi offerti da Riccardo Casagrande (ditta individuale), P.IVA 01538960087, con sede in Via Alessandro Manzoni, 18100 Imperia (IM), Italia</li>
                 <li><strong>"Utente"</strong>: qualsiasi persona fisica che accede e utilizza la piattaforma</li>
                 <li><strong>"Servizio"</strong>: l'identificazione e la gestione di opportunità di rimborso</li>
                 <li><strong>"Account"</strong>: l'account personale creato dall'Utente sulla piattaforma</li>
@@ -110,11 +110,17 @@ export default function Terms() {
             </section>
 
             <section className="space-y-4 mt-8">
-              <h2 className="text-xl font-semibold">6. Garanzia Soddisfatti o Rimborsati</h2>
+              <h2 className="text-xl font-semibold">6. Diritto di Recesso</h2>
               <p>
-                Offriamo una garanzia di 14 giorni soddisfatti o rimborsati per tutti i nuovi 
-                abbonamenti Premium. Se non sei soddisfatto del servizio, contattaci entro 
-                14 giorni dall'attivazione per ottenere un rimborso completo.
+                Ai sensi del D.Lgs. 206/2005 (Codice del Consumo), hai diritto di recedere dal 
+                contratto entro 14 giorni dalla sottoscrizione dell'abbonamento, senza dover 
+                fornire alcuna motivazione.
+              </p>
+              <p className="mt-2">
+                Per esercitare il diritto di recesso, invia una comunicazione a{' '}
+                <a href="mailto:recesso@rimborsami.it" className="text-primary hover:underline">recesso@rimborsami.it</a>{' '}
+                indicando la tua volontà di recedere. Il rimborso sarà effettuato entro 14 giorni 
+                utilizzando lo stesso metodo di pagamento.
               </p>
             </section>
 
@@ -145,7 +151,7 @@ export default function Terms() {
               <h2 className="text-xl font-semibold">9. Proprietà Intellettuale</h2>
               <p>
                 Tutti i contenuti della piattaforma (testi, grafica, software, template) sono 
-                di proprietà di Rimborsami S.r.l. o dei suoi licenziatari. L'utente ha una 
+                di proprietà di Riccardo Casagrande o dei suoi licenziatari. L'utente ha una 
                 licenza limitata e non esclusiva per l'uso personale del servizio.
               </p>
             </section>
@@ -154,9 +160,9 @@ export default function Terms() {
               <h2 className="text-xl font-semibold">10. Modifiche ai Termini</h2>
               <p>
                 Ci riserviamo il diritto di modificare questi Termini in qualsiasi momento. 
-                Le modifiche saranno comunicate via email o tramite la piattaforma. 
-                L'uso continuato del servizio dopo le modifiche costituisce accettazione 
-                dei nuovi termini.
+                Le modifiche saranno comunicate via email o tramite la piattaforma con almeno 
+                15 giorni di preavviso. L'uso continuato del servizio dopo le modifiche 
+                costituisce accettazione dei nuovi termini.
               </p>
             </section>
 
@@ -164,9 +170,16 @@ export default function Terms() {
               <h2 className="text-xl font-semibold">11. Legge Applicabile e Foro Competente</h2>
               <p>
                 I presenti Termini sono regolati dalla legge italiana. Per qualsiasi 
-                controversia sarà competente in via esclusiva il Foro di Milano, 
+                controversia sarà competente in via esclusiva il Foro di Imperia, 
                 fatto salvo il foro del consumatore previsto dall'art. 66-bis del 
-                Codice del Consumo.
+                Codice del Consumo (D.Lgs. 206/2005).
+              </p>
+              <p className="mt-2">
+                Per le controversie relative a contratti online, i consumatori possono 
+                accedere alla piattaforma ODR dell'Unione Europea:{' '}
+                <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  https://ec.europa.eu/consumers/odr
+                </a>
               </p>
             </section>
 
@@ -176,8 +189,10 @@ export default function Terms() {
                 Per qualsiasi domanda sui presenti Termini di Servizio, contattaci:
               </p>
               <ul className="list-none space-y-1 mt-2">
+                <li><strong>Titolare:</strong> Riccardo Casagrande</li>
+                <li><strong>Indirizzo:</strong> Via Alessandro Manzoni, 18100 Imperia (IM), Italia</li>
+                <li><strong>P.IVA:</strong> 01538960087</li>
                 <li><strong>Email:</strong> <a href="mailto:legal@rimborsami.it" className="text-primary hover:underline">legal@rimborsami.it</a></li>
-                <li><strong>Indirizzo:</strong> Rimborsami S.r.l., Milano, Italia</li>
               </ul>
             </section>
           </div>
