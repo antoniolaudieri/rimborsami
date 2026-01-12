@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Loader2, FileText, Image, X, CheckCircle2, Plane, ShoppingBag, Smartphone, Zap, Building2, Shield, Car, Sparkles } from 'lucide-react';
+import { Upload, Loader2, FileText, Image, X, CheckCircle2, Plane, ShoppingBag, Smartphone, Zap, Building2, Shield, Car, Sparkles, Home, Briefcase, HeartPulse, FileSpreadsheet } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,11 @@ const SUPPORTED_CATEGORIES = [
   { id: 'energy', label: 'Energia', icon: Zap, examples: 'Bollette luce e gas' },
   { id: 'bank', label: 'Banche', icon: Building2, examples: 'Estratti conto, mutui, prestiti' },
   { id: 'insurance', label: 'Assicurazioni', icon: Shield, examples: 'Polizze, contratti' },
-  { id: 'automotive', label: 'Auto', icon: Car, examples: 'Contratti, finanziamenti' },
+  { id: 'automotive', label: 'Auto', icon: Car, examples: 'Bollo, assicurazione, multe, revisione' },
+  { id: 'condominium', label: 'Condominio', icon: Home, examples: 'Verbali assemblea, rendiconti, tabelle millesimali' },
+  { id: 'work', label: 'Lavoro', icon: Briefcase, examples: 'Buste paga, contratti, CUD, TFR' },
+  { id: 'health', label: 'Sanità', icon: HeartPulse, examples: 'Fatture mediche, referti, ticket' },
+  { id: 'fiscal', label: 'Fisco', icon: FileSpreadsheet, examples: '730, F24, visure catastali' },
 ];
 
 export function DocumentUploader({

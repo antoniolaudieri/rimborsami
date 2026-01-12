@@ -48,6 +48,137 @@ export interface BankAnalysis {
   anomalies_found?: string[];
 }
 
+// Condominium document analysis
+export interface CondominiumAnalysis {
+  document_subtype?: 'verbale_assemblea' | 'rendiconto' | 'preventivo' | 'tabella_millesimale' | 'convocazione';
+  assembly_info?: {
+    date?: string;
+    type?: 'ordinaria' | 'straordinaria';
+    quorum_reached?: boolean;
+    attendees_count?: number;
+    millesimi_present?: number;
+    millesimi_total?: number;
+  };
+  deliberations?: Array<{
+    topic: string;
+    votes_favor: number;
+    votes_against: number;
+    required_majority: string;
+    is_valid: boolean;
+  }>;
+  financial_info?: {
+    total_expenses?: number;
+    reserve_fund?: number;
+    per_millesimo_cost?: number;
+    suspicious_entries?: Array<{
+      description: string;
+      amount: number;
+      issue: string;
+    }>;
+  };
+  irregularities?: Array<{
+    type: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    description: string;
+    legal_reference?: string;
+  }>;
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+  actionable_advice?: string[];
+}
+
+// Work document analysis (buste paga, contratti, CUD)
+export interface WorkAnalysis {
+  document_subtype?: 'busta_paga' | 'contratto_lavoro' | 'cud' | 'tfr' | 'lettera_licenziamento';
+  employer?: string;
+  period?: { month?: number; year?: number; from?: string; to?: string };
+  salary_info?: {
+    gross_salary?: number;
+    net_salary?: number;
+    inps_contributions?: number;
+    irpef?: number;
+    regional_tax?: number;
+    municipal_tax?: number;
+    tfr_accrued?: number;
+    remaining_holidays?: number;
+    remaining_permits?: number;
+  };
+  contract_info?: {
+    type?: string;
+    level?: string;
+    ccnl?: string;
+    start_date?: string;
+    end_date?: string;
+  };
+  irregularities?: Array<{
+    type: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    description: string;
+    legal_reference?: string;
+  }>;
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+  actionable_advice?: string[];
+}
+
+// Health document analysis
+export interface HealthAnalysis {
+  document_subtype?: 'fattura_medica' | 'referto' | 'prescrizione' | 'ticket';
+  provider?: string;
+  date?: string;
+  amount?: number;
+  deductible_amount?: number;
+  deduction_type?: '19%' | '730_detrazione' | 'non_detraibile';
+  services?: Array<{
+    description: string;
+    amount: number;
+    deductible: boolean;
+  }>;
+  tax_info?: {
+    total_deductible?: number;
+    estimated_refund?: number;
+  };
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+}
+
+// Auto document analysis
+export interface AutoAnalysis {
+  document_subtype?: 'bollo' | 'assicurazione' | 'revisione' | 'multa' | 'finanziamento';
+  vehicle_info?: {
+    plate?: string;
+    brand?: string;
+    model?: string;
+  };
+  deadline?: string;
+  amount?: number;
+  fine_info?: {
+    violation?: string;
+    date?: string;
+    original_amount?: number;
+    reduced_amount?: number;
+    payment_deadline?: string;
+    contestable?: boolean;
+    contest_deadline?: string;
+  };
+  insurance_info?: {
+    company?: string;
+    policy_number?: string;
+    coverage_type?: string;
+    start_date?: string;
+    end_date?: string;
+    premium?: number;
+  };
+  irregularities?: Array<{
+    type: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    description: string;
+  }>;
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+  actionable_advice?: string[];
+}
+
 export interface ParsedDocumentData {
   document_type?: string;
   confidence?: number;
@@ -55,6 +186,11 @@ export interface ParsedDocumentData {
   potential_issues?: string[];
   suggested_categories?: string[];
   bank_analysis?: BankAnalysis;
+  condominium_analysis?: CondominiumAnalysis;
+  work_analysis?: WorkAnalysis;
+  health_analysis?: HealthAnalysis;
+  auto_analysis?: AutoAnalysis;
+  summary?: string;
   risk_score?: number;
   risk_level?: 'low' | 'medium' | 'high' | 'critical';
 }
@@ -63,7 +199,7 @@ export interface ParsedDocumentData {
 export function hasAnomalies(parsedData: ParsedDocumentData | null): boolean {
   if (!parsedData) return false;
   
-  const { bank_analysis, risk_level } = parsedData;
+  const { bank_analysis, condominium_analysis, work_analysis, auto_analysis, risk_level } = parsedData;
   
   if (risk_level === 'high' || risk_level === 'critical') return true;
   
@@ -74,7 +210,42 @@ export function hasAnomalies(parsedData: ParsedDocumentData | null): boolean {
     if ((bank_analysis.risk_score ?? 0) >= 50) return true;
   }
   
+  if (condominium_analysis) {
+    if (condominium_analysis.irregularities?.length) return true;
+    if ((condominium_analysis.risk_score ?? 0) >= 50) return true;
+  }
+  
+  if (work_analysis) {
+    if (work_analysis.irregularities?.length) return true;
+    if ((work_analysis.risk_score ?? 0) >= 50) return true;
+  }
+  
+  if (auto_analysis) {
+    if (auto_analysis.irregularities?.length) return true;
+    if ((auto_analysis.risk_score ?? 0) >= 50) return true;
+  }
+  
   return false;
+}
+
+// Helper function to get document category from parsed data
+export function getDocumentCategory(parsedData: ParsedDocumentData | null): string {
+  if (!parsedData) return 'other';
+  
+  if (parsedData.bank_analysis) return 'bank';
+  if (parsedData.condominium_analysis) return 'condominium';
+  if (parsedData.work_analysis) return 'work';
+  if (parsedData.health_analysis) return 'health';
+  if (parsedData.auto_analysis) return 'auto';
+  
+  const categories = parsedData.suggested_categories || [];
+  if (categories.includes('flight')) return 'flight';
+  if (categories.includes('ecommerce')) return 'ecommerce';
+  if (categories.includes('telecom')) return 'telecom';
+  if (categories.includes('energy')) return 'energy';
+  if (categories.includes('insurance')) return 'insurance';
+  
+  return 'other';
 }
 
 // Helper function to get risk score from parsed data
