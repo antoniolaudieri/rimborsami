@@ -10,28 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Paywall } from '@/components/Paywall';
+import { CompanyLogo } from '@/components/opportunities/CompanyLogo';
 import {
   Search,
-  Filter,
   ChevronRight,
   Clock,
   Euro,
   AlertCircle,
-  CheckCircle2,
-  Plane,
-  ShoppingCart,
-  Landmark,
-  Shield,
-  Package,
-  FileQuestion,
   Lock,
   Sparkles,
-  Phone,
-  Zap,
-  Train,
-  Car,
-  Smartphone,
-  Users,
 } from 'lucide-react';
 
 interface UserOpportunity {
@@ -40,6 +27,7 @@ interface UserOpportunity {
   estimated_amount: number;
   deadline: string | null;
   created_at: string;
+  matched_data: Record<string, unknown> | null;
   opportunities: {
     id: string;
     title: string;
@@ -66,21 +54,6 @@ const statusLabels: Record<string, string> = {
   sent: 'Inviata',
   completed: 'Completata',
   expired: 'Scaduta',
-};
-
-const categoryIcons: Record<string, React.ReactNode> = {
-  flight: <Plane className="w-5 h-5" />,
-  ecommerce: <ShoppingCart className="w-5 h-5" />,
-  bank: <Landmark className="w-5 h-5" />,
-  insurance: <Shield className="w-5 h-5" />,
-  warranty: <Package className="w-5 h-5" />,
-  telecom: <Phone className="w-5 h-5" />,
-  energy: <Zap className="w-5 h-5" />,
-  transport: <Train className="w-5 h-5" />,
-  automotive: <Car className="w-5 h-5" />,
-  tech: <Smartphone className="w-5 h-5" />,
-  class_action: <Users className="w-5 h-5" />,
-  other: <FileQuestion className="w-5 h-5" />,
 };
 
 const categoryLabels: Record<string, string> = {
@@ -124,6 +97,7 @@ export default function DashboardOpportunities() {
           estimated_amount,
           deadline,
           created_at,
+          matched_data,
           opportunities (
             id,
             title,
@@ -326,10 +300,12 @@ export default function DashboardOpportunities() {
                     <Card className={`hover:shadow-md transition-all ${isFree ? 'hover:border-primary/30' : 'hover:border-primary/30'}`}>
                       <CardContent className="py-4">
                         <div className="flex items-start gap-4">
-                          {/* Category icon */}
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                            {categoryIcons[opp.opportunities?.category || 'other']}
-                          </div>
+                          {/* Company logo or category icon */}
+                          <CompanyLogo 
+                            category={opp.opportunities?.category || 'other'}
+                            matchedData={opp.matched_data as Record<string, unknown> | undefined}
+                            size="md"
+                          />
 
                           {/* Content */}
                           <div className="flex-1 min-w-0">
