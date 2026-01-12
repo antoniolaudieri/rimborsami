@@ -401,6 +401,11 @@ const companyFields = [
   'shop',
 ];
 
+// Escape caratteri speciali per regex
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function extractCompanyName(matchedData?: Record<string, unknown>, opportunityTitle?: string): string | null {
   // Prima cerca nei matchedData
   if (matchedData) {
@@ -431,9 +436,19 @@ function extractCompanyName(matchedData?: Record<string, unknown>, opportunityTi
     
     // Cerca se il titolo contiene un nome azienda conosciuto
     for (const companyKey of sortedKeys) {
-      // Usa una regex per trovare la parola come parola intera o parte di parola composta
-      const regex = new RegExp(`\\b${companyKey}\\b|${companyKey}`, 'i');
+      // Escape caratteri speciali e usa una regex per trovare la parola
+      const escapedKey = escapeRegExp(companyKey);
+      const regex = new RegExp(`\\b${escapedKey}\\b`, 'i');
       if (regex.test(titleLower)) {
+        console.log('CompanyLogo: Found match', companyKey, 'in title:', opportunityTitle);
+        return companyKey;
+      }
+    }
+    
+    // Fallback: cerca match semplice se la regex non trova nulla
+    for (const companyKey of sortedKeys) {
+      if (titleLower.includes(companyKey)) {
+        console.log('CompanyLogo: Found simple match', companyKey, 'in title:', opportunityTitle);
         return companyKey;
       }
     }
