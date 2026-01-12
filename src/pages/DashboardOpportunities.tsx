@@ -4,21 +4,23 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Paywall } from '@/components/Paywall';
-import { CompanyLogo } from '@/components/opportunities/CompanyLogo';
+import OpportunityCard from '@/components/opportunities/OpportunityCard';
 import {
   Search,
-  ChevronRight,
-  Clock,
   Euro,
   AlertCircle,
   Lock,
   Sparkles,
+  LayoutGrid,
+  List,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface UserOpportunity {
@@ -289,106 +291,17 @@ export default function DashboardOpportunities() {
           ) : (
             <div className="space-y-4">
               {filteredOpportunities.map((opp, index) => (
-                <motion.div
+                <OpportunityCard
                   key={opp.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <div onClick={() => handleOpportunityClick(opp.id)} className="cursor-pointer">
-                    <Card className={`hover:shadow-md transition-all ${isFree ? 'hover:border-primary/30' : 'hover:border-primary/30'}`}>
-                      <CardContent className="py-3 px-3 sm:py-4 sm:px-6">
-                        <div className="flex items-start gap-3">
-                          {/* Company logo or category icon */}
-                          <CompanyLogo 
-                            category={opp.opportunities?.category || 'other'}
-                            matchedData={opp.matched_data as Record<string, unknown> | undefined}
-                            opportunityTitle={opp.opportunities?.title}
-                            size="md"
-                          />
-
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
-                              <div className="min-w-0">
-                                {isFree ? (
-                                  <>
-                                    <h3 className="font-semibold text-muted-foreground text-sm sm:text-base">
-                                      Opportunità • {categoryLabels[opp.opportunities?.category || 'other']}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-muted-foreground/70 mt-0.5 blur-[3px] select-none">
-                                      Nome azienda nascosto
-                                    </p>
-                                  </>
-                                ) : (
-                                  <>
-                                    <h3 className="font-semibold text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
-                                      {opp.opportunities?.title}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                                      {categoryLabels[opp.opportunities?.category || 'other']}
-                                      <span className="hidden sm:inline">
-                                        {opp.opportunities?.legal_reference && (
-                                          <span className="ml-2">• {opp.opportunities.legal_reference}</span>
-                                        )}
-                                      </span>
-                                    </p>
-                                  </>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 mt-1 sm:mt-0">
-                                <Badge className={`${statusColors[opp.status]} text-xs`}>
-                                  {statusLabels[opp.status]}
-                                </Badge>
-                                {isFree && <Lock className="w-4 h-4 text-muted-foreground" />}
-                              </div>
-                            </div>
-
-                            {/* Hide description on mobile for cleaner cards */}
-                            {isFree ? (
-                              <p className="hidden sm:block text-sm text-muted-foreground mt-2 blur-[3px] select-none">
-                                Descrizione dettagliata dell'opportunità nascosta. Sblocca per vedere...
-                              </p>
-                            ) : (
-                              <p className="hidden sm:block text-sm text-muted-foreground mt-2 line-clamp-2">
-                                {opp.opportunities?.short_description}
-                              </p>
-                            )}
-
-                            <div className="flex items-center justify-between mt-2 sm:mt-3">
-                              <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                                {isFree ? (
-                                  <span className="flex items-center gap-1 font-medium text-primary">
-                                    <Euro className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    {opp.opportunities?.min_amount?.toLocaleString('it-IT')} - {opp.opportunities?.max_amount?.toLocaleString('it-IT')}
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-1 font-medium text-primary">
-                                    <Euro className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    {opp.estimated_amount?.toLocaleString('it-IT')}
-                                  </span>
-                                )}
-                                {isPremium && opp.deadline && (
-                                  <span className="flex items-center gap-1 text-muted-foreground">
-                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span className="hidden sm:inline">Scade:</span> {new Date(opp.deadline).toLocaleDateString('it-IT')}
-                                  </span>
-                                )}
-                                {isFree && (
-                                  <span className="hidden sm:flex items-center gap-1 text-muted-foreground blur-[3px]">
-                                    <Clock className="w-4 h-4" />
-                                    Scadenza nascosta
-                                  </span>
-                                )}
-                              </div>
-                              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground flex-shrink-0" />
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </motion.div>
+                  opportunity={opp}
+                  isFree={isFree}
+                  isPremium={isPremium}
+                  onClick={() => handleOpportunityClick(opp.id)}
+                  index={index}
+                  statusColors={statusColors}
+                  statusLabels={statusLabels}
+                  categoryLabels={categoryLabels}
+                />
               ))}
             </div>
           )}

@@ -24,6 +24,7 @@ import DashboardSettings from "./pages/DashboardSettings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookie from "./pages/Cookie";
+import Opportunities from "./pages/Opportunities";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/opportunita" element={<Opportunities />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/cookie" element={<Cookie />} />
