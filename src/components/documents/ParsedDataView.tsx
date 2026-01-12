@@ -134,6 +134,25 @@ const categoryColors: Record<string, string> = {
   other: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
 };
 
+const categoryLabels: Record<string, string> = {
+  flight: 'Voli',
+  ecommerce: 'E-commerce',
+  telecom: 'Telefonia',
+  energy: 'Energia',
+  bank: 'Banche',
+  insurance: 'Assicurazioni',
+  warranty: 'Garanzie',
+  condominium: 'Condominio',
+  work: 'Lavoro',
+  health: 'Sanità',
+  auto: 'Auto',
+  automotive: 'Auto',
+  transport: 'Trasporti',
+  class_action: 'Class Action',
+  tech: 'Tecnologia',
+  other: 'Altro',
+};
+
 const riskLevelConfig = {
   low: { 
     bg: 'bg-green-50 dark:bg-green-950/30',
@@ -353,7 +372,7 @@ export function ParsedDataView({ data }: ParsedDataViewProps) {
                 key={category}
                 className={categoryColors[category] || categoryColors.other}
               >
-                {category}
+                {categoryLabels[category] || category}
               </Badge>
             ))}
           </div>
