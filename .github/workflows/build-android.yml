@@ -42,9 +42,13 @@ jobs:
       
       - name: Update Gradle wrapper for Java 21
         run: |
-          cat android/gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/gradle-[0-9.]*-all\.zip/gradle-8.5-all.zip/' android/gradle/wrapper/gradle-wrapper.properties
-          echo "--- After update ---"
+          echo "distributionBase=GRADLE_USER_HOME" > android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "networkTimeout=10000" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "validateDistributionUrl=true" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
           cat android/gradle/wrapper/gradle-wrapper.properties
       
       - name: Sync Capacitor
