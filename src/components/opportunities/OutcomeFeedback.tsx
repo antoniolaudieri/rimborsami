@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ShareSuccessModal } from '@/components/sharing/ShareSuccessModal';
 import {
   CheckCircle2,
   XCircle,
@@ -22,6 +23,8 @@ interface OutcomeFeedbackProps {
   userOpportunityId: string;
   currentOutcome?: string;
   estimatedAmount?: number;
+  companyName?: string;
+  category?: string;
   onUpdate: (outcome: string, actualAmount?: number) => void;
 }
 
@@ -68,6 +71,8 @@ export default function OutcomeFeedback({
   userOpportunityId,
   currentOutcome = 'pending',
   estimatedAmount,
+  companyName = 'Azienda',
+  category = 'other',
   onUpdate,
 }: OutcomeFeedbackProps) {
   const { toast } = useToast();
@@ -76,6 +81,7 @@ export default function OutcomeFeedback({
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -104,6 +110,11 @@ export default function OutcomeFeedback({
         description: 'Grazie per aver condiviso l\'esito della tua richiesta',
       });
       onUpdate(outcome, actualAmount ? parseInt(actualAmount) : undefined);
+      
+      // Show share modal for successful outcomes
+      if (outcome === 'success' || outcome === 'partial') {
+        setTimeout(() => setShowShareModal(true), 500);
+      }
     } catch (error) {
       console.error('Error saving outcome:', error);
       toast({
@@ -119,34 +130,45 @@ export default function OutcomeFeedback({
   if (saved) {
     const isSuccess = outcome === 'success' || outcome === 'partial';
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center py-8"
-      >
-        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${
-          isSuccess ? 'bg-green-100' : 'bg-muted'
-        }`}>
-          {isSuccess ? (
-            <PartyPopper className="w-8 h-8 text-green-600" />
-          ) : (
-            <ThumbsDown className="w-8 h-8 text-muted-foreground" />
-          )}
-        </div>
-        <h3 className="text-lg font-semibold mb-2">
-          {isSuccess ? 'Fantastico!' : 'Grazie per il feedback'}
-        </h3>
-        <p className="text-muted-foreground">
-          {isSuccess
-            ? `Complimenti per aver recuperato i tuoi soldi!`
-            : 'Il tuo feedback ci aiuta a migliorare il servizio'}
-        </p>
-        {isSuccess && actualAmount && (
-          <p className="mt-2 text-2xl font-bold text-primary">
-            €{parseInt(actualAmount).toLocaleString('it-IT')} recuperati
+      <>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-8"
+        >
+          <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${
+            isSuccess ? 'bg-green-100' : 'bg-muted'
+          }`}>
+            {isSuccess ? (
+              <PartyPopper className="w-8 h-8 text-green-600" />
+            ) : (
+              <ThumbsDown className="w-8 h-8 text-muted-foreground" />
+            )}
+          </div>
+          <h3 className="text-lg font-semibold mb-2">
+            {isSuccess ? 'Fantastico!' : 'Grazie per il feedback'}
+          </h3>
+          <p className="text-muted-foreground">
+            {isSuccess
+              ? `Complimenti per aver recuperato i tuoi soldi!`
+              : 'Il tuo feedback ci aiuta a migliorare il servizio'}
           </p>
-        )}
-      </motion.div>
+          {isSuccess && actualAmount && (
+            <p className="mt-2 text-2xl font-bold text-primary">
+              €{parseInt(actualAmount).toLocaleString('it-IT')} recuperati
+            </p>
+          )}
+        </motion.div>
+        
+        <ShareSuccessModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          amount={actualAmount ? parseInt(actualAmount) : estimatedAmount || 0}
+          company={companyName}
+          category={category}
+          userOpportunityId={userOpportunityId}
+        />
+      </>
     );
   }
 
