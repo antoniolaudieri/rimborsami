@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle2, HelpCircle, Lightbulb, Info } from 'lucide-react';
+import { DocumentFormFiller } from './DocumentFormFiller';
 
 interface DataCollectionFormProps {
   category: string;
@@ -789,6 +790,16 @@ export default function DataCollectionForm({
     }
   };
 
+  // Handle data extracted from document OCR
+  const handleDataExtracted = useCallback((extractedData: Record<string, string>) => {
+    // Update form fields with extracted data
+    Object.entries(extractedData).forEach(([key, value]) => {
+      if (value && config.fields.some(f => f.name === key)) {
+        form.setValue(key, value, { shouldValidate: true });
+      }
+    });
+  }, [form, config.fields]);
+
   const renderField = (field: FieldConfig) => {
     return (
       <FormField
@@ -887,6 +898,12 @@ export default function DataCollectionForm({
           <CardDescription>{config.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Document OCR upload for auto-fill */}
+          <DocumentFormFiller 
+            category={category} 
+            onDataExtracted={handleDataExtracted}
+          />
+
           {/* Help message */}
           <Alert className="bg-primary/5 border-primary/20">
             <Lightbulb className="h-4 w-4 text-primary" />

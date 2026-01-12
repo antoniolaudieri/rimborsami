@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.match-opportunities]
 verify_jwt = false
+
+[functions.extract-form-data]
+verify_jwt = false
