@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 import {
@@ -16,6 +17,7 @@ import {
   X,
   ChevronRight,
   Crown,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +33,7 @@ const navItems = [
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { isPremium, plan, loading: subscriptionLoading } = useSubscription();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -78,6 +81,8 @@ export function DashboardLayout() {
                 currentPath={location.pathname}
                 onSignOut={handleSignOut}
                 onClose={() => setSidebarOpen(false)}
+                isPremium={isPremium}
+                plan={plan}
               />
             </motion.aside>
           </>
@@ -90,6 +95,8 @@ export function DashboardLayout() {
           user={user}
           currentPath={location.pathname}
           onSignOut={handleSignOut}
+          isPremium={isPremium}
+          plan={plan}
         />
       </aside>
 
@@ -108,9 +115,17 @@ interface SidebarContentProps {
   currentPath: string;
   onSignOut: () => void;
   onClose?: () => void;
+  isPremium: boolean;
+  plan: string | null;
 }
 
-function SidebarContent({ user, currentPath, onSignOut, onClose }: SidebarContentProps) {
+function SidebarContent({ user, currentPath, onSignOut, onClose, isPremium, plan }: SidebarContentProps) {
+  const getPlanLabel = () => {
+    if (plan === 'annual') return 'Piano Annuale';
+    if (plan === 'monthly') return 'Piano Mensile';
+    return 'Piano Free';
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -136,20 +151,30 @@ function SidebarContent({ user, currentPath, onSignOut, onClose }: SidebarConten
         </div>
       </div>
 
-      {/* Upgrade banner */}
+      {/* Plan banner - shows different content based on subscription */}
       <div className="p-4">
-        <div className="bg-gradient-hero rounded-xl p-4 text-white">
-          <div className="flex items-center gap-2 mb-2">
-            <Crown className="w-4 h-4" />
-            <span className="font-semibold text-sm">Piano Free</span>
+        {isPremium ? (
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4" />
+              <span className="font-semibold text-sm">{getPlanLabel()}</span>
+            </div>
+            <p className="text-xs opacity-90">Accesso completo a tutte le funzionalità</p>
           </div>
-          <p className="text-xs opacity-90 mb-3">Sblocca tutte le opportunità di rimborso</p>
-          <Button size="sm" variant="secondary" className="w-full text-xs" asChild>
-            <Link to="/dashboard/settings">
-              Passa a Premium <ChevronRight className="w-3 h-3 ml-1" />
-            </Link>
-          </Button>
-        </div>
+        ) : (
+          <div className="bg-gradient-hero rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Crown className="w-4 h-4" />
+              <span className="font-semibold text-sm">Piano Free</span>
+            </div>
+            <p className="text-xs opacity-90 mb-3">Sblocca tutte le opportunità di rimborso</p>
+            <Button size="sm" variant="secondary" className="w-full text-xs" asChild>
+              <Link to="/dashboard/settings">
+                Passa a Premium <ChevronRight className="w-3 h-3 ml-1" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}

@@ -18,6 +18,7 @@ interface UseSubscriptionReturn {
   isPremium: boolean;
   isFree: boolean;
   loading: boolean;
+  plan: SubscriptionPlan | null;
   refetch: () => Promise<void>;
 }
 
@@ -63,6 +64,7 @@ export function useSubscription(): UseSubscriptionReturn {
     isPremium,
     isFree,
     loading,
+    plan: subscription?.plan || null,
     refetch: fetchSubscription,
   };
 }
