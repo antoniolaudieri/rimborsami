@@ -1,24 +1,24 @@
 import { motion } from "framer-motion";
 
 const companies = [
-  { name: "Ryanair", logo: "✈️" },
-  { name: "easyJet", logo: "🛫" },
-  { name: "Alitalia", logo: "🇮🇹" },
-  { name: "Vodafone", logo: "📱" },
-  { name: "TIM", logo: "📞" },
-  { name: "WindTre", logo: "📡" },
-  { name: "Enel", logo: "⚡" },
-  { name: "Eni", logo: "🔥" },
-  { name: "Amazon", logo: "📦" },
-  { name: "Zalando", logo: "👕" },
-  { name: "Apple", logo: "🍎" },
-  { name: "Google", logo: "🔍" },
-  { name: "Meta", logo: "👤" },
-  { name: "Trenitalia", logo: "🚆" },
-  { name: "Italo", logo: "🚅" },
-  { name: "UniCredit", logo: "🏦" },
-  { name: "Intesa SP", logo: "💳" },
-  { name: "Generali", logo: "🛡️" },
+  { name: "Ryanair", logo: "https://logo.clearbit.com/ryanair.com" },
+  { name: "easyJet", logo: "https://logo.clearbit.com/easyjet.com" },
+  { name: "Vueling", logo: "https://logo.clearbit.com/vueling.com" },
+  { name: "Vodafone", logo: "https://logo.clearbit.com/vodafone.it" },
+  { name: "TIM", logo: "https://logo.clearbit.com/tim.it" },
+  { name: "WindTre", logo: "https://logo.clearbit.com/windtre.it" },
+  { name: "Enel", logo: "https://logo.clearbit.com/enel.it" },
+  { name: "Eni", logo: "https://logo.clearbit.com/eni.com" },
+  { name: "Amazon", logo: "https://logo.clearbit.com/amazon.it" },
+  { name: "Zalando", logo: "https://logo.clearbit.com/zalando.it" },
+  { name: "Apple", logo: "https://logo.clearbit.com/apple.com" },
+  { name: "Google", logo: "https://logo.clearbit.com/google.com" },
+  { name: "Meta", logo: "https://logo.clearbit.com/meta.com" },
+  { name: "Trenitalia", logo: "https://logo.clearbit.com/trenitalia.com" },
+  { name: "Italo", logo: "https://logo.clearbit.com/italotreno.it" },
+  { name: "UniCredit", logo: "https://logo.clearbit.com/unicredit.it" },
+  { name: "Intesa Sanpaolo", logo: "https://logo.clearbit.com/intesasanpaolo.com" },
+  { name: "Generali", logo: "https://logo.clearbit.com/generali.it" },
 ];
 
 const CompanyLogos = () => {
@@ -42,11 +42,14 @@ const CompanyLogos = () => {
             {[...companies, ...companies].map((company, index) => (
               <div
                 key={`${company.name}-${index}`}
-                className="flex-shrink-0 flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all group cursor-pointer min-w-[100px]"
+                className="flex-shrink-0 flex flex-col items-center justify-center gap-2 px-6 py-4 rounded-xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all group cursor-pointer min-w-[120px] h-[80px]"
               >
-                <span className="text-3xl group-hover:scale-110 transition-transform">
-                  {company.logo}
-                </span>
+                <img 
+                  src={company.logo} 
+                  alt={`${company.name} logo`}
+                  className="h-8 w-auto max-w-[80px] object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                  loading="lazy"
+                />
                 <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors whitespace-nowrap">
                   {company.name}
                 </span>
