@@ -60,16 +60,6 @@ const OpportunityCard = ({
         <Card className={`hover:shadow-md transition-all relative overflow-hidden ${
           isUrgent ? 'border-orange-300 dark:border-orange-700' : 'hover:border-primary/30'
         }`}>
-          {/* New badge */}
-          {isNew && (
-            <div className="absolute top-0 right-0">
-              <Badge className="rounded-none rounded-bl-lg bg-gradient-hero text-white border-0">
-                <Sparkles className="w-3 h-3 mr-1" />
-                Nuovo!
-              </Badge>
-            </div>
-          )}
-          
           <CardContent className="py-4 px-4 sm:px-6">
             <div className="flex items-start gap-4">
               {/* Company logo */}
@@ -108,7 +98,13 @@ const OpportunityCard = ({
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+                    {isNew && (
+                      <Badge className="bg-gradient-hero text-white border-0 text-xs">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Nuovo
+                      </Badge>
+                    )}
                     <Badge className={`${statusColors[opp.status]} text-xs`}>
                       {statusLabels[opp.status]}
                     </Badge>
