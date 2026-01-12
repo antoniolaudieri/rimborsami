@@ -36,8 +36,9 @@ export default function Privacy() {
             <section className="space-y-4">
               <h2 className="text-xl font-semibold">1. Titolare del Trattamento</h2>
               <p>
-                Il Titolare del trattamento dei dati personali è <strong>Rimborsami S.r.l.</strong>, 
-                con sede legale in Milano, Italia (di seguito "Rimborsami", "noi" o "Titolare").
+                Il Titolare del trattamento dei dati personali è <strong>Riccardo Casagrande</strong> (ditta individuale), 
+                con sede legale in Via Alessandro Manzoni, 18100 Imperia (IM), Italia, P.IVA 01538960087 
+                (di seguito "Rimborsami", "noi" o "Titolare").
               </p>
               <p>
                 Per qualsiasi richiesta relativa al trattamento dei dati personali, puoi contattarci 
@@ -95,32 +96,48 @@ export default function Privacy() {
 
             <section className="space-y-4 mt-8">
               <h2 className="text-xl font-semibold">6. I Tuoi Diritti (GDPR)</h2>
-              <p>In qualità di interessato, hai diritto a:</p>
+              <p>In qualità di interessato, ai sensi degli articoli 15-22 del Regolamento UE 2016/679 (GDPR), hai diritto a:</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Accesso:</strong> ottenere conferma e copia dei tuoi dati</li>
-                <li><strong>Rettifica:</strong> correggere dati inesatti o incompleti</li>
-                <li><strong>Cancellazione:</strong> richiedere la cancellazione dei dati (diritto all'oblio)</li>
-                <li><strong>Limitazione:</strong> limitare il trattamento in determinate circostanze</li>
-                <li><strong>Portabilità:</strong> ricevere i dati in formato strutturato</li>
-                <li><strong>Opposizione:</strong> opporti al trattamento per motivi legittimi</li>
-                <li><strong>Revoca del consenso:</strong> ritirare il consenso in qualsiasi momento</li>
+                <li><strong>Accesso (art. 15):</strong> ottenere conferma e copia dei tuoi dati personali</li>
+                <li><strong>Rettifica (art. 16):</strong> correggere dati inesatti o incompleti</li>
+                <li><strong>Cancellazione (art. 17):</strong> richiedere la cancellazione dei dati (diritto all'oblio)</li>
+                <li><strong>Limitazione (art. 18):</strong> limitare il trattamento in determinate circostanze</li>
+                <li><strong>Portabilità (art. 20):</strong> ricevere i dati in formato strutturato, di uso comune e leggibile da dispositivo automatico</li>
+                <li><strong>Opposizione (art. 21):</strong> opporti al trattamento per motivi legittimi</li>
+                <li><strong>Revoca del consenso:</strong> ritirare il consenso in qualsiasi momento senza pregiudicare la liceità del trattamento precedente</li>
               </ul>
               <p className="mt-4">
                 Per esercitare i tuoi diritti, scrivi a: <a href="mailto:privacy@rimborsami.it" className="text-primary hover:underline">privacy@rimborsami.it</a>
               </p>
-            </section>
-
-            <section className="space-y-4 mt-8">
-              <h2 className="text-xl font-semibold">7. Cookie</h2>
-              <p>
-                Utilizziamo cookie tecnici necessari al funzionamento del sito e, previo consenso, 
-                cookie analitici per migliorare la tua esperienza. Per maggiori informazioni, 
-                consulta la nostra Cookie Policy.
+              <p className="mt-2">
+                Risponderemo alla tua richiesta entro 30 giorni dal ricevimento.
               </p>
             </section>
 
             <section className="space-y-4 mt-8">
-              <h2 className="text-xl font-semibold">8. Sicurezza</h2>
+              <h2 className="text-xl font-semibold">7. Trasferimento Dati Extra-UE</h2>
+              <p>
+                I tuoi dati personali sono trattati principalmente all'interno dell'Unione Europea. 
+                Nel caso in cui sia necessario trasferire i dati verso paesi terzi, ci assicuriamo che:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Il paese destinatario garantisca un livello di protezione adeguato (decisione di adeguatezza della Commissione UE)</li>
+                <li>Siano presenti Clausole Contrattuali Standard approvate dalla Commissione Europea</li>
+                <li>Il destinatario aderisca a meccanismi di certificazione riconosciuti</li>
+              </ul>
+            </section>
+
+            <section className="space-y-4 mt-8">
+              <h2 className="text-xl font-semibold">8. Cookie</h2>
+              <p>
+                Utilizziamo cookie tecnici necessari al funzionamento del sito e, previo consenso, 
+                cookie analitici per migliorare la tua esperienza. Per maggiori informazioni dettagliate, 
+                consulta la nostra <Link to="/cookie" className="text-primary hover:underline">Cookie Policy</Link>.
+              </p>
+            </section>
+
+            <section className="space-y-4 mt-8">
+              <h2 className="text-xl font-semibold">9. Sicurezza</h2>
               <p>
                 Adottiamo misure tecniche e organizzative adeguate per proteggere i tuoi dati, 
                 tra cui:
@@ -130,16 +147,23 @@ export default function Privacy() {
                 <li>Server situati nell'Unione Europea</li>
                 <li>Accesso ai dati limitato al personale autorizzato</li>
                 <li>Backup regolari e procedure di disaster recovery</li>
+                <li>Autenticazione sicura con password crittografate</li>
               </ul>
             </section>
 
             <section className="space-y-4 mt-8">
-              <h2 className="text-xl font-semibold">9. Contatti e Reclami</h2>
+              <h2 className="text-xl font-semibold">10. Contatti e Reclami</h2>
               <p>
                 Per qualsiasi domanda o reclamo relativo al trattamento dei tuoi dati personali, 
-                puoi contattarci all'indirizzo <a href="mailto:privacy@rimborsami.it" className="text-primary hover:underline">privacy@rimborsami.it</a>.
+                puoi contattare il Titolare del trattamento:
               </p>
-              <p className="mt-2">
+              <ul className="list-none space-y-1 mt-2">
+                <li><strong>Titolare:</strong> Riccardo Casagrande</li>
+                <li><strong>Indirizzo:</strong> Via Alessandro Manzoni, 18100 Imperia (IM), Italia</li>
+                <li><strong>P.IVA:</strong> 01538960087</li>
+                <li><strong>Email:</strong> <a href="mailto:privacy@rimborsami.it" className="text-primary hover:underline">privacy@rimborsami.it</a></li>
+              </ul>
+              <p className="mt-4">
                 Hai inoltre il diritto di proporre reclamo all'Autorità Garante per la Protezione 
                 dei Dati Personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.garanteprivacy.it</a>).
               </p>
