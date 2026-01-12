@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDocuments, hasAnomalies, getRiskScore, type ParsedDocumentData } from '@/hooks/useDocuments';
+import { useDocuments, hasAnomalies, getRiskScore, getDocumentCategory, type ParsedDocumentData } from '@/hooks/useDocuments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
   File,
@@ -17,10 +19,23 @@ import {
   AlertTriangle,
   ArrowUpDown,
   ShieldAlert,
-  FileDown,
+  LayoutGrid,
+  List,
+  Building2,
+  Home,
+  Briefcase,
+  HeartPulse,
+  Car,
+  Plane,
+  ShoppingBag,
+  Smartphone,
+  Zap,
+  Shield,
+  HelpCircle,
 } from 'lucide-react';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
 import { DocumentCard } from '@/components/documents/DocumentCard';
+import { DocumentSummaryCard } from '@/components/documents/DocumentSummaryCard';
 import { ReportGenerator } from '@/components/documents/ReportGenerator';
 import {
   Dialog,
@@ -41,6 +56,24 @@ type FilterStatus = 'all' | 'pending' | 'processing' | 'completed' | 'error';
 type FilterType = 'all' | 'pdf' | 'image' | 'email';
 type FilterAnomaly = 'all' | 'with_anomalies' | 'without_anomalies';
 type SortOption = 'date_desc' | 'date_asc' | 'risk_desc' | 'risk_asc';
+type ViewMode = 'list' | 'catalog';
+
+const CATEGORY_CONFIG = {
+  all: { label: 'Tutti', icon: LayoutGrid, color: 'text-foreground' },
+  bank: { label: 'Banche', icon: Building2, color: 'text-emerald-600' },
+  condominium: { label: 'Condominio', icon: Home, color: 'text-indigo-600' },
+  work: { label: 'Lavoro', icon: Briefcase, color: 'text-teal-600' },
+  health: { label: 'Sanità', icon: HeartPulse, color: 'text-rose-600' },
+  auto: { label: 'Auto', icon: Car, color: 'text-slate-600' },
+  flight: { label: 'Voli', icon: Plane, color: 'text-sky-600' },
+  ecommerce: { label: 'E-commerce', icon: ShoppingBag, color: 'text-orange-600' },
+  telecom: { label: 'Telecom', icon: Smartphone, color: 'text-purple-600' },
+  energy: { label: 'Energia', icon: Zap, color: 'text-yellow-600' },
+  insurance: { label: 'Assicurazioni', icon: Shield, color: 'text-blue-600' },
+  other: { label: 'Altri', icon: HelpCircle, color: 'text-gray-600' },
+};
+
+type CategoryKey = keyof typeof CATEGORY_CONFIG;
 
 export default function DashboardDocuments() {
   const navigate = useNavigate();
@@ -62,6 +95,8 @@ export default function DashboardDocuments() {
   const [sortOption, setSortOption] = useState<SortOption>('date_desc');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>('all');
 
   // Calculate anomaly stats
   const anomalyStats = useMemo(() => {
@@ -88,9 +123,41 @@ export default function DashboardDocuments() {
     return { withAnomalies, criticalCount, highCount, totalEstimatedRefund };
   }, [documents]);
 
+  // Group documents by category
+  const documentsByCategory = useMemo(() => {
+    const grouped: Record<string, typeof documents> = {};
+    
+    documents.forEach((doc) => {
+      const parsedData = doc.parsed_data as ParsedDocumentData | null;
+      const category = getDocumentCategory(parsedData);
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(doc);
+    });
+
+    return grouped;
+  }, [documents]);
+
+  // Get category counts
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: documents.length };
+    Object.entries(documentsByCategory).forEach(([cat, docs]) => {
+      counts[cat] = docs.length;
+    });
+    return counts;
+  }, [documents, documentsByCategory]);
+
   // Filter and sort documents
   const filteredDocuments = useMemo(() => {
     let filtered = documents.filter((doc) => {
+      // Category filter (for catalog view)
+      if (selectedCategory !== 'all') {
+        const parsedData = doc.parsed_data as ParsedDocumentData | null;
+        const category = getDocumentCategory(parsedData);
+        if (category !== selectedCategory) return false;
+      }
+
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -142,7 +209,7 @@ export default function DashboardDocuments() {
     });
 
     return filtered;
-  }, [documents, searchQuery, filterStatus, filterType, filterAnomaly, sortOption]);
+  }, [documents, searchQuery, filterStatus, filterType, filterAnomaly, sortOption, selectedCategory]);
 
   const handlePreview = async (fileUrl: string) => {
     const url = await getPreviewUrl(fileUrl);
@@ -162,9 +229,21 @@ export default function DashboardDocuments() {
     setFilterType('all');
     setFilterAnomaly('all');
     setSortOption('date_desc');
+    setSelectedCategory('all');
   };
 
-  const hasActiveFilters = searchQuery || filterStatus !== 'all' || filterType !== 'all' || filterAnomaly !== 'all';
+  const hasActiveFilters = searchQuery || filterStatus !== 'all' || filterType !== 'all' || filterAnomaly !== 'all' || selectedCategory !== 'all';
+
+  // Get available categories (only those with documents)
+  const availableCategories = useMemo(() => {
+    const cats: CategoryKey[] = ['all'];
+    Object.keys(documentsByCategory).forEach((cat) => {
+      if (cat in CATEGORY_CONFIG) {
+        cats.push(cat as CategoryKey);
+      }
+    });
+    return cats;
+  }, [documentsByCategory]);
 
   if (loading) {
     return (
@@ -178,10 +257,35 @@ export default function DashboardDocuments() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl md:text-3xl font-bold">Documenti</h1>
-        <p className="text-muted-foreground mt-1">
-          Carica documenti per trovare automaticamente nuove opportunità di rimborso
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Documenti</h1>
+            <p className="text-muted-foreground mt-1">
+              Carica documenti per trovare automaticamente nuove opportunità di rimborso
+            </p>
+          </div>
+          {/* View toggle */}
+          <div className="hidden md:flex items-center gap-1 bg-muted p-1 rounded-lg">
+            <Button
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="gap-2"
+            >
+              <List className="w-4 h-4" />
+              Lista
+            </Button>
+            <Button
+              variant={viewMode === 'catalog' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('catalog')}
+              className="gap-2"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Catalogo
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Anomaly Summary Banner */}
@@ -304,7 +408,50 @@ export default function DashboardDocuments() {
         </Card>
       </motion.div>
 
-      {/* Documents list */}
+      {/* Category Tabs for Catalog View */}
+      {viewMode === 'catalog' && documents.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex flex-wrap gap-2">
+            {availableCategories.map((catKey) => {
+              const config = CATEGORY_CONFIG[catKey];
+              const Icon = config.icon;
+              const count = categoryCounts[catKey] || 0;
+              const isActive = selectedCategory === catKey;
+              
+              return (
+                <Button
+                  key={catKey}
+                  variant={isActive ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedCategory(catKey)}
+                  className={cn(
+                    'gap-2 transition-all',
+                    isActive && 'shadow-md'
+                  )}
+                >
+                  <Icon className={cn('w-4 h-4', !isActive && config.color)} />
+                  {config.label}
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      'ml-1 h-5 min-w-5 px-1.5',
+                      isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted'
+                    )}
+                  >
+                    {count}
+                  </Badge>
+                </Button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Documents list/catalog */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -312,10 +459,35 @@ export default function DashboardDocuments() {
       >
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle>I tuoi documenti</CardTitle>
-            <span className="text-sm text-muted-foreground">
-              {filteredDocuments.length} {filteredDocuments.length === 1 ? 'documento' : 'documenti'}
-            </span>
+            <CardTitle>
+              {viewMode === 'catalog' && selectedCategory !== 'all' 
+                ? CATEGORY_CONFIG[selectedCategory].label 
+                : 'I tuoi documenti'}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {filteredDocuments.length} {filteredDocuments.length === 1 ? 'documento' : 'documenti'}
+              </span>
+              {/* Mobile view toggle */}
+              <div className="md:hidden flex items-center gap-1 bg-muted p-0.5 rounded-md">
+                <Button
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant={viewMode === 'catalog' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setViewMode('catalog')}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Filters */}
@@ -442,7 +614,8 @@ export default function DashboardDocuments() {
                   Rimuovi filtri
                 </Button>
               </div>
-            ) : (
+            ) : viewMode === 'list' ? (
+              // List View
               <AnimatePresence mode="popLayout">
                 <div className="space-y-3">
                   {filteredDocuments.map((doc) => (
@@ -452,6 +625,29 @@ export default function DashboardDocuments() {
                       onDelete={handleDelete}
                       onReprocess={reprocessDocument}
                       onPreview={handlePreview}
+                    />
+                  ))}
+                </div>
+              </AnimatePresence>
+            ) : (
+              // Catalog View (grid of summary cards)
+              <AnimatePresence mode="popLayout">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredDocuments.map((doc) => (
+                    <DocumentSummaryCard
+                      key={doc.id}
+                      document={{
+                        id: doc.id,
+                        file_name: doc.file_name || 'Documento',
+                        parsed_data: doc.parsed_data,
+                        created_at: doc.created_at,
+                        processing_status: doc.processing_status || 'pending',
+                      }}
+                      onClick={() => {
+                        if (doc.file_url) {
+                          handlePreview(doc.file_url);
+                        }
+                      }}
                     />
                   ))}
                 </div>

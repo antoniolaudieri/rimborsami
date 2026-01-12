@@ -18,9 +18,11 @@ import {
   CheckCircle,
   Calendar,
   Euro,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getDocumentCategory } from '@/hooks/useDocuments';
 
 interface DocumentSummaryCardProps {
   document: {
@@ -35,18 +37,18 @@ interface DocumentSummaryCardProps {
 }
 
 const categoryConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  voli: { icon: Plane, color: 'bg-sky-500/10 text-sky-700 border-sky-500/30', label: 'Voli' },
+  flight: { icon: Plane, color: 'bg-sky-500/10 text-sky-700 border-sky-500/30', label: 'Voli' },
   ecommerce: { icon: ShoppingCart, color: 'bg-purple-500/10 text-purple-700 border-purple-500/30', label: 'E-commerce' },
   telecom: { icon: Phone, color: 'bg-blue-500/10 text-blue-700 border-blue-500/30', label: 'Telecom' },
-  energia: { icon: Zap, color: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/30', label: 'Energia' },
-  banche: { icon: Building, color: 'bg-green-500/10 text-green-700 border-green-500/30', label: 'Banche' },
-  assicurazioni: { icon: Shield, color: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/30', label: 'Assicurazioni' },
+  energy: { icon: Zap, color: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/30', label: 'Energia' },
+  bank: { icon: Building, color: 'bg-green-500/10 text-green-700 border-green-500/30', label: 'Banche' },
+  insurance: { icon: Shield, color: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/30', label: 'Assicurazioni' },
   auto: { icon: Car, color: 'bg-orange-500/10 text-orange-700 border-orange-500/30', label: 'Auto' },
-  condominio: { icon: Building2, color: 'bg-teal-500/10 text-teal-700 border-teal-500/30', label: 'Condominio' },
-  lavoro: { icon: Briefcase, color: 'bg-pink-500/10 text-pink-700 border-pink-500/30', label: 'Lavoro' },
-  fisco: { icon: Receipt, color: 'bg-red-500/10 text-red-700 border-red-500/30', label: 'Fisco' },
-  sanita: { icon: Heart, color: 'bg-rose-500/10 text-rose-700 border-rose-500/30', label: 'Sanità' },
-  altro: { icon: FileText, color: 'bg-gray-500/10 text-gray-700 border-gray-500/30', label: 'Altro' }
+  condominium: { icon: Building2, color: 'bg-teal-500/10 text-teal-700 border-teal-500/30', label: 'Condominio' },
+  work: { icon: Briefcase, color: 'bg-pink-500/10 text-pink-700 border-pink-500/30', label: 'Lavoro' },
+  fiscal: { icon: Receipt, color: 'bg-red-500/10 text-red-700 border-red-500/30', label: 'Fisco' },
+  health: { icon: Heart, color: 'bg-rose-500/10 text-rose-700 border-rose-500/30', label: 'Sanità' },
+  other: { icon: FileText, color: 'bg-gray-500/10 text-gray-700 border-gray-500/30', label: 'Altro' }
 };
 
 export const DocumentSummaryCard: React.FC<DocumentSummaryCardProps> = ({ 
@@ -55,8 +57,8 @@ export const DocumentSummaryCard: React.FC<DocumentSummaryCardProps> = ({
   compact = false 
 }) => {
   const parsedData = document.parsed_data || {};
-  const category = parsedData.document_category || 'altro';
-  const config = categoryConfig[category] || categoryConfig.altro;
+  const category = getDocumentCategory(parsedData);
+  const config = categoryConfig[category] || categoryConfig.other;
   const IconComponent = config.icon;
   
   // Count issues/anomalies
@@ -142,10 +144,16 @@ export const DocumentSummaryCard: React.FC<DocumentSummaryCardProps> = ({
           </div>
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <Badge variant="outline" className={cn("text-xs", config.color)}>
                 {config.label}
               </Badge>
+              {document.processing_status === 'completed' && parsedData.summary && (
+                <Badge variant="secondary" className="text-xs gap-1">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  AI
+                </Badge>
+              )}
               {riskLevel && (
                 <Badge 
                   variant="outline" 
