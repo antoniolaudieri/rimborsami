@@ -363,6 +363,53 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          converted_at: string | null
+          created_at: string
+          id: string
+          invited_email: string | null
+          opportunity_id: string | null
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          source: string
+          status: string
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_email?: string | null
+          opportunity_id?: string | null
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          source?: string
+          status?: string
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_email?: string | null
+          opportunity_id?: string | null
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scanned_emails: {
         Row: {
           analysis_result: Json | null
@@ -429,6 +476,53 @@ export type Database = {
           },
           {
             foreignKeyName: "scanned_emails_user_opportunity_id_fkey"
+            columns: ["user_opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "user_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shared_successes: {
+        Row: {
+          amount_recovered: number
+          anonymous_name: string
+          category: string
+          company_name: string
+          created_at: string
+          id: string
+          is_public: boolean
+          message: string | null
+          user_id: string
+          user_opportunity_id: string
+        }
+        Insert: {
+          amount_recovered: number
+          anonymous_name: string
+          category: string
+          company_name: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          message?: string | null
+          user_id: string
+          user_opportunity_id: string
+        }
+        Update: {
+          amount_recovered?: number
+          anonymous_name?: string
+          category?: string
+          company_name?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          message?: string | null
+          user_id?: string
+          user_opportunity_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_successes_user_opportunity_id_fkey"
             columns: ["user_opportunity_id"]
             isOneToOne: false
             referencedRelation: "user_opportunities"
@@ -552,11 +646,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          badges: Json
+          created_at: string
+          id: string
+          referral_code: string
+          successful_referrals: number
+          total_recovered: number
+          total_referrals: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badges?: Json
+          created_at?: string
+          id?: string
+          referral_code: string
+          successful_referrals?: number
+          total_recovered?: number
+          total_referrals?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badges?: Json
+          created_at?: string
+          id?: string
+          referral_code?: string
+          successful_referrals?: number
+          total_recovered?: number
+          total_referrals?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
