@@ -7,6 +7,13 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://527178e4-0cba-46a5-bf3a-20cecc8c2ba6.lovableproject.com?forceHideBadge=true',
     cleartext: true
+  },
+  ios: {
+    contentInset: 'automatic',
+    backgroundColor: '#0a0a0a'
+  },
+  android: {
+    backgroundColor: '#0a0a0a'
   }
 };
 
