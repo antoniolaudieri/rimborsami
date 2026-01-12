@@ -103,6 +103,134 @@ export function BankAnomalyCard({ analysis }: BankAnomalyCardProps) {
           {refundEstimate.amount > 0 && (
             <RefundBreakdown estimate={refundEstimate} showDetails={true} />
           )}
+
+          <Separator />
+
+          {/* Interest Analysis */}
+          {analysis.interest_analysis && (
+            <div className="space-y-2">
+              <h4 className="font-medium flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Analisi Interessi
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {analysis.interest_analysis.nominal_rate !== undefined && analysis.interest_analysis.nominal_rate !== null && (
+                  <div>
+                    <span className="text-muted-foreground">Tasso nominale:</span>
+                    <span className="ml-2 font-medium">{analysis.interest_analysis.nominal_rate.toFixed(2)}%</span>
+                  </div>
+                )}
+                {analysis.interest_analysis.effective_rate !== undefined && analysis.interest_analysis.effective_rate !== null && (
+                  <div>
+                    <span className="text-muted-foreground">Tasso effettivo:</span>
+                    <span className="ml-2 font-medium">{analysis.interest_analysis.effective_rate.toFixed(2)}%</span>
+                  </div>
+                )}
+                {analysis.interest_analysis.usury_threshold !== undefined && (
+                  <div>
+                    <span className="text-muted-foreground">Soglia usura:</span>
+                    <span className="ml-2 font-medium">{analysis.interest_analysis.usury_threshold.toFixed(2)}%</span>
+                  </div>
+                )}
+                {analysis.interest_analysis.is_usurious && (
+                  <div className="col-span-2 p-2 rounded bg-red-500/10 border border-red-500/30 text-red-700">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="font-medium">TASSO USURARIO RILEVATO</span>
+                    </div>
+                    {analysis.interest_analysis.excess_amount !== undefined && analysis.interest_analysis.excess_amount !== null && (
+                      <p className="text-sm mt-1">
+                        Eccesso: €{analysis.interest_analysis.excess_amount.toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Fees Analysis */}
+          {analysis.fees_analysis && (
+            <div className="space-y-2">
+              <h4 className="font-medium flex items-center gap-2">
+                <Receipt className="h-4 w-4" />
+                Analisi Commissioni
+              </h4>
+              {analysis.fees_analysis.total_fees !== undefined && analysis.fees_analysis.total_fees !== null && (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Totale commissioni:</span>
+                  <span className="ml-2 font-medium">€{analysis.fees_analysis.total_fees.toLocaleString()}</span>
+                </p>
+              )}
+              {analysis.fees_analysis.suspicious_fees && analysis.fees_analysis.suspicious_fees.length > 0 && (
+                <div className="space-y-1 mt-2">
+                  <p className="text-sm font-medium text-orange-600 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Commissioni sospette:
+                  </p>
+                  {analysis.fees_analysis.suspicious_fees.map((fee, idx) => (
+                    <div key={idx} className="text-sm p-2 rounded bg-orange-500/10 border border-orange-500/30">
+                      <div className="flex justify-between">
+                        <span>{fee.name}</span>
+                        <span className="font-medium">€{fee.amount.toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-orange-600 mt-0.5">{fee.issue}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Late Fees Analysis */}
+          {analysis.late_fees_analysis && analysis.late_fees_analysis.is_excessive && (
+            <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/5">
+              <h4 className="font-medium flex items-center gap-2 text-red-700 mb-2">
+                <BadgeAlert className="h-4 w-4" />
+                Interessi di Mora Eccessivi
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                {analysis.late_fees_analysis.total_late_fees !== undefined && analysis.late_fees_analysis.total_late_fees !== null && (
+                  <div>
+                    <span className="text-muted-foreground">Totale mora:</span>
+                    <span className="ml-2 font-medium">€{analysis.late_fees_analysis.total_late_fees.toLocaleString()}</span>
+                  </div>
+                )}
+                {analysis.late_fees_analysis.legal_limit !== undefined && (
+                  <div>
+                    <span className="text-muted-foreground">Limite legale:</span>
+                    <span className="ml-2 font-medium">€{analysis.late_fees_analysis.legal_limit.toLocaleString()}</span>
+                  </div>
+                )}
+                {analysis.late_fees_analysis.excess_amount !== undefined && analysis.late_fees_analysis.excess_amount !== null && (
+                  <div className="col-span-2">
+                    <span className="text-red-600 font-medium">
+                      Eccesso recuperabile: €{analysis.late_fees_analysis.excess_amount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Anomalies Found */}
+          {analysis.anomalies_found && analysis.anomalies_found.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-medium flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                Anomalie Rilevate
+              </h4>
+              <ul className="space-y-1">
+                {analysis.anomalies_found.map((anomaly, idx) => (
+                  <li key={idx} className="text-sm flex items-start gap-2">
+                    <span className="text-orange-500 mt-0.5">•</span>
+                    <span>{anomaly}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </motion.div>
   );
