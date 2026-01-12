@@ -177,18 +177,36 @@ serve(async (req: Request) => {
         }
       }
     } else if (companyName) {
-      // Standard lookup for other categories
-      const { data: contact, error: contactError } = await supabaseClient
+      // Standard lookup for other categories - try exact match first, then fuzzy
+      let contact: CompanyContact | null = null;
+      
+      // Try exact match first
+      const { data: exactMatch } = await supabaseClient
         .from("company_contacts")
         .select("name, category, email_reclami, pec_reclami, indirizzo_sede_legale")
         .eq("category", opportunity.category)
-        .ilike("name", `%${companyName}%`)
+        .eq("name", companyName)
         .maybeSingle();
+      
+      if (exactMatch) {
+        contact = exactMatch as CompanyContact;
+      } else {
+        // Try fuzzy match with ilike
+        const { data: fuzzyMatch } = await supabaseClient
+          .from("company_contacts")
+          .select("name, category, email_reclami, pec_reclami, indirizzo_sede_legale")
+          .eq("category", opportunity.category)
+          .ilike("name", `%${companyName}%`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (fuzzyMatch) {
+          contact = fuzzyMatch as CompanyContact;
+        }
+      }
 
-      if (contactError) {
-        console.error("Error fetching company contact:", contactError);
-      } else if (contact) {
-        companyContact = contact as CompanyContact;
+      if (contact) {
+        companyContact = contact;
         console.log(`Found company contact: ${JSON.stringify(companyContact)}`);
       } else {
         console.log(`No company contact found for ${companyName} in ${opportunity.category}`);
