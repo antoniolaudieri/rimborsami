@@ -244,14 +244,22 @@ export default function DashboardOpportunities() {
 
       {/* Tabs */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex flex-wrap h-auto gap-1 p-1">
+        <TabsList className="flex flex-wrap h-auto gap-1 p-1 overflow-x-auto">
           <TabsTrigger value="all" className="text-xs sm:text-sm">Tutte</TabsTrigger>
           <TabsTrigger value="pending" className="text-xs sm:text-sm">In corso</TabsTrigger>
           <TabsTrigger value="completed" className="text-xs sm:text-sm">Completate</TabsTrigger>
           <TabsTrigger value="flight" className="text-xs sm:text-sm">Voli</TabsTrigger>
           <TabsTrigger value="ecommerce" className="text-xs sm:text-sm">E-commerce</TabsTrigger>
           <TabsTrigger value="bank" className="text-xs sm:text-sm">Banche</TabsTrigger>
+          <TabsTrigger value="telecom" className="text-xs sm:text-sm">Telecom</TabsTrigger>
+          <TabsTrigger value="energy" className="text-xs sm:text-sm">Energia</TabsTrigger>
+          <TabsTrigger value="transport" className="text-xs sm:text-sm">Trasporti</TabsTrigger>
+          <TabsTrigger value="insurance" className="text-xs sm:text-sm">Assicurazioni</TabsTrigger>
+          <TabsTrigger value="warranty" className="text-xs sm:text-sm">Garanzia</TabsTrigger>
+          <TabsTrigger value="automotive" className="text-xs sm:text-sm">Auto</TabsTrigger>
+          <TabsTrigger value="tech" className="text-xs sm:text-sm">Tech/Privacy</TabsTrigger>
           <TabsTrigger value="class_action" className="text-xs sm:text-sm">Class Action</TabsTrigger>
+          <TabsTrigger value="other" className="text-xs sm:text-sm">Altro</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
