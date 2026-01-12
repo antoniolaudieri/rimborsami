@@ -475,6 +475,7 @@ export default function DashboardOpportunityDetail() {
                   category={opp?.category || 'other'}
                   userOpportunityId={opportunity.id}
                   existingData={opportunity.matched_data as Record<string, unknown>}
+                  opportunityTitle={opp?.title}
                   onComplete={(data) => {
                     setHasUserData(true);
                     setOpportunity(prev => prev ? { ...prev, matched_data: data } : null);
