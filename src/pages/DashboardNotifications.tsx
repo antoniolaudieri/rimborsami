@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import {
   Sparkles,
   Loader2,
   Trash2,
+  ChevronRight,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -37,6 +39,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 export default function DashboardNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -171,7 +174,15 @@ export default function DashboardNotifications() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card className={notification.read ? 'opacity-60' : ''}>
+              <Card 
+                className={`${notification.read ? 'opacity-60' : ''} ${notification.action_url ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                onClick={() => {
+                  if (notification.action_url) {
+                    markAsRead(notification.id);
+                    navigate(notification.action_url);
+                  }
+                }}
+              >
                 <CardContent className="py-4">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -190,16 +201,21 @@ export default function DashboardNotifications() {
                             {notification.message}
                           </p>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(notification.created_at).toLocaleDateString('it-IT', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(notification.created_at).toLocaleDateString('it-IT', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          {notification.action_url && (
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-3">
+                      <div className="flex items-center gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
                         {!notification.read && (
                           <Button
                             size="sm"
