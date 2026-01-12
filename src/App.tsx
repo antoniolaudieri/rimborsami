@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import DashboardOpportunities from "./pages/DashboardOpportunities";
 import DashboardOpportunityDetail from "./pages/DashboardOpportunityDetail";
 import DashboardDocuments from "./pages/DashboardDocuments";
+import DashboardEmailScanner from "./pages/DashboardEmailScanner";
 import DashboardRequests from "./pages/DashboardRequests";
 import DashboardNotifications from "./pages/DashboardNotifications";
 import DashboardSettings from "./pages/DashboardSettings";
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="opportunities" element={<DashboardOpportunities />} />
               <Route path="opportunities/:id" element={<DashboardOpportunityDetail />} />
               <Route path="documents" element={<DashboardDocuments />} />
+              <Route path="email-scanner" element={<DashboardEmailScanner />} />
               <Route path="requests" element={<DashboardRequests />} />
               <Route path="notifications" element={<DashboardNotifications />} />
               <Route path="settings" element={<DashboardSettings />} />

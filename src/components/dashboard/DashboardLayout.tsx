@@ -18,12 +18,14 @@ import {
   ChevronRight,
   Crown,
   Sparkles,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/dashboard/opportunities', label: 'Opportunità', icon: Search },
+  { href: '/dashboard/email-scanner', label: 'Scanner Email', icon: Mail },
   { href: '/dashboard/requests', label: 'Richieste', icon: FileText },
   { href: '/dashboard/documents', label: 'Documenti', icon: Upload },
   { href: '/dashboard/notifications', label: 'Notifiche', icon: Bell },
