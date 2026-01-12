@@ -34,6 +34,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       
+      - name: Install Capacitor Android
+        run: bun add @capacitor/android
+      
       - name: Add Android platform
         run: bunx cap add android
       
