@@ -515,7 +515,7 @@ export default function DashboardOpportunityDetail() {
                     <div className="flex gap-3">
                       <Button
                         onClick={() => generateRequest('email')}
-                        disabled={generating || !opp?.template_email}
+                        disabled={generating || !hasUserData}
                         variant="outline"
                         className="flex-1"
                       >
@@ -528,7 +528,7 @@ export default function DashboardOpportunityDetail() {
                       </Button>
                       <Button
                         onClick={() => generateRequest('pec')}
-                        disabled={generating || !opp?.template_pec}
+                        disabled={generating || !hasUserData}
                         variant="outline"
                         className="flex-1"
                       >
