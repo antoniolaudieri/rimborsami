@@ -406,6 +406,9 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Nomi troppo corti che causano falsi positivi - escludi dalla ricerca nel titolo
+const shortNamesToExclude = ['ita', 'tre', 'x', 'lg', 'hp', 'mg', 'dr', 'vw', 'axa', 'ing', 'a2a', 'mps', 'bnl', 'sky', 'ho.', 'amt', 'gtt', 'bpm'];
+
 function extractCompanyName(matchedData?: Record<string, unknown>, opportunityTitle?: string): string | null {
   // Prima cerca nei matchedData
   if (matchedData) {
@@ -432,23 +435,17 @@ function extractCompanyName(matchedData?: Record<string, unknown>, opportunityTi
     const titleLower = opportunityTitle.toLowerCase();
     
     // Ordina le chiavi per lunghezza decrescente per matchare prima i nomi più specifici
-    const sortedKeys = Object.keys(companyLogos).sort((a, b) => b.length - a.length);
+    const sortedKeys = Object.keys(companyLogos)
+      .filter(key => !shortNamesToExclude.includes(key)) // Escludi nomi troppo corti
+      .filter(key => key.length >= 4) // Richiedi almeno 4 caratteri per evitare falsi positivi
+      .sort((a, b) => b.length - a.length);
     
-    // Cerca se il titolo contiene un nome azienda conosciuto
+    // Cerca se il titolo contiene un nome azienda conosciuto (solo word boundary)
     for (const companyKey of sortedKeys) {
-      // Escape caratteri speciali e usa una regex per trovare la parola
       const escapedKey = escapeRegExp(companyKey);
+      // Usa word boundary per evitare match parziali
       const regex = new RegExp(`\\b${escapedKey}\\b`, 'i');
       if (regex.test(titleLower)) {
-        console.log('CompanyLogo: Found match', companyKey, 'in title:', opportunityTitle);
-        return companyKey;
-      }
-    }
-    
-    // Fallback: cerca match semplice se la regex non trova nulla
-    for (const companyKey of sortedKeys) {
-      if (titleLower.includes(companyKey)) {
-        console.log('CompanyLogo: Found simple match', companyKey, 'in title:', opportunityTitle);
         return companyKey;
       }
     }
