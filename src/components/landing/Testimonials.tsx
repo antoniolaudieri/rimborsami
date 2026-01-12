@@ -34,8 +34,8 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-24 bg-background" id="recensioni">
-      <div className="container">
+    <section className="py-16 sm:py-24 bg-background overflow-hidden" id="recensioni">
+      <div className="container px-4 sm:px-6">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -49,10 +49,10 @@ const Testimonials = () => {
               <Star key={i} className="w-6 h-6 fill-accent text-accent" />
             ))}
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
             Storie di <span className="text-gradient-gold">successo</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
             Migliaia di italiani hanno già recuperato ciò che gli spettava. 
             Ecco alcune delle loro storie.
           </p>
@@ -111,22 +111,22 @@ const Testimonials = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-16 text-center"
+          className="mt-12 sm:mt-16 text-center px-4"
         >
-          <div className="inline-flex items-center gap-8 px-8 py-4 bg-secondary rounded-2xl">
+          <div className="inline-flex items-center gap-4 sm:gap-8 px-4 sm:px-8 py-3 sm:py-4 bg-secondary rounded-xl sm:rounded-2xl">
             <div className="text-center">
-              <div className="font-display text-2xl font-bold text-foreground">4.8/5</div>
-              <div className="text-xs text-muted-foreground">App Store</div>
+              <div className="font-display text-lg sm:text-2xl font-bold text-foreground">4.8/5</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">App Store</div>
             </div>
-            <div className="w-px h-10 bg-border" />
+            <div className="w-px h-8 sm:h-10 bg-border" />
             <div className="text-center">
-              <div className="font-display text-2xl font-bold text-foreground">98%</div>
-              <div className="text-xs text-muted-foreground">Soddisfatti</div>
+              <div className="font-display text-lg sm:text-2xl font-bold text-foreground">98%</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Soddisfatti</div>
             </div>
-            <div className="w-px h-10 bg-border" />
+            <div className="w-px h-8 sm:h-10 bg-border" />
             <div className="text-center">
-              <div className="font-display text-2xl font-bold text-foreground">127K+</div>
-              <div className="text-xs text-muted-foreground">Utenti</div>
+              <div className="font-display text-lg sm:text-2xl font-bold text-foreground">127K+</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Utenti</div>
             </div>
           </div>
         </motion.div>

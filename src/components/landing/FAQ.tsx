@@ -51,18 +51,18 @@ const faqs = [
 
 const FAQ = () => {
   return (
-    <section className="py-24 bg-gradient-hero-bg" id="faq">
-      <div className="container">
+    <section className="py-16 sm:py-24 bg-gradient-hero-bg overflow-hidden" id="faq">
+      <div className="container px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
             Domande <span className="text-gradient-hero">frequenti</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
             Tutto quello che devi sapere su come recuperare i tuoi soldi
           </p>
         </motion.div>
