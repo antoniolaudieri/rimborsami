@@ -410,6 +410,45 @@ export type Database = {
           },
         ]
       }
+      refund_parameters: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          parameter_name: string
+          source: string | null
+          unit: string | null
+          updated_at: string | null
+          valid_from: string
+          valid_to: string | null
+          value: number
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          parameter_name: string
+          source?: string | null
+          unit?: string | null
+          updated_at?: string | null
+          valid_from: string
+          valid_to?: string | null
+          value: number
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          parameter_name?: string
+          source?: string | null
+          unit?: string | null
+          updated_at?: string | null
+          valid_from?: string
+          valid_to?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       scanned_emails: {
         Row: {
           analysis_result: Json | null

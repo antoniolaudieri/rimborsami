@@ -212,8 +212,51 @@ OGNI documento deve avere un risk_score e risk_level:
 - 51-75: high (anomalie significative, azione consigliata)
 - 76-100: critical (gravi irregolarità, azione urgente)
 
-STEP 5 - STIMA RIMBORSO (se applicabile):
-Calcola eventuali importi recuperabili.
+STEP 5 - CALCOLO RIMBORSO REALISTICO (FONDAMENTALE):
+Usa queste FORMULE PRECISE per stimare i rimborsi:
+
+📌 DOCUMENTI BANCARI - USURA (Tassi soglia Banca d'Italia Q2 2025):
+| Tipo Prodotto | TEGM | Soglia Usura |
+|---------------|------|--------------|
+| Mutui tasso fisso | 3.35% | 8.19% |
+| Mutui tasso variabile | 4.92% | 10.15% |
+| Credito personale | 10.90% | 17.63% |
+| Carte revolving | 15.36% | 23.20% |
+| Fido fino a 5000€ | 10.35% | 16.94% |
+| Fido oltre 5000€ | 9.24% | 15.55% |
+| Cessione quinto | 9.89% | 16.36% |
+| Leasing | 5.67% | 11.09% |
+
+FORMULA USURA: Se TAEG > Soglia → Rimborso = Interessi_pagati × ((TAEG - Soglia) / TAEG)
+ESEMPIO: TAEG 18%, Soglia 10.15%, Interessi €2450 → €2450 × ((18-10.15)/18) = €1069.03
+
+📌 VOLI - Regolamento EU 261/2004:
+- Tratta fino a 1.500 km: €250
+- Tratta 1.500-3.500 km: €400
+- Tratta oltre 3.500 km: €600
+- Riduzione 50% se ritardo 3-4h su tratte lunghe
+
+📌 MULTE:
+- Ricorso accolto: 100% importo multa + spese notifica (€15)
+- Termini: 60 giorni per ricorso al Prefetto, 30 giorni per Giudice di Pace
+
+📌 LAVORO:
+- Straordinari non pagati: paga_oraria × 1.25 (feriale) o 1.50 (festivo) × ore
+- TFR mancante: (retribuzione_annua / 13.5) × anni_servizio
+- Differenze retributive: differenza_mensile × mesi_contestati
+
+📌 CONDOMINIALI:
+- Impugnazione delibera: spese legali €500-2000 (complessità variabile)
+- Spese illegittime: 100% importo contestato
+- Termine impugnazione: 30 giorni dalla delibera (Art. 1137 c.c.)
+
+📌 BOLLETTE/UTENZE:
+- Conguagli prescritti (oltre 2 anni): 100% importo
+- Doppia fatturazione: 100% duplicato
+- Penali recesso illegittime: 100% penale
+
+IMPORTANTE: Nel campo "estimated_refund" inserisci SEMPRE il valore numerico calcolato.
+Nel campo "refund_calculation" spiega la formula utilizzata.
 
 FORMATO OUTPUT (SOLO JSON VALIDO):
 {
@@ -227,60 +270,88 @@ FORMATO OUTPUT (SOLO JSON VALIDO):
   },
   "potential_issues": ["lista DETTAGLIATA di tutti i problemi trovati"],
   "suggested_categories": ["bank", "other"],
-  "estimated_refund": null,
+  "estimated_refund": 1069.03,
+  "refund_calculation": {
+    "formula": "Interessi × ((TAEG - Soglia) / TAEG)",
+    "inputs": {"interessi": 2450, "taeg": 18, "soglia": 10.15},
+    "result": 1069.03,
+    "legal_reference": "Art. 1815 c.c., L. 108/1996",
+    "confidence": "high"
+  },
   
   // AGGIUNGI UNO DEI SEGUENTI in base al tipo di documento:
   
   "bank_analysis": {
-    "account_type": "conto_corrente",
+    "account_type": "conto_corrente|mutuo|prestito|fido|carta_credito|cessione_quinto|leasing",
     "bank_name": "Nome Banca",
     "period": {"from": "2024-01", "to": "2024-12"},
-    "interest_analysis": {...},
-    "fees_analysis": {...},
-    "late_fees_analysis": {...},
-    "risk_score": 65,
+    "taeg": 18.5,
+    "tan": 15.2,
+    "total_interest": 2450,
+    "total_fees": 320,
+    "interest_analysis": {
+      "nominal_rate": 15.2,
+      "effective_rate": 18.5,
+      "usury_threshold": 17.63,
+      "is_usurious": true,
+      "excess_amount": 1069.03
+    },
+    "fees_analysis": {
+      "total_fees": 320,
+      "suspicious_fees": [{"name": "Commissione istruttoria", "amount": 150, "issue": "Eccessiva"}]
+    },
+    "late_fees_analysis": {
+      "total_late_fees": 89,
+      "is_excessive": false,
+      "legal_limit": 120
+    },
+    "risk_score": 75,
     "risk_level": "high",
-    "estimated_refund": 120,
-    "anomalies_found": ["descrizione anomalie"]
+    "estimated_refund": 1069.03,
+    "anomalies_found": ["TAEG 18.5% supera soglia usura 17.63%"]
   },
   
   "condominium_analysis": {
-    "document_subtype": "verbale_assemblea",
+    "document_subtype": "verbale_assemblea|rendiconto|convocazione",
     "assembly_info": {...},
     "deliberations": [...],
-    "financial_info": {...},
-    "irregularities": [{"type": "tipo", "severity": "high", "description": "desc", "legal_reference": "art..."}],
-    "risk_score": 45,
-    "risk_level": "medium",
-    "actionable_advice": ["cosa fare"]
+    "financial_info": {"total_expenses": 15000, "contested_amount": 2500},
+    "irregularities": [{"type": "quorum", "severity": "high", "description": "desc", "legal_reference": "Art. 1136 c.c."}],
+    "risk_score": 65,
+    "risk_level": "high",
+    "estimated_refund": 2500,
+    "actionable_advice": ["Impugnare delibera entro 30 giorni"]
   },
   
   "work_analysis": {
     "document_subtype": "busta_paga",
     "employer": "...",
-    "salary_info": {...},
-    "irregularities": [...],
-    "risk_score": 20,
-    "risk_level": "low"
-  },
-  
-  "health_analysis": {
-    "document_subtype": "fattura_medica",
-    "amount": 150,
-    "deductible_amount": 150,
-    "tax_info": {...},
-    "risk_score": 0,
-    "risk_level": "low"
+    "salary_info": {"gross": 2500, "net": 1850, "hours_worked": 180, "overtime_hours": 20, "overtime_unpaid": 15},
+    "irregularities": [{"type": "straordinari", "description": "15 ore non pagate", "amount": 225}],
+    "risk_score": 60,
+    "risk_level": "high",
+    "estimated_refund": 225
   },
   
   "auto_analysis": {
     "document_subtype": "multa",
     "vehicle_info": {...},
-    "fine_info": {...},
-    "irregularities": [...],
-    "risk_score": 30,
-    "risk_level": "medium",
-    "actionable_advice": ["puoi contestare entro..."]
+    "fine_info": {"amount": 150, "notification_date": "2025-01-01", "deadline_appeal": "2025-03-02"},
+    "irregularities": [{"type": "procedura", "description": "Segnaletica non conforme"}],
+    "risk_score": 55,
+    "risk_level": "high",
+    "estimated_refund": 165,
+    "actionable_advice": ["Ricorso al Prefetto entro 60 giorni"]
+  },
+  
+  "flight_analysis": {
+    "flight_number": "FR1234",
+    "route": {"from": "Roma FCO", "to": "Londra STN"},
+    "distance_km": 1500,
+    "delay_hours": 4,
+    "cancelled": false,
+    "compensation": 250,
+    "legal_reference": "Reg. CE 261/2004"
   }
 }`;
 }
@@ -288,11 +359,15 @@ FORMATO OUTPUT (SOLO JSON VALIDO):
 function getDocumentPrompt(fileName: string, fileType: string): string {
   return `Analizza questo documento: "${fileName}" (tipo: ${fileType})
 
-Ricorda:
-- Rispondi SOLO con JSON valido, senza markdown o testo aggiuntivo
-- Per documenti bancari, effettua l'analisi completa delle anomalie
-- Sii preciso nell'identificazione del tipo documento
-- Se non riesci a leggere parti del documento, indica "non leggibile" nei campi`;
+ISTRUZIONI SPECIFICHE:
+1. Identifica il tipo di documento e classifica correttamente
+2. Estrai TUTTI i dati numerici (tassi, importi, date, ore, etc.)
+3. Calcola il rimborso usando le FORMULE ESATTE fornite
+4. Nel campo "refund_calculation" spiega COME hai calcolato il rimborso
+5. Rispondi SOLO con JSON valido, senza markdown o testo aggiuntivo
+
+Se non riesci a leggere parti del documento, indica "non leggibile" nei campi.
+Se non ci sono dati sufficienti per calcolare un rimborso, imposta estimated_refund a null.`;
 }
 
 function getFallbackParsedData(fileName: string, docType: string): ParsedDocumentData {
