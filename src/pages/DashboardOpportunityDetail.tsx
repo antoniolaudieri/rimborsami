@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Paywall } from '@/components/Paywall';
 import DataCollectionForm from '@/components/opportunities/DataCollectionForm';
 import OutcomeFeedback from '@/components/opportunities/OutcomeFeedback';
+import { generateRequestPdf } from '@/lib/generateRequestPdf';
 import {
   ArrowLeft,
   Clock,
@@ -35,6 +36,7 @@ import {
   Sparkles,
   ClipboardList,
   MessageSquare,
+  ExternalLink,
 } from 'lucide-react';
 
 interface OpportunityDetail {
@@ -56,6 +58,7 @@ interface OpportunityDetail {
     legal_reference: string | null;
     template_email: string | null;
     template_pec: string | null;
+    source_url: string | null;
   } | null;
 }
 
@@ -94,6 +97,8 @@ export default function DashboardOpportunityDetail() {
   const [opportunity, setOpportunity] = useState<OpportunityDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatedText, setGeneratedText] = useState('');
+  const [generatedSubject, setGeneratedSubject] = useState('');
+  const [generatedRecipient, setGeneratedRecipient] = useState('');
   const [generating, setGenerating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [opportunitiesCount, setOpportunitiesCount] = useState(0);
@@ -132,7 +137,8 @@ export default function DashboardOpportunityDetail() {
             max_amount,
             legal_reference,
             template_email,
-            template_pec
+            template_pec,
+            source_url
           )
         `)
         .eq('id', id)
@@ -201,46 +207,67 @@ export default function DashboardOpportunityDetail() {
 
     setGenerating(true);
     
-    const template = type === 'email' 
-      ? opportunity.opportunities.template_email 
-      : opportunity.opportunities.template_pec;
+    try {
+      // Call the edge function to generate with AI and real contacts
+      const { data, error } = await supabase.functions.invoke('generate-request', {
+        body: {
+          user_opportunity_id: opportunity.id,
+          request_type: type,
+        },
+      });
 
-    if (!template) {
+      if (error) {
+        throw error;
+      }
+
+      if (data?.success && data?.request) {
+        setGeneratedText(data.request.content);
+        setGeneratedSubject(data.request.subject || '');
+        setGeneratedRecipient(data.request.recipient || '');
+        
+        toast({
+          title: 'Richiesta generata',
+          description: `${type.toUpperCase()} pronta con destinatario reale`,
+        });
+
+        // Update opportunity status
+        if (opportunity.status === 'found') {
+          await updateStatus('started');
+        }
+      } else {
+        throw new Error(data?.error || 'Errore nella generazione');
+      }
+    } catch (error: any) {
+      console.error('Error generating request:', error);
       toast({
-        title: 'Template non disponibile',
-        description: `Il template ${type.toUpperCase()} non è ancora disponibile per questa opportunità`,
+        title: 'Errore',
+        description: error?.message || 'Impossibile generare la richiesta',
         variant: 'destructive',
       });
+    } finally {
       setGenerating(false);
-      return;
     }
+  };
 
-    // Replace placeholders with user data
-    let text = template
-      .replace(/\[NOME_COMPLETO\]/g, user?.user_metadata?.full_name || '[Il tuo nome]')
-      .replace(/\[EMAIL\]/g, user?.email || '[La tua email]')
-      .replace(/\[DATA\]/g, new Date().toLocaleDateString('it-IT'))
-      .replace(/\[IMPORTO\]/g, opportunity.estimated_amount?.toString() || '[Importo]');
+  const downloadPdf = () => {
+    if (!opportunity?.opportunities || !generatedText) return;
+    
+    generateRequestPdf({
+      subject: generatedSubject || `Richiesta ${opportunity.opportunities.title}`,
+      recipient: generatedRecipient || 'Destinatario',
+      content: generatedText,
+      senderName: user?.user_metadata?.full_name || 'Nome Cognome',
+      senderEmail: user?.email || '',
+      opportunityTitle: opportunity.opportunities.title,
+      legalReference: opportunity.opportunities.legal_reference || undefined,
+      sourceUrl: opportunity.opportunities.source_url || undefined,
+      date: new Date().toLocaleDateString('it-IT'),
+    });
 
-    setGeneratedText(text);
-
-    // Save to database
-    try {
-      await supabase.from('generated_requests').insert({
-        user_opportunity_id: opportunity.id,
-        type: type,
-        content: text,
-      });
-
-      // Update opportunity status
-      if (opportunity.status === 'found') {
-        await updateStatus('started');
-      }
-    } catch (error) {
-      console.error('Error saving request:', error);
-    }
-
-    setGenerating(false);
+    toast({
+      title: 'PDF scaricato',
+      description: 'Il documento è stato scaricato con successo',
+    });
   };
 
   const updateStatus = async (newStatus: 'found' | 'started' | 'sent' | 'completed' | 'expired') => {
@@ -340,9 +367,20 @@ export default function DashboardOpportunityDetail() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">{opp?.title}</h1>
-              <p className="text-muted-foreground mt-1">
-                {opp?.legal_reference && <span className="mr-2">{opp.legal_reference}</span>}
-              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-1 text-muted-foreground">
+                {opp?.legal_reference && <span>{opp.legal_reference}</span>}
+                {opp?.source_url && (
+                  <a
+                    href={opp.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Fonte normativa
+                  </a>
+                )}
+              </div>
             </div>
             <Badge className={`${statusColors[opportunity.status]} text-base px-3 py-1`}>
               {statusLabels[opportunity.status]}
@@ -503,21 +541,42 @@ export default function DashboardOpportunityDetail() {
                     </div>
 
                     {generatedText && (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
+                        {/* Recipient and Subject info */}
+                        {generatedRecipient && (
+                          <div className="p-3 bg-muted rounded-lg space-y-1">
+                            <p className="text-sm">
+                              <span className="font-medium">Destinatario:</span>{' '}
+                              <span className="text-primary">{generatedRecipient}</span>
+                            </p>
+                            {generatedSubject && (
+                              <p className="text-sm">
+                                <span className="font-medium">Oggetto:</span> {generatedSubject}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
                         <Textarea
                           value={generatedText}
                           onChange={(e) => setGeneratedText(e.target.value)}
                           rows={12}
                           className="font-mono text-sm"
                         />
-                        <div className="flex gap-2">
+                        
+                        <div className="flex flex-wrap gap-2">
                           <Button onClick={copyToClipboard} variant="secondary">
                             <Copy className="w-4 h-4 mr-2" />
-                            Copia
+                            Copia testo
+                          </Button>
+                          <Button onClick={downloadPdf} variant="default">
+                            <Download className="w-4 h-4 mr-2" />
+                            Scarica PDF
                           </Button>
                         </div>
+                        
                         <p className="text-sm text-muted-foreground">
-                          💡 Controlla il testo generato e invialo all'azienda. 
+                          💡 Controlla il testo, scarica il PDF e invialo all'azienda. 
                           Una volta inviato, aggiorna lo stato a "Inviata".
                         </p>
                       </div>

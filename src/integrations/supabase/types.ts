@@ -226,6 +226,7 @@ export type Database = {
           min_amount: number | null
           rules: Json | null
           short_description: string | null
+          source_url: string | null
           template_email: string | null
           template_form: string | null
           template_pec: string | null
@@ -244,6 +245,7 @@ export type Database = {
           min_amount?: number | null
           rules?: Json | null
           short_description?: string | null
+          source_url?: string | null
           template_email?: string | null
           template_form?: string | null
           template_pec?: string | null
@@ -262,6 +264,7 @@ export type Database = {
           min_amount?: number | null
           rules?: Json | null
           short_description?: string | null
+          source_url?: string | null
           template_email?: string | null
           template_form?: string | null
           template_pec?: string | null
