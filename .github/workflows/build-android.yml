@@ -40,23 +40,26 @@ jobs:
       - name: Add Android platform
         run: bunx cap add android
       
-      - name: Update Gradle wrapper for Java 21
+      - name: Update Gradle wrapper
         run: |
           echo "distributionBase=GRADLE_USER_HOME" > android/gradle/wrapper/gradle-wrapper.properties
           echo "distributionPath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "networkTimeout=10000" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "validateDistributionUrl=true" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
-          cat android/gradle/wrapper/gradle-wrapper.properties
       
       - name: Sync Capacitor
         run: bunx cap sync android
       
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+        run: |
+          echo "Using JAVA_HOME: $JAVA_HOME"
+          ./gradlew assembleDebug --no-daemon
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
