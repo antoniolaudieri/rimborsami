@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Paywall } from '@/components/Paywall';
+import { useSubscription } from '@/hooks/useSubscription';
 import {
   User,
   Mail,
@@ -19,6 +20,8 @@ import {
   Check,
   Shield,
   Bell,
+  RefreshCw,
+  ExternalLink,
 } from 'lucide-react';
 
 interface Profile {
@@ -27,35 +30,29 @@ interface Profile {
   phone: string;
 }
 
-interface Subscription {
-  plan: string;
-  status: string;
-  ends_at: string | null;
-}
-
 export default function DashboardSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { subscription, isPremium, syncing, syncWithStripe } = useSubscription();
 
   const [profile, setProfile] = useState<Profile>({
     full_name: '',
     email: '',
     phone: '',
   });
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   useEffect(() => {
     if (user) {
-      fetchData();
+      fetchProfile();
     }
   }, [user]);
 
-  const fetchData = async () => {
+  const fetchProfile = async () => {
     try {
-      // Fetch profile
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name, email, phone')
@@ -69,17 +66,8 @@ export default function DashboardSettings() {
           phone: profileData.phone || '',
         });
       }
-
-      // Fetch subscription
-      const { data: subData } = await supabase
-        .from('subscriptions')
-        .select('plan, status, ends_at')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      setSubscription(subData);
     } catch (error) {
-      console.error('Error fetching settings:', error);
+      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }
@@ -114,6 +102,30 @@ export default function DashboardSettings() {
     }
   };
 
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No portal URL returned');
+      }
+    } catch (error) {
+      console.error('Portal error:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile aprire il portale di gestione. Riprova più tardi.',
+        variant: 'destructive',
+      });
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
+
   const planLabels: Record<string, string> = {
     free: 'Free',
     monthly: 'Premium Mensile',
@@ -139,6 +151,8 @@ export default function DashboardSettings() {
       'Consulenza personalizzata',
     ],
   };
+
+  const currentPlan = subscription?.plan || 'free';
 
   if (loading) {
     return (
@@ -237,21 +251,32 @@ export default function DashboardSettings() {
         >
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Crown className="w-5 h-5" />
-                Abbonamento
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="w-5 h-5" />
+                  Abbonamento
+                </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={syncWithStripe}
+                  disabled={syncing}
+                  title="Aggiorna stato abbonamento"
+                >
+                  <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="font-medium">Piano attuale</span>
-                <Badge variant={subscription?.plan === 'free' ? 'secondary' : 'default'}>
-                  {planLabels[subscription?.plan || 'free']}
+                <Badge variant={currentPlan === 'free' ? 'secondary' : 'default'}>
+                  {planLabels[currentPlan]}
                 </Badge>
               </div>
 
               <ul className="space-y-2">
-                {planFeatures[subscription?.plan || 'free'].map((feature, i) => (
+                {planFeatures[currentPlan].map((feature, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm">
                     <Check className="w-4 h-4 text-primary flex-shrink-0" />
                     <span>{feature}</span>
@@ -259,16 +284,30 @@ export default function DashboardSettings() {
                 ))}
               </ul>
 
-              {subscription?.plan === 'free' && (
+              {currentPlan === 'free' ? (
                 <Button className="w-full" onClick={() => setShowPaywall(true)}>
                   <Crown className="w-4 h-4 mr-2" />
                   Passa a Premium
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleManageSubscription}
+                  disabled={openingPortal}
+                >
+                  {openingPortal ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                  )}
+                  Gestisci abbonamento
                 </Button>
               )}
 
               {subscription?.ends_at && (
                 <p className="text-sm text-muted-foreground text-center">
-                  Rinnovo: {new Date(subscription.ends_at).toLocaleDateString('it-IT')}
+                  Prossimo rinnovo: {new Date(subscription.ends_at).toLocaleDateString('it-IT')}
                 </p>
               )}
             </CardContent>

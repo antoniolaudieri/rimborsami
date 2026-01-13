@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,14 +18,17 @@ interface UseSubscriptionReturn {
   isPremium: boolean;
   isFree: boolean;
   loading: boolean;
+  syncing: boolean;
   plan: SubscriptionPlan | null;
   refetch: () => Promise<void>;
+  syncWithStripe: () => Promise<void>;
 }
 
 export function useSubscription(): UseSubscriptionReturn {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   const fetchSubscription = async () => {
     if (!user) {
@@ -52,9 +55,44 @@ export function useSubscription(): UseSubscriptionReturn {
     }
   };
 
+  const syncWithStripe = useCallback(async () => {
+    if (!user) return;
+    
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error syncing with Stripe:', error);
+        return;
+      }
+
+      console.log('Stripe sync result:', data);
+      
+      // Refetch local subscription after sync
+      await fetchSubscription();
+    } catch (error) {
+      console.error('Error syncing subscription:', error);
+    } finally {
+      setSyncing(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchSubscription();
   }, [user]);
+
+  // Sync with Stripe on mount and periodically
+  useEffect(() => {
+    if (user) {
+      // Initial sync
+      syncWithStripe();
+      
+      // Sync every 60 seconds
+      const interval = setInterval(syncWithStripe, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [user, syncWithStripe]);
 
   const isPremium = subscription?.plan === 'monthly' || subscription?.plan === 'annual';
   const isFree = !isPremium;
@@ -64,7 +102,9 @@ export function useSubscription(): UseSubscriptionReturn {
     isPremium,
     isFree,
     loading,
+    syncing,
     plan: subscription?.plan || null,
     refetch: fetchSubscription,
+    syncWithStripe,
   };
 }
