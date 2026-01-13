@@ -158,7 +158,7 @@ const Pricing = () => {
               </ul>
 
               {/* CTA */}
-              <Button variant={plan.variant} size="default" className="w-full text-sm sm:text-base" asChild>
+              <Button variant={plan.variant} size="lg" className="w-full" asChild>
                 <Link to={plan.href}>{plan.cta}</Link>
               </Button>
             </motion.div>
