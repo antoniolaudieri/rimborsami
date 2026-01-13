@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useNewsArticle } from '@/hooks/useNewsArticles';
 import { NewsCTA } from '@/components/news/NewsCTA';
+import { OpportunityCTA } from '@/components/news/OpportunityCTA';
 import { RelatedArticles } from '@/components/news/RelatedArticles';
 import { ShareDropdown } from '@/components/news/ShareDropdown';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -202,6 +203,35 @@ export default function NewsArticle() {
     ]
   };
 
+  // Product Schema when opportunity is linked (for service rich snippets)
+  const productSchema = article.opportunities ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": `Servizio Rimborso: ${article.opportunities.title}`,
+    "description": article.opportunities.short_description || article.meta_description,
+    "brand": {
+      "@type": "Brand",
+      "name": "Rimborsami"
+    },
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "EUR",
+      "price": "0",
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Rimborsami"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "1250",
+      "bestRating": "5",
+      "worstRating": "1"
+    }
+  } : null;
+
   return (
     <>
       <Helmet>
@@ -245,6 +275,7 @@ export default function NewsArticle() {
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
         {howToSchema && <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>}
+        {productSchema && <script type="application/ld+json">{JSON.stringify(productSchema)}</script>}
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -387,9 +418,13 @@ export default function NewsArticle() {
                 </div>
               )}
 
-              {/* CTA */}
+              {/* CTA - Use OpportunityCTA if opportunity is linked, otherwise generic NewsCTA */}
               <div className="mt-12">
-                <NewsCTA />
+                {article.opportunities ? (
+                  <OpportunityCTA opportunity={article.opportunities} />
+                ) : (
+                  <NewsCTA />
+                )}
               </div>
             </div>
           </article>

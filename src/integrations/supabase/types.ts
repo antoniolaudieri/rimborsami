@@ -245,6 +245,7 @@ export type Database = {
           is_published: boolean | null
           keywords: string[]
           meta_description: string
+          opportunity_id: string | null
           primary_keyword: string | null
           published_at: string | null
           reading_time_minutes: number | null
@@ -268,6 +269,7 @@ export type Database = {
           is_published?: boolean | null
           keywords?: string[]
           meta_description: string
+          opportunity_id?: string | null
           primary_keyword?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
@@ -291,6 +293,7 @@ export type Database = {
           is_published?: boolean | null
           keywords?: string[]
           meta_description?: string
+          opportunity_id?: string | null
           primary_keyword?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
@@ -301,7 +304,15 @@ export type Database = {
           updated_at?: string | null
           views_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "news_articles_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {

@@ -1,6 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface NewsArticleOpportunity {
+  id: string;
+  title: string;
+  short_description: string | null;
+  min_amount: number | null;
+  max_amount: number | null;
+  category: string;
+  legal_reference: string | null;
+  deadline_days: number | null;
+}
+
 export interface NewsArticle {
   id: string;
   slug: string;
@@ -16,6 +27,8 @@ export interface NewsArticle {
   published_at: string | null;
   created_at: string;
   views_count: number;
+  opportunity_id?: string | null;
+  opportunities?: NewsArticleOpportunity | null;
 }
 
 export const useNewsArticles = (category?: string, limit = 12) => {
@@ -51,7 +64,19 @@ export const useNewsArticle = (slug: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('news_articles')
-        .select('*')
+        .select(`
+          *,
+          opportunities (
+            id,
+            title,
+            short_description,
+            min_amount,
+            max_amount,
+            category,
+            legal_reference,
+            deadline_days
+          )
+        `)
         .eq('slug', slug)
         .eq('is_published', true)
         .single();

@@ -176,6 +176,98 @@ const SEO_CATEGORIES = [
   }
 ];
 
+// Visual compositions for unique images
+const COMPOSITIONS = [
+  "close-up macro shot with shallow depth of field",
+  "wide establishing shot showing full scene",
+  "dramatic diagonal composition with leading lines",
+  "centered symmetrical view with balanced elements",
+  "rule of thirds off-center dynamic framing",
+  "birds eye view from above looking down",
+  "low angle hero shot looking up"
+];
+
+const LIGHTING_MOODS = [
+  "golden hour warm sunset lighting",
+  "cool blue morning natural light",
+  "dramatic side lighting with deep shadows",
+  "soft diffused studio lighting",
+  "vibrant colorful accent lighting"
+];
+
+const CAMERA_ANGLES = [
+  "straight on professional angle",
+  "slight dutch angle for dynamic feel",
+  "45 degree perspective view",
+  "over the shoulder contextual view"
+];
+
+// Build specific visual elements based on category, company and topic
+function buildSpecificElements(category: string, company: string, keyword: string): string {
+  const elements: Record<string, Record<string, string>> = {
+    flight: {
+      Ryanair: "blue and yellow aircraft livery colors, budget airline terminal, boarding gates with passengers",
+      Easyjet: "orange aircraft elements, European airport, modern terminal with travelers",
+      "ITA Airways": "Italian flag colors blue white red, elegant aircraft design, Rome airport feeling",
+      Lufthansa: "dark blue and yellow German airline aesthetic, premium terminal, business travel",
+      "Wizz Air": "purple and pink magenta colors, Eastern European airport vibe, young travelers",
+      Vueling: "yellow and grey Spanish airline colors, Mediterranean airport, summer travel",
+      default: "commercial airplane at gate, airport terminal with departure board, luggage and boarding passes"
+    },
+    bank: {
+      Unicredit: "red corporate tones, modern banking app on smartphone, secure vault imagery",
+      "Intesa Sanpaolo": "green accent colors, Italian banking heritage building, digital transactions",
+      N26: "minimalist teal and white design, smartphone banking app, modern fintech aesthetic",
+      BNL: "green corporate colors, professional banking environment, Euro transactions",
+      Fineco: "blue and yellow brand colors, trading screens, investment concept",
+      ING: "orange lion brand colors, digital banking, smartphone with notifications",
+      default: "euro bills fanned out, bank card with chip, secure lock symbol, financial app interface"
+    },
+    telecom: {
+      Vodafone: "red brand aesthetic, 5G network towers, smartphone with signal bars",
+      TIM: "blue Italian telecom feel, fiber optics cables, communication network nodes",
+      WindTre: "orange dynamic energy, mobile devices connected, Italian consumer family",
+      Fastweb: "yellow and blue colors, fiber internet, fast connection concept",
+      Iliad: "red and black minimalist design, transparent pricing, smartphone user",
+      PosteMobile: "yellow Poste Italiane colors, mobile phone, Italian postal service elements",
+      default: "smartphone with bill notification, network signal waves, consumer protection shield"
+    },
+    energy: {
+      Enel: "green energy transition, smart meter display, sustainable home",
+      Eni: "yellow energy flame, natural gas elements, Italian industry",
+      A2A: "modern utility infrastructure, smart city elements, renewable energy",
+      Edison: "electric power elements, light bulb innovation, Italian heritage",
+      Sorgenia: "green renewable energy, solar panels, eco-friendly home",
+      default: "light bulb illuminated, energy meter reading, utility bill paper, home electricity"
+    },
+    ecommerce: {
+      Amazon: "brown cardboard delivery boxes, quick shipping tape, online shopping cart icon",
+      Zalando: "fashion packages with clothes, clothing returns process, orange brand feel",
+      eBay: "auction style colorful products, various items collection, online marketplace",
+      Mediaworld: "electronics products, appliances, red corporate colors, retail environment",
+      Unieuro: "home appliances, electronics store, Italian retail",
+      "Apple Store": "sleek Apple products, minimalist white design, premium packaging",
+      default: "shopping packages stacked, laptop with cart, credit card payment, delivery truck"
+    },
+    class_action: {
+      Volkswagen: "diesel car silhouette, emissions testing equipment, group of affected consumers",
+      Apple: "iPhone device silhouette, battery icon warning, consumer rights protest gathering",
+      Google: "privacy shields and locks, data protection symbols, digital rights concept",
+      Meta: "social media privacy, data collection concerns, user rights",
+      Stellantis: "automotive industry, car silhouettes, consumer group",
+      TIM: "telecom tower, billing dispute, class of consumers",
+      default: "courthouse facade, scales of justice, group of people united, legal documents"
+    }
+  };
+  
+  const categoryElements = elements[category] || elements.ecommerce;
+  const companyKey = Object.keys(categoryElements).find(
+    key => key.toLowerCase() === company.toLowerCase().replace(/\s+/g, " ")
+  );
+  
+  return companyKey ? categoryElements[companyKey] : categoryElements.default;
+}
+
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -187,11 +279,49 @@ function generateSlug(title: string): string {
     .substring(0, 50);
 }
 
-async function generateImage(topic: string, imageStyle: string, lovableApiKey: string, supabaseClient: any, supabaseUrl: string): Promise<string | null> {
+async function generateImage(
+  articleTitle: string, 
+  company: string, 
+  category: string,
+  primaryKeyword: string,
+  lovableApiKey: string, 
+  supabaseClient: any, 
+  supabaseUrl: string
+): Promise<string | null> {
   try {
-    const imagePrompt = `Create a professional blog header image 16:9 aspect ratio for article: "${topic}". 
-Style: ${imageStyle}. 
-REQUIREMENTS: NO text overlay, NO words, NO letters in the image. High quality, vibrant colors with blue and green tones. Ultra high resolution.`;
+    // Select random visual elements for uniqueness
+    const composition = COMPOSITIONS[Math.floor(Math.random() * COMPOSITIONS.length)];
+    const lighting = LIGHTING_MOODS[Math.floor(Math.random() * LIGHTING_MOODS.length)];
+    const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
+    
+    // Build specific visual elements
+    const specificElements = buildSpecificElements(category, company, primaryKeyword);
+    
+    const imagePrompt = `Create a UNIQUE professional blog header image 16:9 aspect ratio.
+
+ARTICLE TITLE: "${articleTitle}"
+COMPANY/BRAND FOCUS: ${company}
+CATEGORY: ${category}
+
+VISUAL ELEMENTS (MUST INCLUDE):
+${specificElements}
+
+UNIQUE STYLE REQUIREMENTS:
+- Composition: ${composition}
+- Lighting: ${lighting}
+- Camera angle: ${cameraAngle}
+- Color palette: Modern with ${category} industry professional tones, include subtle hints of ${company} brand aesthetic
+
+STRICT RULES:
+- ABSOLUTELY NO text, NO words, NO letters, NO numbers visible in the image
+- This image MUST be visually DISTINCT from other ${category} images
+- High quality photorealistic editorial photography style
+- Ultra high resolution, vibrant colors
+- Include recognizable elements related to ${company} theme without showing actual logos
+
+Make this image memorable and unique to this specific article about ${articleTitle}.`;
+    
+    console.log(`Generating unique image for: ${articleTitle} (${company})`);
     
     const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -251,6 +381,20 @@ serve(async (req) => {
     const company = categoryData.companies[Math.floor(Math.random() * categoryData.companies.length)];
     const currentYear = new Date().getFullYear();
     
+    // Fetch opportunities for this category to link article
+    const { data: opportunities, error: opError } = await supabase
+      .from("opportunities")
+      .select("id, title, category, short_description, min_amount, max_amount, legal_reference, description")
+      .eq("category", categoryData.category)
+      .eq("active", true);
+    
+    // Select a random opportunity if available
+    const selectedOpportunity = opportunities && opportunities.length > 0
+      ? opportunities[Math.floor(Math.random() * opportunities.length)]
+      : null;
+    
+    console.log(`Category: ${categoryData.category}, Company: ${company}, Linked opportunity: ${selectedOpportunity?.title || 'none'}`);
+    
     // Randomly select search intent (60% transactional, 40% informational for conversions)
     const isTransactional = Math.random() < 0.6;
     const searchIntent = isTransactional ? "transactional" : "informational";
@@ -269,9 +413,6 @@ serve(async (req) => {
     
     console.log(`Generating SEO article: ${primaryKeyword} (${searchIntent})`);
     
-    // Start image generation in parallel
-    const imagePromise = generateImage(primaryKeyword, categoryData.image_style, lovableApiKey, supabase, supabaseUrl);
-    
     // STEP 1: Dynamic SEO Keyword Research with AI
     const seoResearchPrompt = `Sei un esperto SEO italiano specializzato in diritti dei consumatori e rimborsi.
 
@@ -279,6 +420,7 @@ Per la keyword principale: "${primaryKeyword}"
 Categoria: ${categoryData.category}
 Azienda focus: ${company}
 Anno: ${currentYear}
+${selectedOpportunity ? `\nOPPORTUNITÀ COLLEGATA: "${selectedOpportunity.title}" - ${selectedOpportunity.short_description}` : ''}
 
 Analizza e restituisci in formato JSON:
 {
@@ -313,6 +455,33 @@ Concentrati su keywords che gli italiani cercano realmente per ottenere rimborsi
     
     console.log("SEO Keywords generated:", seoKeywords.optimized_title);
     
+    // Start image generation in parallel (with more context for unique images)
+    const imagePromise = generateImage(
+      seoKeywords.optimized_title, 
+      company, 
+      categoryData.category,
+      primaryKeyword,
+      lovableApiKey, 
+      supabase, 
+      supabaseUrl
+    );
+    
+    // Build opportunity-specific content instructions
+    const opportunityInstructions = selectedOpportunity ? `
+OPPORTUNITÀ SPECIFICA DA PROMUOVERE:
+- Titolo: "${selectedOpportunity.title}"
+- Descrizione: ${selectedOpportunity.short_description || selectedOpportunity.description}
+- Importo recuperabile: €${selectedOpportunity.min_amount || 0} - €${selectedOpportunity.max_amount || 500}
+- Riferimento legale: ${selectedOpportunity.legal_reference || "Codice del Consumo"}
+
+L'articolo DEVE:
+- Spiegare in dettaglio il problema specifico che questa opportunità risolve
+- Citare la normativa applicabile (${selectedOpportunity.legal_reference || "Codice del Consumo"})
+- Includere almeno 2 esempi pratici di situazioni reali in cui richiedere questo rimborso
+- Menzionare l'importo tipico recuperabile (€${selectedOpportunity.min_amount || 0} - €${selectedOpportunity.max_amount || 500})
+- Concludere con CTA specifico: "Avvia subito il tuo reclamo per ${selectedOpportunity.title} con Rimborsami"
+` : '';
+    
     // STEP 2: Generate SEO-Optimized Article
     const articlePrompt = `Sei un esperto copywriter SEO italiano specializzato in diritti dei consumatori. Scrivi per rimborsami.app.
 
@@ -323,6 +492,7 @@ KEYWORDS SECONDARIE: ${seoKeywords.secondary_keywords.join(", ")}
 LSI KEYWORDS: ${seoKeywords.lsi_keywords.join(", ")}
 AZIENDA: ${company}
 INTENT: ${searchIntent}
+${opportunityInstructions}
 
 STRUTTURA SEO OBBLIGATORIA:
 
@@ -430,7 +600,7 @@ Restituisci SOLO JSON valido:
     const safeExcerpt = (articleData.excerpt || "").substring(0, 160);
     const safeMetaDesc = (articleData.meta_description || seoKeywords.meta_description || "").substring(0, 155);
     
-    // Insert article with SEO tracking fields
+    // Insert article with SEO tracking fields and opportunity link
     const { data: article, error } = await supabase
       .from("news_articles")
       .insert({
@@ -450,7 +620,9 @@ Restituisci SOLO JSON valido:
         search_intent: searchIntent,
         target_word_count: 1500,
         faq_schema: faqSchema,
-        internal_links: articleData.internal_links || ["/quiz", "/opportunities"]
+        internal_links: articleData.internal_links || ["/quiz", "/opportunities"],
+        // Link to opportunity
+        opportunity_id: selectedOpportunity?.id || null
       })
       .select()
       .single();
@@ -460,7 +632,7 @@ Restituisci SOLO JSON valido:
       throw error;
     }
     
-    console.log(`✅ Article published: ${article.slug}`);
+    console.log(`✅ Article published: ${article.slug} (linked to opportunity: ${selectedOpportunity?.title || 'none'})`);
     
     return new Response(
       JSON.stringify({
@@ -471,7 +643,9 @@ Restituisci SOLO JSON valido:
           title: article.title,
           primary_keyword: primaryKeyword,
           search_intent: searchIntent,
-          featured_image_url: article.featured_image_url
+          featured_image_url: article.featured_image_url,
+          opportunity_id: selectedOpportunity?.id || null,
+          opportunity_title: selectedOpportunity?.title || null
         }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
