@@ -118,6 +118,14 @@ const Footer = () => {
                   Cookie Policy
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/refund"
+                  className="text-sm text-primary-foreground/70 hover:text-primary transition-colors"
+                >
+                  Politica di Rimborso
+                </Link>
+              </li>
             </ul>
           </motion.div>
 

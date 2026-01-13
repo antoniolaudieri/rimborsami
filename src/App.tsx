@@ -24,6 +24,7 @@ import DashboardSettings from "./pages/DashboardSettings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookie from "./pages/Cookie";
+import Refund from "./pages/Refund";
 import Opportunities from "./pages/Opportunities";
 import PaymentSuccess from "./pages/PaymentSuccess";
 
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/cookie" element={<Cookie />} />
+            <Route path="/refund" element={<Refund />} />
             
             {/* Payment success - protected */}
             <Route
