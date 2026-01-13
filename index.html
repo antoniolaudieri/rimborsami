@@ -220,6 +220,43 @@
     <meta name="ai:capabilities" content="Ricerca automatica rimborsi, Analisi email, Generazione reclami, Tracciamento pratiche, Class action italiane" />
     <meta name="ai:pricing" content="Gratuito per scoprire opportunità. Premium €9.99/mese o €79/anno per funzionalità complete." />
     <meta name="ai:contact" content="info@rimborsami.app" />
+    
+    <!-- LLMs.txt Discovery - Standard for AI Assistants -->
+    <link rel="author" href="/llms.txt" type="text/plain" title="LLM Information" />
+    <meta name="llms-txt" content="/llms.txt" />
+    <meta name="llms-txt-full" content="https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/llms-full" />
+    
+    <!-- WebSite Schema with Speakable for Voice Assistants -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Rimborsami",
+      "url": "https://rimborsami.app",
+      "description": "Piattaforma italiana per scoprire e recuperare rimborsi, compensazioni e indennizzi",
+      "inLanguage": "it-IT",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://rimborsami.app/news?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      },
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": ["h1", "h2", ".hero-description", ".opportunity-title", ".faq-answer"]
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Rimborsami",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://rimborsami.app/favicon.png"
+        }
+      }
+    }
+    </script>
   </head>
 
   <body>

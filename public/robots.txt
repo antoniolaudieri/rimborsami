@@ -61,5 +61,12 @@ Disallow: /payment-success
 # Sitemap location - Main sitemap index that combines all sitemaps
 Sitemap: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/sitemap-index
 
+# LLMs.txt for AI assistants - Standard llmstxt.org format
+# Static version with general platform information
+Llms-txt: https://rimborsami.app/llms.txt
+
+# Dynamic full version with latest opportunities and articles
+Llms-txt-full: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/llms-full
+
 # Host
 Host: https://rimborsami.app
