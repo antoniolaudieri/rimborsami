@@ -140,6 +140,17 @@ export default function NewsArticle() {
                 </Link>
               </nav>
 
+              {/* Hero Image */}
+              {article.featured_image_url && (
+                <div className="aspect-video relative overflow-hidden rounded-xl mb-8 bg-muted">
+                  <img
+                    src={article.featured_image_url}
+                    alt={article.title}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              )}
+
               {/* Header */}
               <header className="mb-8">
                 <Badge variant="secondary" className="mb-4">

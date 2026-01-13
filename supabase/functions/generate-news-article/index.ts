@@ -123,10 +123,23 @@ serve(async (req) => {
     const featuredImageUrl = await imagePromise;
     const slug = `${generateSlug(articleData.title)}-${Date.now().toString(36)}`;
     
+    // Truncate fields to match database constraints
+    const safeTitle = (articleData.title || title).substring(0, 255);
+    const safeExcerpt = (articleData.excerpt || "").substring(0, 160);
+    const safeMetaDesc = (articleData.meta_description || articleData.excerpt || "").substring(0, 155);
+    
     const { data: article, error } = await supabase.from("news_articles").insert({
-      slug, title: articleData.title, excerpt: articleData.excerpt, meta_description: articleData.meta_description || articleData.excerpt,
-      content: articleData.content, category: categoryData.category, keywords: articleData.keywords || categoryData.keywords,
-      reading_time_minutes: articleData.reading_time_minutes || 5, featured_image_url: featuredImageUrl, is_published: true, published_at: new Date().toISOString(),
+      slug, 
+      title: safeTitle, 
+      excerpt: safeExcerpt, 
+      meta_description: safeMetaDesc,
+      content: articleData.content, 
+      category: categoryData.category, 
+      keywords: articleData.keywords || categoryData.keywords,
+      reading_time_minutes: articleData.reading_time_minutes || 5, 
+      featured_image_url: featuredImageUrl, 
+      is_published: true, 
+      published_at: new Date().toISOString(),
     }).select().single();
     if (error) throw error;
     return new Response(JSON.stringify({ success: true, article: { id: article.id, slug: article.slug, title: article.title, featured_image_url: article.featured_image_url } }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

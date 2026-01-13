@@ -12,6 +12,7 @@ interface NewsCardProps {
   category: string;
   publishedAt: string | null;
   readingTime: number;
+  featuredImageUrl?: string | null;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -34,23 +35,43 @@ const categoryColors: Record<string, string> = {
   insurance: 'bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20',
 };
 
-export function NewsCard({ slug, title, excerpt, category, publishedAt, readingTime }: NewsCardProps) {
+export function NewsCard({ slug, title, excerpt, category, publishedAt, readingTime, featuredImageUrl }: NewsCardProps) {
   const timeAgo = publishedAt 
     ? formatDistanceToNow(new Date(publishedAt), { addSuffix: true, locale: it })
     : '';
 
   return (
     <Link to={`/news/${slug}`}>
-      <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2 mb-2">
+      <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group overflow-hidden">
+        {/* Featured Image */}
+        {featuredImageUrl && (
+          <div className="aspect-video relative overflow-hidden bg-muted">
+            <img
+              src={featuredImageUrl}
+              alt={title}
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
             <Badge 
               variant="secondary" 
-              className={categoryColors[category] || 'bg-muted text-muted-foreground'}
+              className={`absolute top-3 left-3 ${categoryColors[category] || 'bg-muted text-muted-foreground'}`}
             >
               {categoryLabels[category] || category}
             </Badge>
           </div>
+        )}
+        
+        <CardHeader className={featuredImageUrl ? "pb-2 pt-4" : "pb-3"}>
+          {!featuredImageUrl && (
+            <div className="flex items-center gap-2 mb-2">
+              <Badge 
+                variant="secondary" 
+                className={categoryColors[category] || 'bg-muted text-muted-foreground'}
+              >
+                {categoryLabels[category] || category}
+              </Badge>
+            </div>
+          )}
           <h3 className="font-semibold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
             {title}
           </h3>

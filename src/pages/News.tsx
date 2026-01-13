@@ -128,6 +128,7 @@ export default function News() {
                       category={article.category}
                       publishedAt={article.published_at}
                       readingTime={article.reading_time_minutes}
+                      featuredImageUrl={article.featured_image_url}
                     />
                   ))}
                 </div>
