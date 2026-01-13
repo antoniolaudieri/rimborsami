@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { z } from 'zod';
 import Logo from '@/components/Logo';
 
@@ -19,6 +20,9 @@ const loginSchema = z.object({
 const signUpSchema = loginSchema.extend({
   fullName: z.string().min(2, 'Inserisci il tuo nome completo'),
   confirmPassword: z.string(),
+  acceptPrivacy: z.literal(true, {
+    errorMap: () => ({ message: 'Devi accettare la Privacy Policy per registrarti' }),
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Le password non coincidono',
   path: ['confirmPassword'],
@@ -33,6 +37,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +82,7 @@ export default function Auth() {
       if (isLogin) {
         loginSchema.parse({ email, password });
       } else {
-        signUpSchema.parse({ email, password, confirmPassword, fullName });
+        signUpSchema.parse({ email, password, confirmPassword, fullName, acceptPrivacy });
       }
       return true;
     } catch (err) {
@@ -269,6 +274,52 @@ export default function Auth() {
                       </div>
                       {validationErrors.confirmPassword && (
                         <p className="text-xs text-destructive">{validationErrors.confirmPassword}</p>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Privacy checkbox - solo per registrazione */}
+                <AnimatePresence mode="wait">
+                  {!isLogin && (
+                    <motion.div
+                      key="privacyCheckbox"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-2"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id="acceptPrivacy"
+                          checked={acceptPrivacy}
+                          onCheckedChange={(checked) => setAcceptPrivacy(checked === true)}
+                          className={validationErrors.acceptPrivacy ? 'border-destructive' : ''}
+                        />
+                        <Label 
+                          htmlFor="acceptPrivacy" 
+                          className="text-sm leading-relaxed cursor-pointer"
+                        >
+                          Ho letto e accetto la{' '}
+                          <Link 
+                            to="/privacy" 
+                            target="_blank"
+                            className="text-primary hover:underline font-medium"
+                          >
+                            Privacy Policy
+                          </Link>{' '}
+                          e i{' '}
+                          <Link 
+                            to="/terms" 
+                            target="_blank"
+                            className="text-primary hover:underline font-medium"
+                          >
+                            Termini di Servizio
+                          </Link>
+                        </Label>
+                      </div>
+                      {validationErrors.acceptPrivacy && (
+                        <p className="text-xs text-destructive">{validationErrors.acceptPrivacy}</p>
                       )}
                     </motion.div>
                   )}
