@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
       
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -39,18 +39,6 @@ jobs:
       
       - name: Add Android platform
         run: bunx cap add android
-      
-      - name: Update Gradle wrapper for Java 21
-        run: |
-          cat > android/gradle/wrapper/gradle-wrapper.properties << 'EOF'
-          distributionBase=GRADLE_USER_HOME
-          distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-all.zip
-          networkTimeout=10000
-          validateDistributionUrl=true
-          zipStoreBase=GRADLE_USER_HOME
-          zipStorePath=wrapper/dists
-          EOF
       
       - name: Sync Capacitor
         run: bunx cap sync android
