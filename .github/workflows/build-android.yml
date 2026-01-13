@@ -50,6 +50,13 @@ jobs:
           echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
       
+      - name: Patch Capacitor for Java 17
+        run: |
+          # Patch capacitor-android build.gradle to use Java 17
+          sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' node_modules/@capacitor/android/capacitor/build.gradle
+          sed -i 's/sourceCompatibility = 21/sourceCompatibility = 17/g' node_modules/@capacitor/android/capacitor/build.gradle
+          sed -i 's/targetCompatibility = 21/targetCompatibility = 17/g' node_modules/@capacitor/android/capacitor/build.gradle
+      
       - name: Sync Capacitor
         run: bunx cap sync android
       
