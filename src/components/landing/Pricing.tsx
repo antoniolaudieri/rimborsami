@@ -3,7 +3,20 @@ import { motion } from "framer-motion";
 import { Check, Shield, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const plans = [
+const plans: {
+  name: string;
+  price: string;
+  period: string;
+  billingNote?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  variant: "outline" | "hero" | "gold";
+  popular: boolean;
+  badge?: string;
+  savings?: string;
+  href: string;
+}[] = [
   {
     name: "Free",
     price: "€0",
@@ -41,9 +54,10 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "€79",
-    period: "all'anno",
-    description: "Risparmia 33% con la sottoscrizione annuale.",
+    price: "€6.00",
+    period: "al mese",
+    billingNote: "Fatturato annualmente (€71.99/anno)",
+    description: "Il miglior valore. Risparmia oltre il 40%.",
     features: [
       "Tutto del Premium",
       "Consulenza legale inclusa",
@@ -54,7 +68,7 @@ const plans = [
     cta: "Scegli Pro",
     variant: "gold" as const,
     popular: false,
-    savings: "Risparmi €41",
+    savings: "Risparmi €48",
     href: "/auth?mode=signup&plan=annual",
   },
 ];
@@ -137,10 +151,17 @@ const Pricing = () => {
               </h3>
 
               {/* Price */}
-              <div className="mb-3 sm:mb-4">
+              <div className="mb-1 sm:mb-2">
                 <span className="font-display text-3xl sm:text-4xl font-bold">{plan.price}</span>
                 <span className="text-muted-foreground ml-1 text-sm sm:text-base">/{plan.period}</span>
               </div>
+
+              {/* Billing note */}
+              {plan.billingNote && (
+                <p className="text-xs text-muted-foreground mb-3 sm:mb-4">
+                  {plan.billingNote}
+                </p>
+              )}
 
               {/* Description */}
               <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
