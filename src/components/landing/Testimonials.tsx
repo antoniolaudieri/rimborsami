@@ -234,12 +234,7 @@ const Testimonials = () => {
           className="mt-12 sm:mt-16 text-center px-4"
         >
           <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 px-4 sm:px-8 py-4 sm:py-5 bg-secondary rounded-xl sm:rounded-2xl">
-            <div className="flex items-center gap-4 sm:gap-8">
-              <div className="text-center">
-                <div className="font-display text-lg sm:text-2xl font-bold text-foreground">4.8/5</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">App Store</div>
-              </div>
-              <div className="w-px h-8 sm:h-10 bg-border" />
+          <div className="flex items-center gap-4 sm:gap-8">
               <div className="text-center">
                 <div className="font-display text-lg sm:text-2xl font-bold text-foreground">98%</div>
                 <div className="text-[10px] sm:text-xs text-muted-foreground">Soddisfatti</div>
