@@ -2,286 +2,136 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Categories and their Italian keywords for SEO
 const ARTICLE_CATEGORIES = [
   {
-    category: 'flight',
-    keywords: ['rimborso volo', 'ritardo aereo', 'volo cancellato', 'compensazione EU261', 'risarcimento compagnia aerea'],
-    companies: ['Ryanair', 'Easyjet', 'Lufthansa', 'Alitalia ITA', 'Vueling', 'Wizz Air'],
+    category: "flight",
+    keywords: ["rimborso volo", "risarcimento aereo", "ritardo volo", "volo cancellato", "EU261"],
+    companies: ["Ryanair", "Easyjet", "Wizz Air", "ITA Airways", "Lufthansa"],
     topics: [
-      'Come richiedere rimborso per volo cancellato',
-      'Diritti passeggeri: compensazione per ritardo aereo',
-      'Guida completa al regolamento EU 261/2004',
-      'Overbooking: come ottenere il risarcimento',
-      'Rimborso bagaglio smarrito o danneggiato'
-    ]
+      { title: "Rimborso volo cancellato: la guida completa {anno}", viral_hook: "⚠️ Potresti avere diritto a €600", long_tail: "come ottenere rimborso volo cancellato {company}" },
+      { title: "Ritardo aereo oltre 3 ore: quanto ti spetta", viral_hook: "💰 Il 78% degli italiani non richiede i rimborsi", long_tail: "rimborso ritardo volo {company}" },
+      { title: "Regolamento EU 261: i tuoi diritti sui voli", viral_hook: "📋 La legge che le compagnie non vogliono che conosci", long_tail: "regolamento europeo 261 risarcimento" },
+    ],
+    image_style: "Modern airport terminal with airplane, blue sky, professional travel photography"
   },
   {
-    category: 'telecom',
-    keywords: ['rimborso bolletta', 'fattura errata', 'disdetta contratto', 'costi nascosti operatore', 'reclamo telefonico'],
-    companies: ['TIM', 'Vodafone', 'WindTre', 'Fastweb', 'Iliad', 'Sky'],
+    category: "telecom",
+    keywords: ["rimborso bolletta", "disdetta contratto", "fatturazione errata"],
+    companies: ["TIM", "Vodafone", "WindTre", "Fastweb", "Iliad"],
     topics: [
-      'Bolletta telefonica errata: come ottenere il rimborso',
-      'Servizi non richiesti in bolletta: i tuoi diritti',
-      'Disdetta anticipata senza penali: quando è possibile',
-      'Velocità internet inferiore al contratto: rimborso',
-      'Fatturazione a 28 giorni: rimborsi ancora disponibili'
-    ]
+      { title: "Bolletta telefonica troppo alta: come contestarla", viral_hook: "📱 Il 45% delle bollette contiene errori", long_tail: "contestare bolletta {company}" },
+      { title: "Servizi non richiesti: procedura rimborso", viral_hook: "🚨 Paghi servizi mai attivati?", long_tail: "rimuovere servizi {company}" },
+    ],
+    image_style: "Smartphone with bills and money, consumer protection theme"
   },
   {
-    category: 'energy',
-    keywords: ['rimborso luce gas', 'bolletta energia', 'conguaglio errato', 'cambio fornitore', 'mercato libero energia'],
-    companies: ['Enel', 'Eni', 'Edison', 'A2A', 'Hera', 'Acea'],
+    category: "ecommerce",
+    keywords: ["rimborso acquisto", "garanzia legale", "diritto recesso"],
+    companies: ["Amazon", "Zalando", "eBay", "Mediaworld"],
     topics: [
-      'Conguaglio luce e gas: come verificare e contestare',
-      'Mercato tutelato vs libero: cosa cambia nel 2026',
-      'Bollette stimate errate: richiedi il rimborso',
-      'Aumenti non comunicati: i tuoi diritti',
-      'Voltura e subentro: costi illegittimi da recuperare'
-    ]
+      { title: "Diritto di recesso online: 14 giorni per ripensarci", viral_hook: "🛒 Hai 14 giorni per restituire TUTTO", long_tail: "diritto recesso {company}" },
+      { title: "Garanzia legale 2 anni: come farla valere", viral_hook: "🔧 La garanzia è scaduta? Forse no", long_tail: "garanzia legale {company}" },
+    ],
+    image_style: "Online shopping with laptop and packages, e-commerce concept"
   },
   {
-    category: 'bank',
-    keywords: ['rimborso banca', 'commissioni bancarie', 'class action banche', 'conto corrente', 'mutuo casa'],
-    companies: ['Intesa Sanpaolo', 'UniCredit', 'BNL', 'BPER', 'MPS', 'Banco BPM'],
+    category: "bank",
+    keywords: ["commissioni bancarie", "anatocismo", "conto corrente"],
+    companies: ["Intesa Sanpaolo", "Unicredit", "BNL", "Fineco"],
     topics: [
-      'Commissioni bancarie nascoste: come recuperarle',
-      'Class action contro le banche: partecipa e ottieni rimborso',
-      'Interessi anatocistici: verifica e richiedi rimborso',
-      'Estinzione anticipata mutuo: costi illegittimi',
-      'Conto corrente chiuso: recupera le commissioni'
-    ]
+      { title: "Commissioni bancarie nascoste: come chiedere rimborso", viral_hook: "🏦 Il 67% paga commissioni sconosciute", long_tail: "commissioni {company}" },
+      { title: "Phishing bancario: come ottenere il rimborso", viral_hook: "🔒 Truffa online? La banca DEVE rimborsarti", long_tail: "truffa phishing {company}" },
+    ],
+    image_style: "Banking concept with Euro bills and digital app"
   },
   {
-    category: 'ecommerce',
-    keywords: ['rimborso acquisto online', 'reso prodotto', 'garanzia legale', 'diritto recesso', 'truffa online'],
-    companies: ['Amazon', 'Zalando', 'eBay', 'AliExpress', 'Shein', 'Mediaworld'],
+    category: "energy",
+    keywords: ["bolletta luce", "bolletta gas", "conguaglio"],
+    companies: ["Enel", "Eni", "A2A", "Edison"],
     topics: [
-      'Diritto di recesso 14 giorni: guida completa',
-      'Prodotto difettoso: garanzia legale 2 anni',
-      'Rimborso per prodotto non conforme',
-      'Pacco non consegnato: come ottenere il rimborso',
-      'Acquisto online truffaldino: recupera i soldi'
-    ]
+      { title: "Conguaglio bolletta: come contestare importi esorbitanti", viral_hook: "⚡ Bolletta da €2.000? Leggi questo", long_tail: "conguaglio {company}" },
+      { title: "Bonus energia {anno}: chi ne ha diritto", viral_hook: "💡 Migliaia non richiedono il bonus", long_tail: "bonus energia requisiti" },
+    ],
+    image_style: "Energy bills with light bulb, utility concept"
   },
   {
-    category: 'class_action',
-    keywords: ['class action Italia', 'azione collettiva', 'risarcimento danni', 'causa collettiva', 'adesione class action'],
-    companies: ['Meta', 'Google', 'Apple', 'Samsung', 'Volkswagen', 'Stellantis'],
+    category: "class_action",
+    keywords: ["class action", "azione collettiva", "risarcimento"],
+    companies: ["Volkswagen", "Apple", "Google", "Meta"],
     topics: [
-      'Class action attive in Italia: elenco aggiornato 2026',
-      'Come aderire a una class action: guida passo passo',
-      'Dieselgate: rimborsi ancora disponibili',
-      'Privacy violata: class action contro big tech',
-      'Obsolescenza programmata: cause collettive aperte'
-    ]
-  },
-  {
-    category: 'insurance',
-    keywords: ['rimborso assicurazione', 'sinistro auto', 'polizza vita', 'risarcimento danni', 'reclamo assicurativo'],
-    companies: ['Generali', 'Allianz', 'UnipolSai', 'AXA', 'Zurich', 'Cattolica'],
-    topics: [
-      'Sinistro auto: come ottenere il giusto risarcimento',
-      'Polizza vita: clausole vessatorie da contestare',
-      'Assicurazione viaggio: rimborso per vacanza rovinata',
-      'RC Auto: risarcimento diretto vs ordinario',
-      'Danni maltempo: guida al risarcimento assicurativo'
-    ]
+      { title: "Dieselgate {anno}: come aderire alla class action", viral_hook: "🚗 Hai un diesel VW? Diritto a €3.000", long_tail: "class action dieselgate" },
+      { title: "Class action attive in Italia: guida completa", viral_hook: "📋 Le 10 azioni a cui aderire OGGI", long_tail: "class action italia {anno}" },
+    ],
+    image_style: "Courthouse with scales of justice, legal concept"
   }
 ];
 
 function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .substring(0, 100);
+  return title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").substring(0, 60);
+}
+
+async function generateImage(topic: string, imageStyle: string, lovableApiKey: string, supabaseClient: any, supabaseUrl: string): Promise<string | null> {
+  try {
+    const imagePrompt = `Create a professional blog header image 16:9 for: "${topic}". Style: ${imageStyle}. NO text in image. High quality, blue/green tones.`;
+    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-2.5-flash-image-preview", messages: [{ role: "user", content: imagePrompt }], modalities: ["image", "text"] }),
+    });
+    if (!imageResponse.ok) return null;
+    const imageData = await imageResponse.json();
+    const base64Image = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!base64Image) return null;
+    const base64Match = base64Image.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!base64Match) return null;
+    const bytes = Uint8Array.from(atob(base64Match[2]), c => c.charCodeAt(0));
+    const fileName = `article-${Date.now()}-${Math.random().toString(36).substring(7)}.${base64Match[1]}`;
+    const { error } = await supabaseClient.storage.from("news-images").upload(fileName, bytes, { contentType: `image/${base64Match[1]}` });
+    if (error) return null;
+    return `${supabaseUrl}/storage/v1/object/public/news-images/${fileName}`;
+  } catch { return null; }
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Select random category
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!, supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const categoryData = ARTICLE_CATEGORIES[Math.floor(Math.random() * ARTICLE_CATEGORIES.length)];
-    const topic = categoryData.topics[Math.floor(Math.random() * categoryData.topics.length)];
+    const topicData = categoryData.topics[Math.floor(Math.random() * categoryData.topics.length)];
     const company = categoryData.companies[Math.floor(Math.random() * categoryData.companies.length)];
-    
-    // Current date for freshness
-    const currentDate = new Date().toLocaleDateString('it-IT', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
     const currentYear = new Date().getFullYear();
-
-    const systemPrompt = `Sei un esperto giornalista italiano specializzato in diritti dei consumatori e rimborsi. 
-Scrivi articoli SEO-ottimizzati per il blog di Rimborsami.app, una piattaforma italiana che aiuta i consumatori a recuperare rimborsi e compensazioni.
-
-REGOLE IMPORTANTI:
-- Scrivi SOLO in italiano corretto e professionale
-- Usa un tono informativo ma accessibile
-- Includi dati, statistiche e riferimenti normativi quando possibile
-- Struttura l'articolo con H2 e H3 per la SEO
-- Inserisci naturalmente le keyword nel testo
-- L'articolo deve essere lungo almeno 800 parole
-- Includi una sezione "Come Rimborsami può aiutarti" verso la fine
-- Termina con una call-to-action per registrarsi su Rimborsami`;
-
-    const userPrompt = `Scrivi un articolo SEO-ottimizzato sul tema: "${topic}"
-
-Contesto:
-- Categoria: ${categoryData.category}
-- Azienda di riferimento (se applicabile): ${company}
-- Data odierna: ${currentDate}
-- Anno corrente: ${currentYear}
-
-Keywords da includere naturalmente: ${categoryData.keywords.join(', ')}
-
-Formato richiesto (JSON):
-{
-  "title": "Titolo accattivante con keyword principale (max 60 caratteri)",
-  "meta_description": "Meta description convincente con CTA (max 155 caratteri)",
-  "excerpt": "Riassunto dell'articolo in 2-3 frasi (max 200 caratteri)",
-  "content": "Contenuto completo in HTML con tag h2, h3, p, ul, li, strong, em. Minimo 800 parole.",
-  "keywords": ["array", "di", "5-8", "keywords", "rilevanti"],
-  "reading_time_minutes": numero_stimato
-}
-
-IMPORTANTE: Rispondi SOLO con il JSON valido, senza testo aggiuntivo.`;
-
-    console.log('Generating article for category:', categoryData.category, 'topic:', topic);
-
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-      }),
+    const title = topicData.title.replace("{anno}", String(currentYear)).replace("{company}", company);
+    const imagePromise = generateImage(title, categoryData.image_style, lovableApiKey, supabase, supabaseUrl);
+    
+    const systemPrompt = `Sei un esperto copywriter italiano su diritti consumatori. Scrivi articoli virali SEO-ottimizzati con: hook emotivi, statistiche, leggi italiane reali, emoji nei titoli, CTA per Rimborsami. Solo italiano.`;
+    const userPrompt = `Genera articolo: "${title}". Hook: "${topicData.viral_hook}". Keywords: ${categoryData.keywords.join(", ")}. Azienda: ${company}. Formato JSON: {"title":"max 60 char","excerpt":"max 160 char","meta_description":"max 155 char","content":"HTML con H2, liste, FAQ details/summary, box info-box","keywords":["5-8 keywords"],"reading_time_minutes":numero}`;
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }] }),
     });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded, please try again later.' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required, please add credits.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
-    }
-
-    const aiData = await aiResponse.json();
-    const generatedText = aiData.choices?.[0]?.message?.content;
-
-    if (!generatedText) {
-      throw new Error('No content generated from AI');
-    }
-
-    console.log('AI response received, parsing JSON...');
-
-    // Parse the JSON response
-    let articleData;
-    try {
-      // Try to extract JSON from the response (in case there's extra text)
-      const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        articleData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in response');
-      }
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Response:', generatedText.substring(0, 500));
-      throw new Error('Failed to parse AI response as JSON');
-    }
-
-    // Validate required fields
-    if (!articleData.title || !articleData.content || !articleData.meta_description) {
-      throw new Error('Missing required fields in generated article');
-    }
-
-    // Generate unique slug
-    const baseSlug = generateSlug(articleData.title);
-    const timestamp = Date.now().toString(36);
-    const slug = `${baseSlug}-${timestamp}`;
-
-    // Insert article into database
-    const { data: insertedArticle, error: insertError } = await supabase
-      .from('news_articles')
-      .insert({
-        slug,
-        title: articleData.title.substring(0, 255),
-        meta_description: articleData.meta_description.substring(0, 160),
-        excerpt: articleData.excerpt?.substring(0, 500) || articleData.meta_description,
-        content: articleData.content,
-        category: categoryData.category,
-        keywords: articleData.keywords || categoryData.keywords,
-        reading_time_minutes: articleData.reading_time_minutes || 5,
-        is_published: true,
-        published_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('Database insert error:', insertError);
-      throw new Error(`Failed to save article: ${insertError.message}`);
-    }
-
-    console.log('Article saved successfully:', insertedArticle.id, insertedArticle.slug);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      article: {
-        id: insertedArticle.id,
-        slug: insertedArticle.slug,
-        title: insertedArticle.title,
-        category: insertedArticle.category
-      }
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
+    if (!response.ok) throw new Error(`AI error: ${response.status}`);
+    const aiResponse = await response.json();
+    let articleText = aiResponse.choices?.[0]?.message?.content?.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const articleData = JSON.parse(articleText);
+    const featuredImageUrl = await imagePromise;
+    const slug = `${generateSlug(articleData.title)}-${Date.now().toString(36)}`;
+    
+    const { data: article, error } = await supabase.from("news_articles").insert({
+      slug, title: articleData.title, excerpt: articleData.excerpt, meta_description: articleData.meta_description || articleData.excerpt,
+      content: articleData.content, category: categoryData.category, keywords: articleData.keywords || categoryData.keywords,
+      reading_time_minutes: articleData.reading_time_minutes || 5, featured_image_url: featuredImageUrl, is_published: true, published_at: new Date().toISOString(),
+    }).select().single();
+    if (error) throw error;
+    return new Response(JSON.stringify({ success: true, article: { id: article.id, slug: article.slug, title: article.title, featured_image_url: article.featured_image_url } }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error) {
-    console.error('Error generating news article:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error("Error:", error);
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
