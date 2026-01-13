@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import Logo from '@/components/Logo';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import {
   Lock,
   Sparkles,
@@ -15,7 +20,14 @@ import {
   Bell,
   Calendar,
   X,
+  Loader2,
 } from 'lucide-react';
+
+// Stripe Price IDs
+const STRIPE_PRICES = {
+  monthly: 'price_1Sp6g1IUZ8Cgf1436Gdvgzv2',
+  annual: 'price_1Sp6gEIUZ8Cgf143w08nY8FK',
+};
 
 interface PaywallProps {
   opportunitiesCount?: number;
@@ -30,6 +42,10 @@ export function Paywall({
   onClose,
   variant = 'modal',
 }: PaywallProps) {
+  const [isAnnual, setIsAnnual] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
   const benefits = [
     { icon: FileText, text: 'Dettagli completi delle opportunità' },
     { icon: Euro, text: 'Importo preciso per ogni pratica' },
@@ -38,6 +54,39 @@ export function Paywall({
     { icon: Bell, text: 'Notifiche avanzate' },
     { icon: Shield, text: 'Base legale di ogni rimborso' },
   ];
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      const priceId = isAnnual ? STRIPE_PRICES.annual : STRIPE_PRICES.monthly;
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId },
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile avviare il checkout. Riprova più tardi.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const monthlyPrice = 9.99;
+  const annualPrice = 71.99;
+  const annualMonthlyPrice = (annualPrice / 12).toFixed(2);
+  const savingsPercent = Math.round((1 - annualPrice / (monthlyPrice * 12)) * 100);
 
   const content = (
     <div className="space-y-6">
@@ -85,6 +134,37 @@ export function Paywall({
         </CardContent>
       </Card>
 
+      {/* Piano toggle */}
+      <div className="flex items-center justify-center gap-4">
+        <Label htmlFor="plan-toggle" className={!isAnnual ? 'font-semibold' : 'text-muted-foreground'}>
+          Mensile
+        </Label>
+        <Switch
+          id="plan-toggle"
+          checked={isAnnual}
+          onCheckedChange={setIsAnnual}
+        />
+        <Label htmlFor="plan-toggle" className={isAnnual ? 'font-semibold' : 'text-muted-foreground'}>
+          Annuale
+          <Badge variant="secondary" className="ml-2 text-xs">
+            -{savingsPercent}%
+          </Badge>
+        </Label>
+      </div>
+
+      {/* Pricing display */}
+      <div className="text-center">
+        <div className="text-4xl font-bold">
+          €{isAnnual ? annualMonthlyPrice : monthlyPrice.toFixed(2)}
+          <span className="text-lg font-normal text-muted-foreground">/mese</span>
+        </div>
+        {isAnnual && (
+          <p className="text-sm text-muted-foreground mt-1">
+            Fatturati €{annualPrice} all'anno
+          </p>
+        )}
+      </div>
+
       {/* Benefits */}
       <div>
         <h3 className="font-semibold mb-3">Con il piano Premium ottieni:</h3>
@@ -106,11 +186,23 @@ export function Paywall({
 
       {/* Pricing CTA */}
       <div className="space-y-3">
-        <Button asChild size="lg" className="w-full bg-gradient-hero hover:opacity-90">
-          <Link to="/dashboard/settings#subscription">
-            <Sparkles className="w-5 h-5 mr-2" />
-            Sblocca tutto a €9,99/mese
-          </Link>
+        <Button 
+          size="lg" 
+          className="w-full bg-gradient-hero hover:opacity-90"
+          onClick={handleCheckout}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Caricamento...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5 mr-2" />
+              Sblocca tutto a €{isAnnual ? annualMonthlyPrice : monthlyPrice.toFixed(2)}/mese
+            </>
+          )}
         </Button>
         <p className="text-center text-xs text-muted-foreground">
           ✓ Soddisfatti o rimborsati entro 14 giorni
