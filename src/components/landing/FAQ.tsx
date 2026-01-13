@@ -45,7 +45,7 @@ const faqs = [
   {
     question: "Come funziona la garanzia soddisfatti o rimborsati?",
     answer:
-      "Se entro 30 giorni dall'iscrizione Premium non trovi almeno un'opportunità di rimborso valida, ti restituiamo l'abbonamento. Nessuna domanda, nessun problema.",
+      "Se nei primi 12 mesi di abbonamento Premium non recuperi almeno quanto hai speso per il servizio, ti rimborsiamo l'intero costo dell'abbonamento. Hai 30 giorni dalla fine del periodo per richiedere il rimborso. Nessuna domanda, nessun problema. Leggi tutti i dettagli nella nostra Politica di Rimborso.",
   },
 ];
 
