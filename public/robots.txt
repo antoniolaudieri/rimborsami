@@ -58,9 +58,8 @@ Disallow: /quiz
 Disallow: /api/
 Disallow: /payment-success
 
-# Sitemap location
-Sitemap: https://rimborsami.app/sitemap.xml
-Sitemap: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/sitemap-news
+# Sitemap location - Main sitemap index that combines all sitemaps
+Sitemap: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/sitemap-index
 
 # Host
 Host: https://rimborsami.app
