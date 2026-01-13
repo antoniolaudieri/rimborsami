@@ -62,13 +62,13 @@ const Hero = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-6 sm:mb-8 px-4 sm:px-0"
             >
-              <Button variant="hero" size="lg" className="group w-full sm:w-auto text-base sm:text-lg py-6 sm:py-6 font-semibold" asChild>
+              <Button variant="hero" size="lg" className="group w-full sm:w-auto" asChild>
                 <Link to="/auth?mode=signup">
                   Scopri quanto puoi recuperare
-                  <ArrowRight className="w-5 h-5 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base sm:text-lg py-6 sm:py-6 font-semibold border-2" asChild>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
                 <a href="#come-funziona">Come funziona</a>
               </Button>
             </motion.div>
