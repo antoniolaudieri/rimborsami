@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
       
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -40,45 +40,12 @@ jobs:
       - name: Add Android platform
         run: bunx cap add android
       
-      - name: Update Gradle wrapper
-        run: |
-          echo "distributionBase=GRADLE_USER_HOME" > android/gradle/wrapper/gradle-wrapper.properties
-          echo "distributionPath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "networkTimeout=10000" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "validateDistributionUrl=true" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
-      
-      - name: Patch Capacitor for Java 17
-        run: |
-          # Patch the capacitor-android build.gradle in the android folder
-          if [ -f "android/capacitor-android/build.gradle" ]; then
-            sed -i 's/VERSION_21/VERSION_17/g' android/capacitor-android/build.gradle
-            sed -i 's/jvmTarget = .21./jvmTarget = "17"/g' android/capacitor-android/build.gradle
-          fi
-          # Also patch in node_modules before sync
-          find node_modules/@capacitor -name "build.gradle" -exec sed -i 's/VERSION_21/VERSION_17/g' {} \;
-          find node_modules/@capacitor -name "build.gradle" -exec sed -i 's/jvmTarget = .21./jvmTarget = "17"/g' {} \;
-      
       - name: Sync Capacitor
         run: bunx cap sync android
       
-      - name: Patch after sync
-        run: |
-          # Patch again after sync in case files were regenerated
-          find android -name "build.gradle" -exec sed -i 's/VERSION_21/VERSION_17/g' {} \;
-          find android -name "build.gradle" -exec sed -i 's/jvmTarget = .21./jvmTarget = "17"/g' {} \;
-          find android -name "build.gradle.kts" -exec sed -i 's/VERSION_21/VERSION_17/g' {} \;
-          find android -name "build.gradle.kts" -exec sed -i 's/jvmTarget.set(JvmTarget.JVM_21)/jvmTarget.set(JvmTarget.JVM_17)/g' {} \;
-      
       - name: Build APK
         working-directory: android
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
-        run: |
-          echo "Using JAVA_HOME: $JAVA_HOME"
-          ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
