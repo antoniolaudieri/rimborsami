@@ -4,7 +4,7 @@ import CompanyLogos from "@/components/landing/CompanyLogos";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
 import QuizSection from "@/components/landing/QuizSection";
-import { SuccessWall } from "@/components/sharing/SuccessWall";
+// import { SuccessWall } from "@/components/sharing/SuccessWall"; // Temporaneamente nascosto
 import Testimonials from "@/components/landing/Testimonials";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
@@ -19,7 +19,7 @@ const Index = () => {
       <Features />
       <HowItWorks />
       <QuizSection />
-      <SuccessWall />
+      {/* <SuccessWall /> */} {/* Temporaneamente nascosto */}
       <Testimonials />
       <Pricing />
       <FAQ />
