@@ -27,8 +27,10 @@ export default function NewsArticle() {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading, error } = useNewsArticle(slug || '');
 
-  const handleShare = async () => {
+const handleShare = async () => {
     const url = window.location.href;
+    
+    // Try native share first (mobile)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -36,12 +38,33 @@ export default function NewsArticle() {
           text: article?.excerpt,
           url,
         });
+        return;
       } catch (err) {
-        // User cancelled
+        // User cancelled or not supported, fall through to clipboard
       }
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copiato negli appunti!');
+    }
+    
+    // Fallback to clipboard
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copiato negli appunti!');
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+        toast.success('Link copiato negli appunti!');
+      }
+    } catch (err) {
+      toast.error('Impossibile copiare il link');
     }
   };
 
