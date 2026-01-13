@@ -61,12 +61,8 @@ export const useNewsArticle = (slug: string) => {
         throw error;
       }
 
-      // Increment view count (fire and forget)
-      supabase
-        .from('news_articles')
-        .update({ views_count: (data.views_count || 0) + 1 })
-        .eq('id', data.id)
-        .then(() => {});
+      // Increment view count using RPC function (fire and forget)
+      supabase.rpc('increment_article_views', { article_slug: slug }).then(() => {});
 
       return data as NewsArticle;
     },

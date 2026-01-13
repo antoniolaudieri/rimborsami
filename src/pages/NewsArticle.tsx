@@ -3,15 +3,15 @@ import { Helmet } from 'react-helmet-async';
 import { useNewsArticle } from '@/hooks/useNewsArticles';
 import { NewsCTA } from '@/components/news/NewsCTA';
 import { RelatedArticles } from '@/components/news/RelatedArticles';
+import { ShareDropdown } from '@/components/news/ShareDropdown';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
-import { Clock, Calendar, ChevronLeft, Share2, Eye } from 'lucide-react';
+import { Clock, Calendar, ChevronLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { toast } from 'sonner';
 
 const categoryLabels: Record<string, string> = {
   flight: 'Voli',
@@ -26,48 +26,6 @@ const categoryLabels: Record<string, string> = {
 export default function NewsArticle() {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading, error } = useNewsArticle(slug || '');
-
-const handleShare = async () => {
-    const url = window.location.href;
-    
-    // Try native share first (mobile)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: article?.title,
-          text: article?.excerpt,
-          url,
-        });
-        return;
-      } catch (err) {
-        // User cancelled or not supported, fall through to clipboard
-      }
-    }
-    
-    // Fallback to clipboard
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copiato negli appunti!');
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        textArea.remove();
-        toast.success('Link copiato negli appunti!');
-      }
-    } catch (err) {
-      toast.error('Impossibile copiare il link');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -211,15 +169,12 @@ const handleShare = async () => {
                     <Eye className="h-4 w-4" />
                     {article.views_count} visualizzazioni
                   </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="ml-auto gap-1"
-                    onClick={handleShare}
-                  >
-                    <Share2 className="h-4 w-4" />
-                    Condividi
-                  </Button>
+                  <div className="ml-auto">
+                    <ShareDropdown 
+                      title={article.title} 
+                      excerpt={article.excerpt}
+                    />
+                  </div>
                 </div>
               </header>
 
