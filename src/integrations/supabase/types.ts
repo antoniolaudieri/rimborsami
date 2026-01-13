@@ -237,14 +237,20 @@ export type Database = {
           content: string
           created_at: string | null
           excerpt: string
+          faq_schema: Json | null
           featured_image_url: string | null
+          howto_schema: Json | null
           id: string
+          internal_links: string[] | null
           is_published: boolean | null
           keywords: string[]
           meta_description: string
+          primary_keyword: string | null
           published_at: string | null
           reading_time_minutes: number | null
+          search_intent: string | null
           slug: string
+          target_word_count: number | null
           title: string
           updated_at: string | null
           views_count: number | null
@@ -254,14 +260,20 @@ export type Database = {
           content: string
           created_at?: string | null
           excerpt: string
+          faq_schema?: Json | null
           featured_image_url?: string | null
+          howto_schema?: Json | null
           id?: string
+          internal_links?: string[] | null
           is_published?: boolean | null
           keywords?: string[]
           meta_description: string
+          primary_keyword?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
+          search_intent?: string | null
           slug: string
+          target_word_count?: number | null
           title: string
           updated_at?: string | null
           views_count?: number | null
@@ -271,14 +283,20 @@ export type Database = {
           content?: string
           created_at?: string | null
           excerpt?: string
+          faq_schema?: Json | null
           featured_image_url?: string | null
+          howto_schema?: Json | null
           id?: string
+          internal_links?: string[] | null
           is_published?: boolean | null
           keywords?: string[]
           meta_description?: string
+          primary_keyword?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
+          search_intent?: string | null
           slug?: string
+          target_word_count?: number | null
           title?: string
           updated_at?: string | null
           views_count?: number | null
