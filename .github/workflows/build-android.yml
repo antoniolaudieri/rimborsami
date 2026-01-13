@@ -73,22 +73,63 @@ jobs:
             sed -i 's/compileSdkVersion = 33/compileSdkVersion = 34/g' android/variables.gradle
             sed -i 's/targetSdkVersion = 33/targetSdkVersion = 34/g' android/variables.gradle
           fi
+      
+      - name: Decode Keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/rimborsami-release.keystore
+      
+      - name: Configure signing
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          cat >> android/app/build.gradle << 'EOF'
           
-          # Debug: show the actual content
-          echo "=== app/build.gradle content ==="
-          cat android/app/build.gradle
-          echo "=== variables.gradle content (if exists) ==="
-          cat android/variables.gradle 2>/dev/null || echo "No variables.gradle"
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("rimborsami-release.keystore")
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          EOF
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       
       - name: Sync Capacitor
         run: bunx cap sync android
       
-      - name: Build APK
+      - name: Build Debug APK
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
       
-      - name: Upload APK
+      - name: Build Release APK
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: rimborsami-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      
+      - name: Upload Release APK
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rimborsami-release
+          path: android/app/build/outputs/apk/release/app-release.apk
