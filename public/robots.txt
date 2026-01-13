@@ -60,6 +60,7 @@ Disallow: /payment-success
 
 # Sitemap location
 Sitemap: https://rimborsami.app/sitemap.xml
+Sitemap: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/sitemap-news
 
 # Host
 Host: https://rimborsami.app
