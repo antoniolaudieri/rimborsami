@@ -20,7 +20,7 @@ jobs:
         run: bun install
       
       - name: Prepare native config
-        run: bun run scripts/prepare-native.js
+        run: node scripts/prepare-native.mjs
       
       - name: Build web app
         run: bun run build
