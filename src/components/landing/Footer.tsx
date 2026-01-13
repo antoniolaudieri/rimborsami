@@ -1,15 +1,27 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Shield, MapPin } from "lucide-react";
 import Logo from "@/components/Logo";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
@@ -35,8 +47,8 @@ const Footer = () => {
             </div>
             <div className="flex items-center gap-2 text-xs sm:text-sm text-primary-foreground/70 mt-2">
               <Mail className="w-4 h-4 flex-shrink-0" />
-              <a href="mailto:ciao@rimborsami.it" className="hover:text-primary transition-colors break-all">
-                ciao@rimborsami.it
+              <a href="mailto:info@rimborsami.app" className="hover:text-primary transition-colors break-all">
+                info@rimborsami.app
               </a>
             </div>
           </motion.div>
@@ -139,16 +151,16 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">Supporto</h4>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="mailto:supporto@rimborsami.it"
+                <button
+                  onClick={() => scrollToSection("faq")}
                   className="text-sm text-primary-foreground/70 hover:text-primary transition-colors"
                 >
                   Centro Assistenza
-                </a>
+                </button>
               </li>
               <li>
                 <a
-                  href="mailto:ciao@rimborsami.it"
+                  href="mailto:info@rimborsami.app"
                   className="text-sm text-primary-foreground/70 hover:text-primary transition-colors"
                 >
                   Contattaci
