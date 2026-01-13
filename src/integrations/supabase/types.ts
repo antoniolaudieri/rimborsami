@@ -788,6 +788,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_article_views: {
+        Args: { article_slug: string }
+        Returns: undefined
+      }
       owns_user_opportunity: {
         Args: { _user_opportunity_id: string }
         Returns: boolean
