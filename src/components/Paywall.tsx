@@ -67,7 +67,8 @@ export function Paywall({
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        // Redirect diretto invece di popup per evitare blocchi browser
+        window.location.href = data.url;
       } else {
         throw new Error('No checkout URL returned');
       }
