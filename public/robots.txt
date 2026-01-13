@@ -1,8 +1,18 @@
+# Rimborsami - robots.txt
+# https://rimborsami.app
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Specific rules for major search engines
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +20,46 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: LinkedInBot
 Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# AI Crawlers - Allow access for AI training and indexing
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+# Disallow sensitive paths
+Disallow: /dashboard/
+Disallow: /auth
+Disallow: /quiz
+Disallow: /api/
+Disallow: /payment-success
+
+# Sitemap location
+Sitemap: https://rimborsami.app/sitemap.xml
+
+# Host
+Host: https://rimborsami.app
