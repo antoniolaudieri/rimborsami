@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.rss-feed]
 verify_jwt = false
+
+[functions.scheduled-article-generation]
+verify_jwt = false
