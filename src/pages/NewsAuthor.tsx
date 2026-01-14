@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { NewsCard } from '@/components/news/NewsCard';
 import { Linkedin, Twitter, Mail, ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getAuthorAvatar } from '@/lib/authorAvatars';
 
 const getInitials = (name: string) => {
   return name
@@ -66,6 +67,8 @@ const NewsAuthor = () => {
     );
   }
 
+  const avatarSrc = getAuthorAvatar(author.slug, author.avatar_url);
+
   const personSchema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -74,7 +77,7 @@ const NewsAuthor = () => {
     jobTitle: author.role,
     description: author.bio,
     url: `https://rimborsami.app/news/autore/${author.slug}`,
-    image: author.avatar_url,
+    image: avatarSrc,
     worksFor: {
       '@type': 'NewsMediaOrganization',
       name: 'Rimborsami Magazine',
@@ -125,7 +128,7 @@ const NewsAuthor = () => {
         <meta property="og:description" content={author.bio?.substring(0, 160) || ''} />
         <meta property="og:url" content={`https://rimborsami.app/news/autore/${author.slug}`} />
         <meta property="og:type" content="profile" />
-        {author.avatar_url && <meta property="og:image" content={author.avatar_url} />}
+        {avatarSrc && <meta property="og:image" content={avatarSrc} />}
         <script type="application/ld+json">
           {JSON.stringify(personSchema)}
         </script>
@@ -159,7 +162,7 @@ const NewsAuthor = () => {
                   <CardContent className="p-8">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
                       <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary/20">
-                        <AvatarImage src={author.avatar_url || undefined} alt={author.name} />
+                        <AvatarImage src={getAuthorAvatar(author.slug, author.avatar_url)} alt={author.name} />
                         <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
                           {getInitials(author.name)}
                         </AvatarFallback>
