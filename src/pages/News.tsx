@@ -169,8 +169,8 @@ export default function News() {
         
         <main className="flex-1">
           {/* Magazine Header */}
-          <section className="border-b bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-            <div className="container mx-auto px-4 py-8 md:py-12">
+          <section className="border-b bg-gradient-to-br from-primary/5 via-background to-secondary/5 mt-4 md:mt-6">
+            <div className="container mx-auto px-4 py-6 md:py-10">
               
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                 <div>
