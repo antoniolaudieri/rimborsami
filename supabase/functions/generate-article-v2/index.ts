@@ -569,7 +569,7 @@ L'articolo DEVE:
    - CTA: "Verifica subito se hai diritto a un rimborso"
 
 ## FORMATTAZIONE HTML
-- <h2> con emoji per sezioni principali
+- <h2> SENZA EMOJI per sezioni principali (solo testo professionale)
 - <h3> per sottosezioni
 - <ul>/<ol> per liste
 - <strong> per keywords importanti
