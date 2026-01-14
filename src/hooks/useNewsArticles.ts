@@ -12,6 +12,14 @@ export interface NewsArticleOpportunity {
   deadline_days: number | null;
 }
 
+export interface NewsAuthorBasic {
+  id: string;
+  slug: string;
+  name: string;
+  role: string;
+  avatar_url: string | null;
+}
+
 export interface NewsArticle {
   id: string;
   slug: string;
@@ -28,7 +36,9 @@ export interface NewsArticle {
   created_at: string;
   views_count: number;
   opportunity_id?: string | null;
+  author_id?: string | null;
   opportunities?: NewsArticleOpportunity | null;
+  news_authors?: NewsAuthorBasic | null;
 }
 
 export const useNewsArticles = (category?: string, limit = 12) => {
@@ -75,6 +85,13 @@ export const useNewsArticle = (slug: string) => {
             category,
             legal_reference,
             deadline_days
+          ),
+          news_authors (
+            id,
+            slug,
+            name,
+            role,
+            avatar_url
           )
         `)
         .eq('slug', slug)
