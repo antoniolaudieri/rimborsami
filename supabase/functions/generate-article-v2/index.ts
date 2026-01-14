@@ -535,7 +535,7 @@ L'articolo DEVE:
 - Evita COMPLETAMENTE tono pubblicitario o marketing aggressivo
 - Concentrati su problemi REALI delle persone
 - Sii originale, non generico
-- Usa emoji 2-3 nei titoli H2 per engagement (⚠️ 💰 📋 ✅ 📞 🔒)
+- NON usare emoji nei titoli H2, mantieni uno stile professionale
 
 ## STRUTTURA SEO OBBLIGATORIA
 
