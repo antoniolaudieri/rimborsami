@@ -409,10 +409,16 @@ export default function NewsArticle() {
                   prose-ul:text-muted-foreground prose-ol:text-muted-foreground
                   prose-li:marker:text-primary prose-li:my-1
                   prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-3 prose-blockquote:md:px-4 prose-blockquote:rounded-r prose-blockquote:text-sm prose-blockquote:md:text-base
-                  prose-table:border prose-table:text-sm prose-th:bg-muted prose-th:p-2 prose-th:md:p-3 prose-td:p-2 prose-td:md:p-3 prose-td:border
                   [&_details]:bg-muted/30 [&_details]:rounded-lg [&_details]:p-3 [&_details]:md:p-4 [&_details]:my-3
                   [&_summary]:font-semibold [&_summary]:cursor-pointer [&_summary]:text-foreground [&_summary]:text-sm [&_summary]:md:text-base
-                  [&_.info-box]:bg-primary/5 [&_.info-box]:border-l-4 [&_.info-box]:border-l-primary [&_.info-box]:p-3 [&_.info-box]:md:p-4 [&_.info-box]:rounded-r [&_.info-box]:my-4"
+                  [&_.info-box]:bg-primary/5 [&_.info-box]:border-l-4 [&_.info-box]:border-l-primary [&_.info-box]:p-3 [&_.info-box]:md:p-4 [&_.info-box]:rounded-r [&_.info-box]:my-4
+                  [&_table]:w-full [&_table]:my-6 [&_table]:border-collapse [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:shadow-sm [&_table]:border [&_table]:border-border
+                  [&_thead]:bg-primary/10 [&_thead_th]:text-primary [&_thead_th]:font-semibold [&_thead_th]:text-left [&_thead_th]:p-3 [&_thead_th]:md:p-4 [&_thead_th]:text-sm [&_thead_th]:md:text-base [&_thead_th]:border-b [&_thead_th]:border-border
+                  [&_tbody_tr]:border-b [&_tbody_tr]:border-border [&_tbody_tr:last-child]:border-0 [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-muted/50
+                  [&_tbody_td]:p-3 [&_tbody_td]:md:p-4 [&_tbody_td]:text-sm [&_tbody_td]:md:text-base [&_tbody_td]:text-muted-foreground
+                  [&_tbody_td:first-child]:font-medium [&_tbody_td:first-child]:text-foreground [&_tbody_td:first-child]:bg-muted/30
+                  [&_th:not(:last-child)]:border-r [&_th:not(:last-child)]:border-border/50
+                  [&_td:not(:last-child)]:border-r [&_td:not(:last-child)]:border-border/30"
                 dangerouslySetInnerHTML={{ __html: article.content }}
                 itemProp="articleBody"
               />
