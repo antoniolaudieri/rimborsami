@@ -20,7 +20,7 @@ const Header = () => {
   const navLinks = [
     { label: "Come funziona", href: "#come-funziona" },
     { label: "Funzionalità", href: "#funzionalita" },
-    { label: "News", href: "/news", isRoute: true },
+    { label: "Magazine", href: "/news", isRoute: true },
     { label: "Prezzi", href: "#prezzi" },
   ];
 
