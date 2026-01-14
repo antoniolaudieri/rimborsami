@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Redirect to dynamic RSS feed -->
+<!-- This file redirects to the edge function that generates the live RSS feed -->
+<!-- Access the feed at: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/rss-feed -->
+<rss version="2.0">
+  <channel>
+    <title>Rimborsami Magazine</title>
+    <link>https://rimborsami.app</link>
+    <description>Per il feed RSS aggiornato, visita: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/rss-feed</description>
+  </channel>
+</rss>

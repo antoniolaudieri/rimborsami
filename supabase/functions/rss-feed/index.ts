@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SITE_URL = 'https://rimborsami.lovable.app';
+const SITE_URL = 'https://rimborsami.app';
 const FEED_TITLE = 'Rimborsami Magazine';
 const FEED_DESCRIPTION = 'Guide, news e consigli per recuperare i tuoi soldi. Rimborsi voli, bollette, banche e molto altro.';
 const FEED_LANGUAGE = 'it-IT';
