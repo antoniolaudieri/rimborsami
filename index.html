@@ -261,6 +261,19 @@
       }
     }
     </script>
+    <!-- Google Subscribe with Google (Publisher Center) -->
+    <script async type="application/javascript"
+            src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
+    <script>
+    (self.SWG_BASIC = self.SWG_BASIC || []).push( basicSubscriptions => {
+      basicSubscriptions.init({
+        type: "NewsArticle",
+        isPartOfType: ["Product"],
+        isPartOfProductId: "CAowvuCIDA:openaccess",
+        clientOptions: { theme: "light", lang: "it" },
+      });
+    });
+    </script>
   </head>
 
   <body>
