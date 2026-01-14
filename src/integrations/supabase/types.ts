@@ -408,14 +408,17 @@ export type Database = {
       opportunities: {
         Row: {
           active: boolean | null
+          auto_discovered: boolean | null
           category: Database["public"]["Enums"]["opportunity_category"]
           created_at: string
           deadline_days: number | null
           description: string | null
+          discovered_at: string | null
           id: string
           legal_reference: string | null
           max_amount: number | null
           min_amount: number | null
+          needs_review: boolean | null
           rules: Json | null
           short_description: string | null
           source_url: string | null
@@ -427,14 +430,17 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          auto_discovered?: boolean | null
           category: Database["public"]["Enums"]["opportunity_category"]
           created_at?: string
           deadline_days?: number | null
           description?: string | null
+          discovered_at?: string | null
           id?: string
           legal_reference?: string | null
           max_amount?: number | null
           min_amount?: number | null
+          needs_review?: boolean | null
           rules?: Json | null
           short_description?: string | null
           source_url?: string | null
@@ -446,14 +452,17 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          auto_discovered?: boolean | null
           category?: Database["public"]["Enums"]["opportunity_category"]
           created_at?: string
           deadline_days?: number | null
           description?: string | null
+          discovered_at?: string | null
           id?: string
           legal_reference?: string | null
           max_amount?: number | null
           min_amount?: number | null
+          needs_review?: boolean | null
           rules?: Json | null
           short_description?: string | null
           source_url?: string | null

@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.scheduled-article-generation]
 verify_jwt = false
+
+[functions.discover-opportunities]
+verify_jwt = false
