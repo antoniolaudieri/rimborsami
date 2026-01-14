@@ -529,19 +529,23 @@ serve(async (req) => {
     const wordCount = articleContent.content.split(/\s+/).length;
     const readingTime = Math.ceil(wordCount / 200);
 
+    // Truncate fields to fit database constraints
+    const truncatedTitle = articleContent.title.substring(0, 255);
+    const truncatedExcerpt = articleContent.excerpt.substring(0, 500);
+    const truncatedMetaDescription = articleContent.metaDescription.substring(0, 160);
+    const truncatedPrimaryKeyword = seoBrief.keyword.substring(0, 100);
+
     // Insert article
-    const needsReview = qualityResult.score < 7;
-    
     const { data: insertedArticle, error: insertError } = await supabase
       .from("news_articles")
       .insert({
-        title: articleContent.title,
+        title: truncatedTitle,
         slug: uniqueSlug,
         content: articleContent.content,
-        excerpt: articleContent.excerpt,
-        meta_description: articleContent.metaDescription,
-        keywords: articleContent.keywords,
-        primary_keyword: seoBrief.keyword,
+        excerpt: truncatedExcerpt,
+        meta_description: truncatedMetaDescription,
+        keywords: articleContent.keywords.slice(0, 10),
+        primary_keyword: truncatedPrimaryKeyword,
         category: targetCategory,
         author_id: author?.id || null,
         opportunity_id: selectedOpportunity?.id || null,
@@ -549,8 +553,7 @@ serve(async (req) => {
         reading_time_minutes: readingTime,
         is_published: true,
         published_at: new Date().toISOString(),
-        needs_review: needsReview,
-        quality_score: qualityResult.score,
+        quality_score: Math.round(qualityResult.score),
         editorial_notes: qualityResult.notes,
         generation_version: "v2-multiagent",
       })
@@ -591,7 +594,6 @@ serve(async (req) => {
           slug: uniqueSlug,
           category: targetCategory,
           qualityScore: qualityResult.score,
-          needsReview,
           editorialNotes: qualityResult.notes,
         },
       }),
