@@ -38,17 +38,17 @@ const categoryLabels: Record<string, string> = {
 };
 
 const categoryColors: Record<string, string> = {
-  flight: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20',
-  telecom: 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20',
-  energy: 'bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20',
-  bank: 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20',
-  ecommerce: 'bg-orange-500/10 text-orange-600 hover:bg-orange-500/20',
-  class_action: 'bg-red-500/10 text-red-600 hover:bg-red-500/20',
-  insurance: 'bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20',
-  transport: 'bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20',
-  automotive: 'bg-slate-500/10 text-slate-600 hover:bg-slate-500/20',
-  tech: 'bg-pink-500/10 text-pink-600 hover:bg-pink-500/20',
-  warranty: 'bg-teal-500/10 text-teal-600 hover:bg-teal-500/20',
+  flight: 'bg-blue-600 text-white hover:bg-blue-700',
+  telecom: 'bg-purple-600 text-white hover:bg-purple-700',
+  energy: 'bg-amber-500 text-white hover:bg-amber-600',
+  bank: 'bg-emerald-600 text-white hover:bg-emerald-700',
+  ecommerce: 'bg-orange-600 text-white hover:bg-orange-700',
+  class_action: 'bg-red-600 text-white hover:bg-red-700',
+  insurance: 'bg-cyan-600 text-white hover:bg-cyan-700',
+  transport: 'bg-indigo-600 text-white hover:bg-indigo-700',
+  automotive: 'bg-slate-600 text-white hover:bg-slate-700',
+  tech: 'bg-pink-600 text-white hover:bg-pink-700',
+  warranty: 'bg-teal-600 text-white hover:bg-teal-700',
 };
 
 const getInitials = (name: string) => {
