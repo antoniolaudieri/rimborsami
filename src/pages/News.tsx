@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 import { useNewsArticles } from '@/hooks/useNewsArticles';
+import { useNewsAuthors } from '@/hooks/useNewsAuthors';
 import { NewsCard } from '@/components/news/NewsCard';
 import { NewsFilters } from '@/components/news/NewsFilters';
 import { NewsCTA } from '@/components/news/NewsCTA';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
-import { Newspaper } from 'lucide-react';
+import { Newspaper, Rss, Users, ArrowRight } from 'lucide-react';
+import { getAuthorAvatar } from '@/lib/authorAvatars';
 
 const categoryMeta: Record<string, { title: string; description: string; keywords: string }> = {
   all: {
-    title: "News e Guide sui Rimborsi in Italia | Rimborsami",
+    title: "Rimborsami Magazine | News e Guide sui Rimborsi in Italia",
     description: "Scopri come ottenere rimborsi per voli cancellati, bollette errate, class action e diritti consumatori. Guide pratiche 2026 per recuperare i tuoi soldi.",
     keywords: "rimborso voli Italia, class action 2026, rimborso bollette luce gas, diritti consumatori, risarcimento ritardo aereo, EU261, contestare bolletta"
   },
@@ -47,14 +52,21 @@ const categoryMeta: Record<string, { title: string; description: string; keyword
   }
 };
 
+const RSS_FEED_URL = "https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/rss-feed";
+
 export default function News() {
   const [category, setCategory] = useState('all');
   const { data: articles, isLoading, error } = useNewsArticles(category, 24);
+  const { data: authors } = useNewsAuthors();
 
   const meta = categoryMeta[category] || categoryMeta.all;
   const canonicalUrl = category === 'all' 
     ? 'https://rimborsami.app/news' 
     : `https://rimborsami.app/news?category=${category}`;
+
+  // Split articles: featured (first) and rest
+  const featuredArticle = articles?.[0];
+  const restArticles = articles?.slice(1);
 
   // Collection Page Schema
   const collectionSchema = {
@@ -64,8 +76,8 @@ export default function News() {
     "description": meta.description,
     "url": canonicalUrl,
     "publisher": {
-      "@type": "Organization",
-      "name": "Rimborsami",
+      "@type": "NewsMediaOrganization",
+      "name": "Rimborsami Magazine",
       "url": "https://rimborsami.app",
       "logo": {
         "@type": "ImageObject",
@@ -94,7 +106,7 @@ export default function News() {
       {
         "@type": "ListItem",
         "position": 2,
-        "name": "News",
+        "name": "Magazine",
         "item": "https://rimborsami.app/news"
       }
     ]
@@ -122,8 +134,11 @@ export default function News() {
         <meta name="keywords" content={meta.keywords} />
         <link rel="canonical" href={canonicalUrl} />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-        <meta name="author" content="Rimborsami" />
+        <meta name="author" content="Rimborsami Magazine" />
         <meta name="language" content="Italian" />
+        
+        {/* RSS Feed */}
+        <link rel="alternate" type="application/rss+xml" title="Rimborsami Magazine RSS" href={RSS_FEED_URL} />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
@@ -133,7 +148,7 @@ export default function News() {
         <meta property="og:image" content="https://rimborsami.app/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="Rimborsami" />
+        <meta property="og:site_name" content="Rimborsami Magazine" />
         <meta property="og:locale" content="it_IT" />
         
         {/* Twitter */}
@@ -153,37 +168,61 @@ export default function News() {
         <Header />
         
         <main className="flex-1">
-          {/* Hero Section */}
-          <section className="bg-gradient-to-b from-primary/5 to-background py-12 md:py-16">
-            <div className="container mx-auto px-4">
+          {/* Magazine Header */}
+          <section className="border-b bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+            <div className="container mx-auto px-4 py-8 md:py-12">
               <nav aria-label="Breadcrumb" className="mb-4">
                 <ol className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <li><a href="/" className="hover:text-primary transition-colors">Home</a></li>
+                  <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
                   <span>/</span>
-                  <li className="text-foreground font-medium">News</li>
+                  <li className="text-foreground font-medium">Magazine</li>
                 </ol>
               </nav>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Newspaper className="h-6 w-6 text-primary" />
+              
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2.5 bg-primary/10 rounded-xl">
+                      <Newspaper className="h-7 w-7 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl md:text-4xl font-bold">
+                        Rimborsami Magazine
+                      </h1>
+                      <p className="text-muted-foreground">Il magazine dei diritti dei consumatori</p>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground max-w-2xl">
+                    Guide pratiche, news e approfondimenti per recuperare i tuoi soldi. 
+                    Voli, bollette, class action e tutela dei consumatori.
+                  </p>
                 </div>
-                <span className="text-sm font-medium text-primary">Blog & Guide sui Rimborsi</span>
+                
+                <div className="flex items-center gap-3">
+                  <Link to="/redazione">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      La Redazione
+                    </Button>
+                  </Link>
+                  <a 
+                    href={RSS_FEED_URL} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-muted transition-colors"
+                    title="Iscriviti al Feed RSS"
+                  >
+                    <Rss className="h-4 w-4 text-orange-500" />
+                    <span className="hidden sm:inline">RSS</span>
+                  </a>
+                </div>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                {category === 'all' ? 'News e Guide sui Rimborsi in Italia' : meta.title.split('|')[0].trim()}
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl">
-                {category === 'all' 
-                  ? 'Articoli, guide pratiche e ultime novità su rimborsi voli, bollette, class action e tutela dei consumatori. Scopri come recuperare i tuoi soldi.'
-                  : meta.description
-                }
-              </p>
             </div>
           </section>
 
           {/* Filters */}
-          <section className="border-b">
-            <div className="container mx-auto px-4 py-4">
+          <section className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            <div className="container mx-auto px-4 py-3">
               <NewsFilters 
                 selectedCategory={category} 
                 onCategoryChange={setCategory} 
@@ -191,61 +230,181 @@ export default function News() {
             </div>
           </section>
 
-          {/* Articles Grid */}
+          {/* Featured Article */}
+          {!isLoading && featuredArticle && category === 'all' && (
+            <section className="py-8 md:py-10 border-b">
+              <div className="container mx-auto px-4">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="h-1 w-8 bg-primary rounded-full" />
+                  <span className="text-sm font-semibold text-primary uppercase tracking-wide">In Evidenza</span>
+                </div>
+                <NewsCard
+                  slug={featuredArticle.slug}
+                  title={featuredArticle.title}
+                  excerpt={featuredArticle.excerpt}
+                  category={featuredArticle.category}
+                  publishedAt={featuredArticle.published_at}
+                  readingTime={featuredArticle.reading_time_minutes}
+                  featuredImageUrl={featuredArticle.featured_image_url}
+                  author={featuredArticle.news_authors}
+                  variant="featured"
+                />
+              </div>
+            </section>
+          )}
+
+          {/* Main Grid */}
           <section className="py-8 md:py-12">
             <div className="container mx-auto px-4">
-              {error && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p>Si è verificato un errore nel caricamento degli articoli.</p>
-                </div>
-              )}
-
-              {isLoading && (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="space-y-3">
-                      <Skeleton className="h-48 w-full rounded-lg" />
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-1/2" />
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Articles */}
+                <div className="lg:col-span-2">
+                  {error && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>Si è verificato un errore nel caricamento degli articoli.</p>
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
 
-              {!isLoading && articles?.length === 0 && (
-                <div className="text-center py-12">
-                  <Newspaper className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">Nessun articolo trovato</h2>
-                  <p className="text-muted-foreground">
-                    {category !== 'all' 
-                      ? 'Non ci sono articoli in questa categoria. Prova a selezionare "Tutti".'
-                      : 'Nuovi articoli saranno pubblicati presto. Torna a trovarci!'}
-                  </p>
-                </div>
-              )}
+                  {isLoading && (
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="space-y-3">
+                          <Skeleton className="h-48 w-full rounded-lg" />
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-1/2" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-              {!isLoading && articles && articles.length > 0 && (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {articles.map((article) => (
-                    <NewsCard
-                      key={article.id}
-                      slug={article.slug}
-                      title={article.title}
-                      excerpt={article.excerpt}
-                      category={article.category}
-                      publishedAt={article.published_at}
-                      readingTime={article.reading_time_minutes}
-                      featuredImageUrl={article.featured_image_url}
-                    />
-                  ))}
+                  {!isLoading && articles?.length === 0 && (
+                    <div className="text-center py-12">
+                      <Newspaper className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                      <h2 className="text-xl font-semibold mb-2">Nessun articolo trovato</h2>
+                      <p className="text-muted-foreground">
+                        {category !== 'all' 
+                          ? 'Non ci sono articoli in questa categoria. Prova a selezionare "Tutti".'
+                          : 'Nuovi articoli saranno pubblicati presto. Torna a trovarci!'}
+                      </p>
+                    </div>
+                  )}
+
+                  {!isLoading && (category === 'all' ? restArticles : articles) && (category === 'all' ? restArticles : articles)!.length > 0 && (
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      {(category === 'all' ? restArticles : articles)!.map((article) => (
+                        <NewsCard
+                          key={article.id}
+                          slug={article.slug}
+                          title={article.title}
+                          excerpt={article.excerpt}
+                          category={article.category}
+                          publishedAt={article.published_at}
+                          readingTime={article.reading_time_minutes}
+                          featuredImageUrl={article.featured_image_url}
+                          author={article.news_authors}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+
+                {/* Sidebar */}
+                <aside className="space-y-8">
+                  {/* Team Box */}
+                  <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl p-6 border">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Users className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold">La Nostra Redazione</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Un team di giornalisti ed esperti specializzati in diritti dei consumatori.
+                    </p>
+                    
+                    {authors && authors.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {authors.slice(0, 6).map((author) => (
+                          <Link 
+                            key={author.id} 
+                            to={`/news/autore/${author.slug}`}
+                            className="group"
+                            title={author.name}
+                          >
+                            <Avatar className="h-10 w-10 border-2 border-background group-hover:border-primary transition-colors">
+                              <AvatarImage 
+                                src={getAuthorAvatar(author.slug, author.avatar_url)} 
+                                alt={author.name} 
+                              />
+                              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                {author.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <Link to="/redazione">
+                      <Button variant="outline" size="sm" className="w-full gap-2">
+                        Scopri il Team
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+
+                  {/* RSS Box */}
+                  <div className="bg-muted/30 rounded-xl p-6 border">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Rss className="h-5 w-5 text-orange-500" />
+                      <h3 className="font-semibold">Resta Aggiornato</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Iscriviti al nostro feed RSS per ricevere gli ultimi articoli nel tuo aggregatore preferito.
+                    </p>
+                    <a 
+                      href={RSS_FEED_URL} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="secondary" size="sm" className="w-full gap-2">
+                        <Rss className="h-4 w-4" />
+                        Iscriviti al Feed RSS
+                      </Button>
+                    </a>
+                  </div>
+
+                  {/* Quick Links */}
+                  <div className="rounded-xl p-6 border">
+                    <h3 className="font-semibold mb-4">Categorie Popolari</h3>
+                    <div className="space-y-2">
+                      {[
+                        { key: 'flight', label: '✈️ Rimborsi Voli' },
+                        { key: 'energy', label: '💡 Bollette Energia' },
+                        { key: 'bank', label: '🏦 Banche e Finanza' },
+                        { key: 'class_action', label: '⚖️ Class Action' },
+                        { key: 'ecommerce', label: '🛒 E-commerce' },
+                      ].map((cat) => (
+                        <button
+                          key={cat.key}
+                          onClick={() => setCategory(cat.key)}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                            category === cat.key 
+                              ? 'bg-primary/10 text-primary font-medium' 
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </aside>
+              </div>
             </div>
           </section>
 
           {/* CTA Section */}
-          <section className="py-8 md:py-12 bg-muted/30">
+          <section className="py-8 md:py-12 bg-muted/30 border-t">
             <div className="container mx-auto px-4">
               <NewsCTA />
             </div>

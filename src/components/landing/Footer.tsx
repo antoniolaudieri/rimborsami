@@ -87,12 +87,20 @@ const Footer = () => {
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection('testimonials')}
+                <Link
+                  to="/news"
                   className="text-sm text-primary-foreground/70 hover:text-primary transition-colors"
                 >
-                  Testimonianze
-                </button>
+                  Magazine
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/redazione"
+                  className="text-sm text-primary-foreground/70 hover:text-primary transition-colors"
+                >
+                  La Redazione
+                </Link>
               </li>
             </ul>
           </motion.div>

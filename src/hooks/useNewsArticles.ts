@@ -47,7 +47,16 @@ export const useNewsArticles = (category?: string, limit = 12) => {
     queryFn: async () => {
       let query = supabase
         .from('news_articles')
-        .select('*')
+        .select(`
+          *,
+          news_authors (
+            id,
+            slug,
+            name,
+            role,
+            avatar_url
+          )
+        `)
         .eq('is_published', true)
         .order('published_at', { ascending: false })
         .limit(limit);
