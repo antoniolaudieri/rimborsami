@@ -233,6 +233,7 @@ export type Database = {
       }
       news_articles: {
         Row: {
+          author_id: string | null
           category: string
           content: string
           created_at: string | null
@@ -257,6 +258,7 @@ export type Database = {
           views_count: number | null
         }
         Insert: {
+          author_id?: string | null
           category: string
           content: string
           created_at?: string | null
@@ -281,6 +283,7 @@ export type Database = {
           views_count?: number | null
         }
         Update: {
+          author_id?: string | null
           category?: string
           content?: string
           created_at?: string | null
@@ -306,6 +309,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "news_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "news_authors"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "news_articles_opportunity_id_fkey"
             columns: ["opportunity_id"]
             isOneToOne: false
@@ -313,6 +323,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      news_authors: {
+        Row: {
+          articles_count: number | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          email: string | null
+          expertise: string[] | null
+          id: string
+          linkedin_url: string | null
+          name: string
+          role: string
+          slug: string
+          twitter_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          articles_count?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          expertise?: string[] | null
+          id?: string
+          linkedin_url?: string | null
+          name: string
+          role: string
+          slug: string
+          twitter_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          articles_count?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          expertise?: string[] | null
+          id?: string
+          linkedin_url?: string | null
+          name?: string
+          role?: string
+          slug?: string
+          twitter_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {

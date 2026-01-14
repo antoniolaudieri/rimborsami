@@ -5,6 +5,7 @@ import { NewsCTA } from '@/components/news/NewsCTA';
 import { OpportunityCTA } from '@/components/news/OpportunityCTA';
 import { RelatedArticles } from '@/components/news/RelatedArticles';
 import { ShareDropdown } from '@/components/news/ShareDropdown';
+import { AuthorByline } from '@/components/news/AuthorByline';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -110,6 +111,23 @@ export default function NewsArticle() {
 
   const articleUrl = `https://rimborsami.app/news/${article.slug}`;
 
+  // Author info for schema
+  const authorForSchema = article.news_authors ? {
+    "@type": "Person",
+    "name": article.news_authors.name,
+    "url": `https://rimborsami.app/news/autore/${article.news_authors.slug}`,
+    "jobTitle": article.news_authors.role,
+    "worksFor": {
+      "@type": "NewsMediaOrganization",
+      "name": "Rimborsami Magazine",
+      "url": "https://rimborsami.app"
+    }
+  } : {
+    "@type": "Organization",
+    "name": "Rimborsami Magazine",
+    "url": "https://rimborsami.app"
+  };
+
   // Main Article Schema
   const articleSchema = {
     "@context": "https://schema.org",
@@ -119,14 +137,10 @@ export default function NewsArticle() {
     "image": article.featured_image_url || "https://rimborsami.app/og-image.png",
     "datePublished": article.published_at,
     "dateModified": article.published_at,
-    "author": {
-      "@type": "Organization",
-      "name": "Rimborsami",
-      "url": "https://rimborsami.app"
-    },
+    "author": authorForSchema,
     "publisher": {
-      "@type": "Organization",
-      "name": "Rimborsami",
+      "@type": "NewsMediaOrganization",
+      "name": "Rimborsami Magazine",
       "url": "https://rimborsami.app",
       "logo": {
         "@type": "ImageObject",
@@ -242,7 +256,7 @@ export default function NewsArticle() {
         <meta name="keywords" content={article.keywords?.join(', ')} />
         <link rel="canonical" href={articleUrl} />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <meta name="author" content="Rimborsami" />
+        <meta name="author" content={article.news_authors?.name || "Rimborsami Magazine"} />
         <meta name="language" content="Italian" />
         
         {/* Open Graph / Facebook */}
@@ -253,12 +267,12 @@ export default function NewsArticle() {
         <meta property="og:image" content={article.featured_image_url || "https://rimborsami.app/og-image.png"} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="Rimborsami" />
+        <meta property="og:site_name" content="Rimborsami Magazine" />
         <meta property="og:locale" content="it_IT" />
         <meta property="article:published_time" content={article.published_at || ''} />
         <meta property="article:modified_time" content={article.published_at || ''} />
         <meta property="article:section" content={categoryLabels[article.category] || article.category} />
-        <meta property="article:author" content="https://rimborsami.app" />
+        <meta property="article:author" content={article.news_authors ? `https://rimborsami.app/news/autore/${article.news_authors.slug}` : "https://rimborsami.app"} />
         {article.keywords?.slice(0, 5).map((keyword, i) => (
           <meta key={i} property="article:tag" content={keyword} />
         ))}
@@ -337,8 +351,21 @@ export default function NewsArticle() {
                   {article.excerpt}
                 </p>
 
+                {/* Author Byline */}
+                {article.news_authors && (
+                  <div className="mb-4">
+                    <AuthorByline
+                      name={article.news_authors.name}
+                      slug={article.news_authors.slug}
+                      avatarUrl={article.news_authors.avatar_url}
+                      role={article.news_authors.role}
+                      publishedAt={article.published_at || undefined}
+                    />
+                  </div>
+                )}
+
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-y py-4">
-                  {publishedDate && (
+                  {!article.news_authors && publishedDate && (
                     <time 
                       dateTime={article.published_at || ''} 
                       className="flex items-center gap-1"
@@ -367,12 +394,19 @@ export default function NewsArticle() {
                 </div>
                 
                 {/* Author info for SEO */}
-                <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Organization">
-                  <span itemProp="name">Rimborsami</span>
-                  <link itemProp="url" href="https://rimborsami.app" />
-                </div>
+                {article.news_authors ? (
+                  <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Person">
+                    <span itemProp="name">{article.news_authors.name}</span>
+                    <link itemProp="url" href={`https://rimborsami.app/news/autore/${article.news_authors.slug}`} />
+                  </div>
+                ) : (
+                  <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Organization">
+                    <span itemProp="name">Rimborsami Magazine</span>
+                    <link itemProp="url" href="https://rimborsami.app" />
+                  </div>
+                )}
                 <div className="hidden" itemProp="publisher" itemScope itemType="https://schema.org/Organization">
-                  <span itemProp="name">Rimborsami</span>
+                  <span itemProp="name">Rimborsami Magazine</span>
                   <link itemProp="url" href="https://rimborsami.app" />
                 </div>
               </header>

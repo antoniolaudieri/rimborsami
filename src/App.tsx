@@ -29,6 +29,8 @@ import Refund from "./pages/Refund";
 import Opportunities from "./pages/Opportunities";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import News from "./pages/News";
+import Redazione from "./pages/Redazione";
+import NewsAuthor from "./pages/NewsAuthor";
 import NewsArticle from "./pages/NewsArticle";
 
 const queryClient = new QueryClient();
@@ -49,6 +51,8 @@ const App = () => (
               <Route path="/opportunita" element={<Opportunities />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:slug" element={<NewsArticle />} />
+              <Route path="/news/autore/:slug" element={<NewsAuthor />} />
+              <Route path="/redazione" element={<Redazione />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookie" element={<Cookie />} />
