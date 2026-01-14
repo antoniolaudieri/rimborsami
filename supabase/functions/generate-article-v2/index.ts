@@ -395,7 +395,23 @@ async function agentSEO(
   relatedQuestions: string[];
   company: string;
 }> {
+  // Extract key terms from recent articles for better deduplication
+  const recentTitlesLower = recentArticles.map((a) => a.title.toLowerCase());
   const usedKeywords = recentArticles.map((a) => a.primary_keyword?.toLowerCase() || "");
+  
+  // Extract company names and action verbs from recent titles
+  const usedTerms = new Set<string>();
+  recentTitlesLower.forEach(title => {
+    // Extract key action + company combinations
+    const words = title.split(/\s+/);
+    words.forEach(w => {
+      if (w.length > 4) usedTerms.add(w);
+    });
+    // Extract 2-word combinations
+    for (let i = 0; i < words.length - 1; i++) {
+      usedTerms.add(`${words[i]} ${words[i+1]}`);
+    }
+  });
   
   // Combine all keywords
   const allKeywords = [
@@ -404,13 +420,29 @@ async function agentSEO(
     ...categoryData.long_tail_keywords
   ];
   
-  // Filter out used keywords
-  const availableKeywords = allKeywords.filter(
-    (k) => !usedKeywords.some((used) => k.toLowerCase().includes(used) || used.includes(k.toLowerCase()))
-  );
+  // Aggressive filtering: remove keywords that share key terms with recent articles
+  const availableKeywords = allKeywords.filter((k) => {
+    const kLower = k.toLowerCase();
+    // Check exact keyword match
+    if (usedKeywords.some((used) => kLower.includes(used) || used.includes(kLower))) {
+      return false;
+    }
+    // Check if keyword shares too many terms with recent titles
+    const keywordTerms = kLower.split(/\s+/).filter(w => w.length > 3);
+    const matchingTerms = keywordTerms.filter(t => usedTerms.has(t));
+    // Reject if more than half the terms are already used
+    if (matchingTerms.length >= Math.ceil(keywordTerms.length / 2)) {
+      return false;
+    }
+    return true;
+  });
   
-  if (availableKeywords.length === 0) {
-    availableKeywords.push(...categoryData.transactional_keywords.slice(0, 3));
+  // If too few keywords available, use less common ones from other intents
+  if (availableKeywords.length < 3) {
+    const fallbackKeywords = categoryData.long_tail_keywords.filter(
+      k => !usedKeywords.includes(k.toLowerCase())
+    );
+    availableKeywords.push(...fallbackKeywords.slice(0, 5));
   }
 
   const isTransactional = Math.random() < 0.6;
@@ -421,18 +453,24 @@ async function agentSEO(
   const prompt = `Sei un esperto SEO italiano specializzato in diritti dei consumatori e rimborsi.
 
 Categoria: ${category}
-Keywords disponibili: ${availableKeywords.slice(0, 10).join(", ")}
+Keywords disponibili (SCEGLI DA QUESTE): ${availableKeywords.slice(0, 10).join(", ")}
 Aziende rilevanti: ${categoryData.companies.join(", ")}
 Azienda focus suggerita: ${company}
 Anno: ${currentYear}
 Intent: ${searchIntent}
 
-Articoli già pubblicati (da NON ripetere):
-${recentArticles.slice(0, 15).map((a) => `- ${a.title}`).join("\n")}
+⚠️ ARTICOLI GIÀ PUBBLICATI - NON CREARE CONTENUTI SIMILI:
+${recentArticles.slice(0, 20).map((a) => `- "${a.title}" (keyword: ${a.primary_keyword || 'n/a'})`).join("\n")}
 
-Genera un brief SEO avanzato per un NUOVO articolo unico che:
-1. Risponda a una query di ricerca REALE degli utenti italiani
-2. NON sia simile agli articoli già pubblicati
+⛔ REGOLE ANTI-DUPLICATO:
+- Se esiste già un articolo su "disdetta TIM", NON scrivere altri articoli su disdetta TIM (anche se con angolo diverso)
+- Se esiste già un articolo su "rimborso Ryanair", NON scrivere altri articoli su Ryanair
+- Cambia AZIENDA e TIPOLOGIA di problema, non solo l'angolazione
+- Scegli una KEYWORD COMPLETAMENTE DIVERSA dalla lista disponibile
+
+Genera un brief SEO per un articolo COMPLETAMENTE NUOVO che:
+1. Tratti un PROBLEMA DIVERSO da quelli già coperti
+2. Riguardi una AZIENDA DIVERSA se possibile
 3. Abbia potenziale per featured snippet Google
 
 Rispondi SOLO in formato JSON:
