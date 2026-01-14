@@ -237,9 +237,11 @@ export type Database = {
           category: string
           content: string
           created_at: string | null
+          editorial_notes: string | null
           excerpt: string
           faq_schema: Json | null
           featured_image_url: string | null
+          generation_version: string | null
           howto_schema: Json | null
           id: string
           internal_links: string[] | null
@@ -249,6 +251,7 @@ export type Database = {
           opportunity_id: string | null
           primary_keyword: string | null
           published_at: string | null
+          quality_score: number | null
           reading_time_minutes: number | null
           search_intent: string | null
           slug: string
@@ -262,9 +265,11 @@ export type Database = {
           category: string
           content: string
           created_at?: string | null
+          editorial_notes?: string | null
           excerpt: string
           faq_schema?: Json | null
           featured_image_url?: string | null
+          generation_version?: string | null
           howto_schema?: Json | null
           id?: string
           internal_links?: string[] | null
@@ -274,6 +279,7 @@ export type Database = {
           opportunity_id?: string | null
           primary_keyword?: string | null
           published_at?: string | null
+          quality_score?: number | null
           reading_time_minutes?: number | null
           search_intent?: string | null
           slug: string
@@ -287,9 +293,11 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string | null
+          editorial_notes?: string | null
           excerpt?: string
           faq_schema?: Json | null
           featured_image_url?: string | null
+          generation_version?: string | null
           howto_schema?: Json | null
           id?: string
           internal_links?: string[] | null
@@ -299,6 +307,7 @@ export type Database = {
           opportunity_id?: string | null
           primary_keyword?: string | null
           published_at?: string | null
+          quality_score?: number | null
           reading_time_minutes?: number | null
           search_intent?: string | null
           slug?: string
