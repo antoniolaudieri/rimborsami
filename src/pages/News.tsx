@@ -214,7 +214,7 @@ export default function News() {
           </section>
 
           {/* Filters */}
-          <section className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <section className="border-b bg-background">
             <div className="container mx-auto px-4 py-3">
               <NewsFilters 
                 selectedCategory={category} 
