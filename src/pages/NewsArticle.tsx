@@ -297,21 +297,79 @@ export default function NewsArticle() {
         
         <main className="flex-1">
           <article className="container mx-auto px-4 pt-20 md:pt-24 pb-8 md:pb-12" itemScope itemType="https://schema.org/NewsArticle">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-3xl mx-auto">
               {/* Back Button */}
-              <nav className="mb-6" aria-label="Navigazione">
+              <nav className="mb-4 md:mb-6" aria-label="Navigazione">
                 <Link 
                   to="/news" 
                   className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
                 >
                   <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                  <span>Torna al Magazine</span>
+                  <span>Magazine</span>
                 </Link>
               </nav>
 
-              {/* Hero Image */}
+              {/* Category Badge - Mobile first */}
+              <Badge variant="secondary" className="mb-3 md:mb-4">
+                {categoryLabels[article.category] || article.category}
+              </Badge>
+
+              {/* Title */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 leading-tight" itemProp="headline">
+                {article.title}
+              </h1>
+              
+              {/* Excerpt */}
+              <p className="text-base md:text-lg text-muted-foreground mb-4 md:mb-6" itemProp="description">
+                {article.excerpt}
+              </p>
+
+              {/* Author Byline */}
+              {article.news_authors && (
+                <div className="mb-4">
+                  <AuthorByline
+                    name={article.news_authors.name}
+                    slug={article.news_authors.slug}
+                    avatarUrl={article.news_authors.avatar_url}
+                    role={article.news_authors.role}
+                    publishedAt={article.published_at || undefined}
+                  />
+                </div>
+              )}
+
+              {/* Meta info bar */}
+              <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground border-y py-3 md:py-4 mb-6">
+                {!article.news_authors && publishedDate && (
+                  <time 
+                    dateTime={article.published_at || ''} 
+                    className="flex items-center gap-1"
+                    itemProp="datePublished"
+                  >
+                    <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    {publishedDate}
+                  </time>
+                )}
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <span itemProp="timeRequired" content={`PT${article.reading_time_minutes}M`}>
+                    {article.reading_time_minutes} min
+                  </span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  {article.views_count?.toLocaleString('it-IT')}
+                </span>
+                <div className="ml-auto">
+                  <ShareDropdown 
+                    title={article.title} 
+                    excerpt={article.excerpt}
+                  />
+                </div>
+              </div>
+
+              {/* Hero Image - After meta on mobile */}
               {article.featured_image_url && (
-                <div className="aspect-video relative overflow-hidden rounded-xl mb-8 bg-muted">
+                <div className="aspect-[16/10] md:aspect-video relative overflow-hidden rounded-lg md:rounded-xl mb-6 md:mb-8 bg-muted -mx-4 md:mx-0">
                   <img
                     src={article.featured_image_url}
                     alt={article.title}
@@ -321,106 +379,47 @@ export default function NewsArticle() {
                   />
                 </div>
               )}
-
-              {/* Header */}
-              <header className="mb-8">
-                <Badge variant="secondary" className="mb-4">
-                  {categoryLabels[article.category] || article.category}
-                </Badge>
-                
-                <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight" itemProp="headline">
-                  {article.title}
-                </h1>
-                
-                <p className="text-lg text-muted-foreground mb-6" itemProp="description">
-                  {article.excerpt}
-                </p>
-
-                {/* Author Byline */}
-                {article.news_authors && (
-                  <div className="mb-4">
-                    <AuthorByline
-                      name={article.news_authors.name}
-                      slug={article.news_authors.slug}
-                      avatarUrl={article.news_authors.avatar_url}
-                      role={article.news_authors.role}
-                      publishedAt={article.published_at || undefined}
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-y py-4">
-                  {!article.news_authors && publishedDate && (
-                    <time 
-                      dateTime={article.published_at || ''} 
-                      className="flex items-center gap-1"
-                      itemProp="datePublished"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      {publishedDate}
-                    </time>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span itemProp="timeRequired" content={`PT${article.reading_time_minutes}M`}>
-                      {article.reading_time_minutes} min di lettura
-                    </span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    {article.views_count?.toLocaleString('it-IT')} visualizzazioni
-                  </span>
-                  <div className="ml-auto">
-                    <ShareDropdown 
-                      title={article.title} 
-                      excerpt={article.excerpt}
-                    />
-                  </div>
+              
+              {/* Author info for SEO */}
+              {article.news_authors ? (
+                <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Person">
+                  <span itemProp="name">{article.news_authors.name}</span>
+                  <link itemProp="url" href={`https://rimborsami.app/news/autore/${article.news_authors.slug}`} />
                 </div>
-                
-                {/* Author info for SEO */}
-                {article.news_authors ? (
-                  <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Person">
-                    <span itemProp="name">{article.news_authors.name}</span>
-                    <link itemProp="url" href={`https://rimborsami.app/news/autore/${article.news_authors.slug}`} />
-                  </div>
-                ) : (
-                  <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Organization">
-                    <span itemProp="name">Rimborsami Magazine</span>
-                    <link itemProp="url" href="https://rimborsami.app" />
-                  </div>
-                )}
-                <div className="hidden" itemProp="publisher" itemScope itemType="https://schema.org/Organization">
+              ) : (
+                <div className="hidden" itemProp="author" itemScope itemType="https://schema.org/Organization">
                   <span itemProp="name">Rimborsami Magazine</span>
                   <link itemProp="url" href="https://rimborsami.app" />
                 </div>
-              </header>
+              )}
+              <div className="hidden" itemProp="publisher" itemScope itemType="https://schema.org/Organization">
+                <span itemProp="name">Rimborsami Magazine</span>
+                <link itemProp="url" href="https://rimborsami.app" />
+              </div>
 
               {/* Content */}
-              <div className="grid md:grid-cols-[1fr_280px] gap-8">
-                <div 
-                  className="prose prose-lg dark:prose-invert max-w-none
-                    prose-headings:font-semibold prose-headings:text-foreground
-                    prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
-                    prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                    prose-p:text-muted-foreground prose-p:leading-relaxed
-                    prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                    prose-strong:text-foreground prose-strong:font-semibold
-                    prose-ul:text-muted-foreground prose-ol:text-muted-foreground
-                    prose-li:marker:text-primary prose-li:my-1
-                    prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r
-                    prose-table:border prose-th:bg-muted prose-th:p-3 prose-td:p-3 prose-td:border
-                    [&_details]:bg-muted/30 [&_details]:rounded-lg [&_details]:p-4 [&_details]:my-3
-                    [&_summary]:font-semibold [&_summary]:cursor-pointer [&_summary]:text-foreground
-                    [&_.info-box]:bg-primary/5 [&_.info-box]:border-l-4 [&_.info-box]:border-l-primary [&_.info-box]:p-4 [&_.info-box]:rounded-r [&_.info-box]:my-4"
-                  dangerouslySetInnerHTML={{ __html: article.content }}
-                  itemProp="articleBody"
-                />
+              <div 
+                className="prose prose-sm md:prose-lg dark:prose-invert max-w-none
+                  prose-headings:font-semibold prose-headings:text-foreground
+                  prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-6 prose-h2:md:mt-8 prose-h2:mb-3 prose-h2:md:mb-4
+                  prose-h3:text-lg prose-h3:md:text-xl prose-h3:mt-5 prose-h3:md:mt-6 prose-h3:mb-2 prose-h3:md:mb-3
+                  prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:text-[15px] prose-p:md:text-base
+                  prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                  prose-strong:text-foreground prose-strong:font-semibold
+                  prose-ul:text-muted-foreground prose-ol:text-muted-foreground
+                  prose-li:marker:text-primary prose-li:my-1
+                  prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-3 prose-blockquote:md:px-4 prose-blockquote:rounded-r prose-blockquote:text-sm prose-blockquote:md:text-base
+                  prose-table:border prose-table:text-sm prose-th:bg-muted prose-th:p-2 prose-th:md:p-3 prose-td:p-2 prose-td:md:p-3 prose-td:border
+                  [&_details]:bg-muted/30 [&_details]:rounded-lg [&_details]:p-3 [&_details]:md:p-4 [&_details]:my-3
+                  [&_summary]:font-semibold [&_summary]:cursor-pointer [&_summary]:text-foreground [&_summary]:text-sm [&_summary]:md:text-base
+                  [&_.info-box]:bg-primary/5 [&_.info-box]:border-l-4 [&_.info-box]:border-l-primary [&_.info-box]:p-3 [&_.info-box]:md:p-4 [&_.info-box]:rounded-r [&_.info-box]:my-4"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+                itemProp="articleBody"
+              />
 
-                {/* Sidebar */}
-                <aside className="space-y-6">
-                  <RelatedArticles currentSlug={article.slug} />
-                </aside>
+              {/* Related Articles - Full width on mobile */}
+              <div className="mt-8 md:mt-10 pt-6 border-t">
+                <RelatedArticles currentSlug={article.slug} />
               </div>
 
               {/* Keywords */}
