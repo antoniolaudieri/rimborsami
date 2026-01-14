@@ -95,7 +95,7 @@ export function NewsCard({
               >
                 {categoryLabels[category] || category}
               </Badge>
-              <h2 className="text-2xl md:text-3xl font-bold mb-4 group-hover:text-primary transition-colors leading-tight">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 group-hover:text-primary transition-colors leading-snug break-words hyphens-auto">
                 {title}
               </h2>
               <p className="text-muted-foreground mb-6 line-clamp-3">
@@ -148,7 +148,7 @@ export function NewsCard({
             >
               {categoryLabels[category] || category}
             </Badge>
-            <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors break-words hyphens-auto">
               {title}
             </h3>
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -194,7 +194,7 @@ export function NewsCard({
               </Badge>
             </div>
           )}
-          <h3 className="font-semibold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg leading-snug group-hover:text-primary transition-colors break-words hyphens-auto">
             {title}
           </h3>
         </CardHeader>
