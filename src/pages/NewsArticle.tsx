@@ -296,7 +296,7 @@ export default function NewsArticle() {
         <Header />
         
         <main className="flex-1">
-          <article className="container mx-auto px-4 pt-6 pb-8 md:pt-8 md:pb-12" itemScope itemType="https://schema.org/NewsArticle">
+          <article className="container mx-auto px-4 pt-20 md:pt-24 pb-8 md:pb-12" itemScope itemType="https://schema.org/NewsArticle">
             <div className="max-w-4xl mx-auto">
               {/* Back Button */}
               <nav className="mb-6" aria-label="Navigazione">
