@@ -296,32 +296,17 @@ export default function NewsArticle() {
         <Header />
         
         <main className="flex-1">
-          <article className="container mx-auto px-4 py-8 md:py-12" itemScope itemType="https://schema.org/NewsArticle">
+          <article className="container mx-auto px-4 pt-6 pb-8 md:pt-8 md:pb-12" itemScope itemType="https://schema.org/NewsArticle">
             <div className="max-w-4xl mx-auto">
-              {/* Breadcrumb */}
-              <nav className="mb-6" aria-label="Breadcrumb" itemScope itemType="https://schema.org/BreadcrumbList">
-                <ol className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                    <Link to="/" className="hover:text-primary transition-colors" itemProp="item">
-                      <span itemProp="name">Home</span>
-                    </Link>
-                    <meta itemProp="position" content="1" />
-                  </li>
-                  <span>/</span>
-                  <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                    <Link to="/news" className="hover:text-primary transition-colors" itemProp="item">
-                      <span itemProp="name">News</span>
-                    </Link>
-                    <meta itemProp="position" content="2" />
-                  </li>
-                  <span>/</span>
-                  <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                    <span itemProp="name" className="text-foreground font-medium truncate max-w-[200px]">
-                      {article.title}
-                    </span>
-                    <meta itemProp="position" content="3" />
-                  </li>
-                </ol>
+              {/* Back Button */}
+              <nav className="mb-6" aria-label="Navigazione">
+                <Link 
+                  to="/news" 
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+                >
+                  <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                  <span>Torna al Magazine</span>
+                </Link>
               </nav>
 
               {/* Hero Image */}
