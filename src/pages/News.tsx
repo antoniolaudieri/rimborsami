@@ -171,13 +171,6 @@ export default function News() {
           {/* Magazine Header */}
           <section className="border-b bg-gradient-to-br from-primary/5 via-background to-secondary/5">
             <div className="container mx-auto px-4 py-8 md:py-12">
-              <nav aria-label="Breadcrumb" className="mb-4">
-                <ol className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
-                  <span>/</span>
-                  <li className="text-foreground font-medium">Magazine</li>
-                </ol>
-              </nav>
               
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                 <div>
