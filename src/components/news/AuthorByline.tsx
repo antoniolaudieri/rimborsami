@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAuthorAvatar } from '@/lib/authorAvatars';
 
 interface AuthorBylineProps {
   name: string;
@@ -30,13 +31,14 @@ export const AuthorByline = ({
 }: AuthorBylineProps) => {
   const avatarSize = size === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+  const avatarSrc = getAuthorAvatar(slug, avatarUrl);
 
   return (
     <div className="flex items-center gap-2">
       {showAvatar && (
         <Link to={`/news/autore/${slug}`}>
           <Avatar className={avatarSize}>
-            <AvatarImage src={avatarUrl || undefined} alt={name} />
+            <AvatarImage src={avatarSrc} alt={name} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
               {getInitials(name)}
             </AvatarFallback>

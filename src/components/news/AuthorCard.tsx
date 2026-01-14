@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Linkedin, Twitter, Mail } from 'lucide-react';
 import type { NewsAuthor } from '@/hooks/useNewsAuthors';
+import { getAuthorAvatar } from '@/lib/authorAvatars';
 
 interface AuthorCardProps {
   author: NewsAuthor;
@@ -29,6 +30,7 @@ const roleColors: Record<string, string> = {
 
 export const AuthorCard = ({ author, showFullBio = false }: AuthorCardProps) => {
   const roleColor = roleColors[author.role] || 'bg-muted text-muted-foreground';
+  const avatarSrc = getAuthorAvatar(author.slug, author.avatar_url);
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -36,7 +38,7 @@ export const AuthorCard = ({ author, showFullBio = false }: AuthorCardProps) => 
         <div className="flex items-start gap-4">
           <Link to={`/news/autore/${author.slug}`}>
             <Avatar className="h-16 w-16 border-2 border-primary/20">
-              <AvatarImage src={author.avatar_url || undefined} alt={author.name} />
+              <AvatarImage src={avatarSrc} alt={author.name} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {getInitials(author.name)}
               </AvatarFallback>

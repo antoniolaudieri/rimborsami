@@ -176,6 +176,22 @@ const SEO_CATEGORIES = [
   }
 ];
 
+// Category to Author mapping (based on expertise)
+const CATEGORY_AUTHOR_MAP: Record<string, string[]> = {
+  flight: ['federico-colombo', 'alessandro-ferrante'],
+  transport: ['federico-colombo', 'alessandro-ferrante'],
+  energy: ['chiara-mantovani', 'luca-benedetti'],
+  telecom: ['luca-benedetti', 'chiara-mantovani'],
+  bank: ['martina-galli', 'alessandro-ferrante'],
+  insurance: ['martina-galli', 'alessandro-ferrante'],
+  ecommerce: ['sara-marchetti', 'martina-galli'],
+  class_action: ['alessandro-ferrante', 'martina-galli'],
+  warranty: ['sara-marchetti', 'chiara-mantovani'],
+  automotive: ['federico-colombo', 'luca-benedetti'],
+  tech: ['luca-benedetti', 'sara-marchetti'],
+  other: ['alessandro-ferrante', 'chiara-mantovani']
+};
+
 // Visual compositions for unique images
 const COMPOSITIONS = [
   "close-up macro shot with shallow depth of field",
@@ -393,7 +409,21 @@ serve(async (req) => {
       ? opportunities[Math.floor(Math.random() * opportunities.length)]
       : null;
     
-    console.log(`Category: ${categoryData.category}, Company: ${company}, Linked opportunity: ${selectedOpportunity?.title || 'none'}`);
+    // Fetch author for this category
+    const authorSlugs = CATEGORY_AUTHOR_MAP[categoryData.category] || CATEGORY_AUTHOR_MAP.other;
+    const selectedAuthorSlug = authorSlugs[Math.floor(Math.random() * authorSlugs.length)];
+    
+    const { data: selectedAuthor, error: authorError } = await supabase
+      .from("news_authors")
+      .select("id, name, slug")
+      .eq("slug", selectedAuthorSlug)
+      .single();
+    
+    if (authorError) {
+      console.error("Author fetch error:", authorError);
+    }
+    
+    console.log(`Category: ${categoryData.category}, Company: ${company}, Author: ${selectedAuthor?.name || 'none'}, Linked opportunity: ${selectedOpportunity?.title || 'none'}`);
     
     // Randomly select search intent (60% transactional, 40% informational for conversions)
     const isTransactional = Math.random() < 0.6;
@@ -600,7 +630,7 @@ Restituisci SOLO JSON valido:
     const safeExcerpt = (articleData.excerpt || "").substring(0, 160);
     const safeMetaDesc = (articleData.meta_description || seoKeywords.meta_description || "").substring(0, 155);
     
-    // Insert article with SEO tracking fields and opportunity link
+    // Insert article with SEO tracking fields, opportunity link and author
     const { data: article, error } = await supabase
       .from("news_articles")
       .insert({
@@ -622,7 +652,9 @@ Restituisci SOLO JSON valido:
         faq_schema: faqSchema,
         internal_links: articleData.internal_links || ["/quiz", "/opportunities"],
         // Link to opportunity
-        opportunity_id: selectedOpportunity?.id || null
+        opportunity_id: selectedOpportunity?.id || null,
+        // Link to author
+        author_id: selectedAuthor?.id || null
       })
       .select()
       .single();
@@ -632,7 +664,16 @@ Restituisci SOLO JSON valido:
       throw error;
     }
     
-    console.log(`✅ Article published: ${article.slug} (linked to opportunity: ${selectedOpportunity?.title || 'none'})`);
+    // Increment author's article count (fire and forget)
+    if (selectedAuthor?.id) {
+      supabase
+        .from("news_authors")
+        .update({ articles_count: (selectedAuthor as any).articles_count + 1 || 1 })
+        .eq("id", selectedAuthor.id)
+        .then(() => console.log("Author article count updated"));
+    }
+    
+    console.log(`✅ Article published: ${article.slug} by ${selectedAuthor?.name || 'unknown'} (linked to opportunity: ${selectedOpportunity?.title || 'none'})`);
     
     return new Response(
       JSON.stringify({
@@ -645,7 +686,9 @@ Restituisci SOLO JSON valido:
           search_intent: searchIntent,
           featured_image_url: article.featured_image_url,
           opportunity_id: selectedOpportunity?.id || null,
-          opportunity_title: selectedOpportunity?.title || null
+          opportunity_title: selectedOpportunity?.title || null,
+          author_id: selectedAuthor?.id || null,
+          author_name: selectedAuthor?.name || null
         }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
