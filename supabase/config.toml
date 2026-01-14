@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.llms-full]
 verify_jwt = false
+
+[functions.rss-feed]
+verify_jwt = false
