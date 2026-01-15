@@ -20,70 +20,66 @@ Deno.serve(async (req) => {
 
     console.log("Fetching LinkedIn profile...");
 
-    // Try /v2/userinfo first (requires openid scope)
-    let response = await fetch("https://api.linkedin.com/v2/userinfo", {
+    // Try /v2/userinfo (requires openid scope)
+    const userInfoResponse = await fetch("https://api.linkedin.com/v2/userinfo", {
       headers: { "Authorization": `Bearer ${accessToken}` },
     });
+    
+    const userInfoText = await userInfoResponse.text();
+    console.log("userinfo response status:", userInfoResponse.status);
+    console.log("userinfo response body:", userInfoText);
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log("userinfo response:", data);
-      return new Response(
-        JSON.stringify({ 
-          source: "userinfo",
-          personId: data.sub,
-          fullData: data 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (userInfoResponse.ok) {
+      try {
+        const data = JSON.parse(userInfoText);
+        return new Response(
+          JSON.stringify({ 
+            source: "userinfo",
+            personId: data.sub,
+            fullData: data 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (e) {
+        console.log("Failed to parse userinfo JSON:", e);
+      }
     }
 
     console.log("userinfo failed, trying /v2/me...");
 
     // Try /v2/me (requires profile scope)
-    response = await fetch("https://api.linkedin.com/v2/me", {
+    const meResponse = await fetch("https://api.linkedin.com/v2/me", {
       headers: { "Authorization": `Bearer ${accessToken}` },
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log("me response:", data);
-      return new Response(
-        JSON.stringify({ 
-          source: "me",
-          personId: data.id,
-          fullData: data 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const meText = await meResponse.text();
+    console.log("me response status:", meResponse.status);
+    console.log("me response body:", meText);
+
+    if (meResponse.ok) {
+      try {
+        const data = JSON.parse(meText);
+        return new Response(
+          JSON.stringify({ 
+            source: "me",
+            personId: data.id,
+            fullData: data 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (e) {
+        console.log("Failed to parse me JSON:", e);
+      }
     }
 
-    // Try introspect token
-    console.log("me failed, trying introspect...");
-    
-    const clientId = "77kipv60wj05rm";
-    const clientSecret = "WPL_AP1.AvcEZe3J1v697X83.rBvGxw==";
-    
-    const introspectBody = new URLSearchParams({
-      token: accessToken,
-      client_id: clientId,
-      client_secret: clientSecret,
-    });
-
-    response = await fetch("https://www.linkedin.com/oauth/v2/introspectToken", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: introspectBody.toString(),
-    });
-
-    const introspectData = await response.json();
-    console.log("introspect response:", introspectData);
-
+    // Return what we got for debugging
     return new Response(
       JSON.stringify({ 
-        source: "introspect",
-        fullData: introspectData,
-        personId: introspectData.authorized_user || introspectData.sub || null
+        error: "Could not get person ID",
+        userInfoStatus: userInfoResponse.status,
+        userInfoBody: userInfoText,
+        meStatus: meResponse.status,
+        meBody: meText
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
