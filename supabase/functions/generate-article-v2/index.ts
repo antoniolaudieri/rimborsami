@@ -1015,6 +1015,31 @@ serve(async (req) => {
 
     console.log("✅ Article published successfully:", insertedArticle?.slug);
 
+    // Auto-post to LinkedIn
+    const articleUrl = `https://rimborsami.lovable.app/news/${uniqueSlug}`;
+    try {
+      console.log("📤 Posting to LinkedIn...");
+      const linkedinResponse = await supabase.functions.invoke('post-to-linkedin', {
+        body: {
+          title: truncatedTitle,
+          excerpt: truncatedExcerpt,
+          url: articleUrl,
+          imageUrl: featuredImageUrl,
+          category: targetCategory,
+          articleId: insertedArticle?.id
+        }
+      });
+      
+      if (linkedinResponse.error) {
+        console.error("LinkedIn post failed:", linkedinResponse.error);
+      } else {
+        console.log("✅ LinkedIn post successful:", linkedinResponse.data);
+      }
+    } catch (linkedinError) {
+      console.error("LinkedIn post error:", linkedinError);
+      // Don't fail the article creation if social post fails
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
