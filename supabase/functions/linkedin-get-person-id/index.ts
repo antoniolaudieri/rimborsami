@@ -22,7 +22,10 @@ Deno.serve(async (req) => {
 
     // Try /v2/userinfo (requires openid scope)
     const userInfoResponse = await fetch("https://api.linkedin.com/v2/userinfo", {
-      headers: { "Authorization": `Bearer ${accessToken}` },
+      headers: { 
+        "Authorization": `Bearer ${accessToken}`,
+        "LinkedIn-Version": "202401"
+      },
     });
     
     const userInfoText = await userInfoResponse.text();
