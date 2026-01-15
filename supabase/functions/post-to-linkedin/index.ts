@@ -14,13 +14,48 @@ interface ArticleData {
   articleId?: string;
 }
 
+async function getLinkedInPersonId(accessToken: string): Promise<string> {
+  // Try userinfo endpoint first (requires openid scope)
+  let response = await fetch("https://api.linkedin.com/v2/userinfo", {
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+    },
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log("LinkedIn user info (userinfo):", data);
+    return data.sub;
+  }
+
+  // Fallback to /v2/me endpoint (works with profile scope)
+  response = await fetch("https://api.linkedin.com/v2/me", {
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Failed to get LinkedIn profile:", response.status, errorText);
+    throw new Error(`Failed to get LinkedIn user info: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log("LinkedIn user info (me):", data);
+  return data.id; // This is the person ID
+}
+
 async function postToLinkedIn(data: ArticleData): Promise<{ success: boolean; postId?: string; error?: string }> {
   const accessToken = Deno.env.get("LINKEDIN_ACCESS_TOKEN");
-  const organizationId = Deno.env.get("LINKEDIN_ORGANIZATION_ID");
 
-  if (!accessToken || !organizationId) {
-    throw new Error("LinkedIn credentials not configured");
+  if (!accessToken) {
+    throw new Error("LinkedIn access token not configured");
   }
+
+  // Get the person ID from the access token
+  const personId = await getLinkedInPersonId(accessToken);
+  console.log("Posting as person ID:", personId);
 
   // Build hashtags from category
   const categoryHashtags: Record<string, string[]> = {
@@ -37,9 +72,9 @@ async function postToLinkedIn(data: ArticleData): Promise<{ success: boolean; po
   const hashtags = categoryHashtags[data.category.toLowerCase()] || categoryHashtags.default;
   const hashtagString = hashtags.map(h => `#${h}`).join(" ");
 
-  // LinkedIn API v2 - Create a share
+  // LinkedIn API v2 - Create a share as personal profile
   const postBody: any = {
-    author: `urn:li:organization:${organizationId}`,
+    author: `urn:li:person:${personId}`,
     lifecycleState: "PUBLISHED",
     specificContent: {
       "com.linkedin.ugc.ShareContent": {
