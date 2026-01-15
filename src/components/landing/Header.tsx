@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,11 +19,28 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   const navLinks = [
-    { label: "Come funziona", href: "#come-funziona" },
-    { label: "Funzionalità", href: "#funzionalita" },
+    { label: "Come funziona", href: "come-funziona" },
+    { label: "Funzionalità", href: "funzionalita" },
     { label: "Magazine", href: "/news", isRoute: true },
-    { label: "Prezzi", href: "#prezzi" },
+    { label: "Prezzi", href: "prezzi" },
   ];
 
   return (
@@ -49,13 +68,13 @@ const Header = () => {
                 {link.label}
               </Link>
             ) : (
-              <a
+              <button
                 key={link.label}
-                href={link.href}
+                onClick={() => scrollToSection(link.href)}
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {link.label}
-              </a>
+              </button>
             )
           ))}
         </nav>
@@ -101,14 +120,16 @@ const Header = () => {
                     {link.label}
                   </Link>
                 ) : (
-                  <a
+                  <button
                     key={link.label}
-                    href={link.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+                    onClick={() => {
+                      scrollToSection(link.href);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2 text-left"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 )
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
