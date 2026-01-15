@@ -14,47 +14,15 @@ interface ArticleData {
   articleId?: string;
 }
 
-async function getLinkedInPersonId(accessToken: string): Promise<string> {
-  // Try userinfo endpoint first (requires openid scope)
-  let response = await fetch("https://api.linkedin.com/v2/userinfo", {
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-    },
-  });
-
-  if (response.ok) {
-    const data = await response.json();
-    console.log("LinkedIn user info (userinfo):", data);
-    return data.sub;
-  }
-
-  // Fallback to /v2/me endpoint (works with profile scope)
-  response = await fetch("https://api.linkedin.com/v2/me", {
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Failed to get LinkedIn profile:", response.status, errorText);
-    throw new Error(`Failed to get LinkedIn user info: ${response.status}`);
-  }
-
-  const data = await response.json();
-  console.log("LinkedIn user info (me):", data);
-  return data.id; // This is the person ID
-}
 
 async function postToLinkedIn(data: ArticleData): Promise<{ success: boolean; postId?: string; error?: string }> {
   const accessToken = Deno.env.get("LINKEDIN_ACCESS_TOKEN");
+  const personId = Deno.env.get("LINKEDIN_PERSON_ID");
 
-  if (!accessToken) {
-    throw new Error("LinkedIn access token not configured");
+  if (!accessToken || !personId) {
+    throw new Error("LinkedIn credentials not configured (need LINKEDIN_ACCESS_TOKEN and LINKEDIN_PERSON_ID)");
   }
 
-  // Get the person ID from the access token
-  const personId = await getLinkedInPersonId(accessToken);
   console.log("Posting as person ID:", personId);
 
   // Build hashtags from category
