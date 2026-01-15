@@ -728,6 +728,47 @@ export type Database = {
           },
         ]
       }
+      social_posts: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          platform: string
+          post_id: string | null
+          posted_at: string | null
+          status: string
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          platform: string
+          post_id?: string | null
+          posted_at?: string | null
+          status?: string
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          platform?: string
+          post_id?: string | null
+          posted_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
