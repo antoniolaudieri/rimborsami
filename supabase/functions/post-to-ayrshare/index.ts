@@ -7,35 +7,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mappa categoria -> subreddit (senza approvazione richiesta)
-const SUBREDDIT_MAP: Record<string, string> = {
-  'flight': 'ViaggiITA',
-  'transport': 'ViaggiITA',
-  'telecom': 'bollette',
-  'energy': 'bollette',
-  'bank': 'ItaliaPersonalFinance',
-  'insurance': 'ItaliaPersonalFinance',
-  'ecommerce': 'CasualIT',
-  'tech': 'CasualIT',
-  'automotive': 'CasualIT',
-  'warranty': 'CasualIT',
-  'class_action': 'ItaliaPersonalFinance',
-  'other': 'CasualIT'
-};
-
 interface ArticleData {
   title: string;
   excerpt: string;
   url: string;
   imageUrl?: string;
-  category: string;
+  category?: string;
   articleId?: string;
 }
 
 interface PlatformTexts {
   facebook: string;
   instagram: string;
-  reddit: string;
+  twitter: string;
 }
 
 // Generate platform-optimized texts using AI
@@ -49,50 +33,49 @@ async function generatePlatformTexts(data: ArticleData): Promise<PlatformTexts> 
 
   try {
     const systemPrompt = `Sei un social media manager esperto per Rimborsami.it, un sito italiano sui diritti dei consumatori.
-Genera post DIVERSI per ogni piattaforma, ottimizzati per il loro pubblico:
+Genera post DIVERSI per ogni piattaforma, ottimizzati per il loro pubblico.
+
+REGOLE IMPORTANTI:
+- Scrivi SEMPRE in italiano
+- NO emoji in nessun testo
+- Tono professionale ma accessibile
+- Focus sui benefici concreti per il lettore
 
 FACEBOOK (150-200 parole):
 - Tono conversazionale e caldo
 - Inizia con una domanda coinvolgente
-- Usa emoji con moderazione (2-3)
+- NO emoji
 - Chiudi con call-to-action per leggere l'articolo
 - 2-3 hashtag alla fine
 
 INSTAGRAM (100-150 parole):
 - Tono positivo e empowering
-- Più emoji (4-6)
-- 6-8 hashtag rilevanti alla fine
-- Focus su storie di successo e empowerment
-- Call-to-action: "Link in bio" o simile
-
-REDDIT (100-150 parole):
-- Tono informativo e utile, MAI promozionale
 - NO emoji
-- NO hashtag
-- Scrivi come se stessi dando un consiglio a un amico
-- Sii genuino e helpful
-- Menziona che è una guida/risorsa utile
+- 6-8 hashtag rilevanti alla fine
+- Focus su storie di successo e diritti
+- Call-to-action: "Link in bio"
 
-IMPORTANTE:
-- Scrivi SEMPRE in italiano
-- Non essere troppo formale
-- Ogni post deve essere UNICO e adatto alla piattaforma
-- Non menzionare mai le altre piattaforme
+TWITTER/X (max 260 caratteri):
+- Tono diretto e incisivo
+- NO emoji
+- 2 hashtag rilevanti
+- Vai dritto al punto con il beneficio principale
+- Il link viene aggiunto automaticamente da Ayrshare
 
 Rispondi SOLO con un JSON valido:
 {
   "facebook": "testo per facebook...",
   "instagram": "testo per instagram...",
-  "reddit": "testo per reddit..."
+  "twitter": "testo per twitter..."
 }`;
 
     const userPrompt = `Genera i post per questo articolo:
 Titolo: ${data.title}
-Categoria: ${data.category}
+Categoria: ${data.category || 'other'}
 Descrizione: ${data.excerpt}
 URL: ${data.url}`;
 
-    const response = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${lovableApiKey}`,
@@ -130,12 +113,12 @@ URL: ${data.url}`;
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    console.log("✅ AI generated platform texts successfully");
+    console.log("AI generated platform texts successfully");
     
     return {
       facebook: parsed.facebook || generateFallbackTexts(data).facebook,
       instagram: parsed.instagram || generateFallbackTexts(data).instagram,
-      reddit: parsed.reddit || generateFallbackTexts(data).reddit,
+      twitter: parsed.twitter || generateFallbackTexts(data).twitter,
     };
   } catch (error) {
     console.error("AI generation error:", error);
@@ -145,60 +128,39 @@ URL: ${data.url}`;
 
 // Fallback texts if AI fails
 function generateFallbackTexts(data: ArticleData): PlatformTexts {
-  const categoryEmoji: Record<string, string> = {
-    'flight': '✈️',
-    'ecommerce': '🛒',
-    'bank': '🏦',
-    'telecom': '📱',
-    'energy': '⚡',
-    'transport': '🚆',
-    'insurance': '🛡️',
-    'automotive': '🚗',
-    'tech': '💻',
-    'class_action': '⚖️',
-    'other': '📋'
-  };
-  
-  const emoji = categoryEmoji[data.category] || '💡';
-
   return {
-    facebook: `${emoji} ${data.title}
+    facebook: `${data.title}
 
-Conosci i tuoi diritti? Spesso i consumatori non sanno di poter ottenere rimborsi e risarcimenti per disservizi subiti.
+Conosci i tuoi diritti come consumatore? Spesso non siamo consapevoli delle tutele che ci spettano.
 
 ${data.excerpt}
 
-👉 Leggi la guida completa per scoprire come fare valere i tuoi diritti: ${data.url}
+Leggi la guida completa per scoprire come far valere i tuoi diritti: ${data.url}
 
 #DirittiConsumatori #Rimborsi #ConsumerRights`,
 
-    instagram: `${emoji} RIMBORSO POSSIBILE! 💪
+    instagram: `TUTELA I TUOI DIRITTI
 
 ${data.title}
 
 ${data.excerpt}
 
-📖 Scopri tutti i dettagli nella guida completa!
+Scopri tutti i dettagli nella guida completa! Link in bio.
 
 #DirittiConsumatori #Rimborso #Risarcimento #ConsumerRights #Italia #Soldi #Diritti #TutelaConsumatori`,
 
-    reddit: `${data.title}
+    twitter: `${data.title.substring(0, 200)}
 
-Ho trovato questa guida utile per chi si trova in questa situazione. 
+Scopri come: ${data.url}
 
-${data.excerpt}
-
-Potrebbe essere d'aiuto a chi sta cercando informazioni su come procedere: ${data.url}
-
-Spero possa essere utile a qualcuno.`
+#DirittiConsumatori #Rimborso`
   };
 }
 
 // Post to Ayrshare
 async function postToAyrshare(
   texts: PlatformTexts, 
-  imageUrl?: string,
-  category?: string
+  imageUrl?: string
 ): Promise<{ success: boolean; results: any; error?: string }> {
   const ayrshareApiKey = Deno.env.get('AYRSHARE_API_KEY');
   
@@ -208,26 +170,17 @@ async function postToAyrshare(
   }
 
   try {
-    // Reddit title from first line of text (max 300 chars)
-    const redditTitle = texts.reddit.split('\n')[0].substring(0, 300);
-    
-    // Determina il subreddit in base alla categoria
-    const subreddit = SUBREDDIT_MAP[category || 'other'] || SUBREDDIT_MAP['other'];
-    console.log(`📍 Selected subreddit: r/${subreddit} for category: ${category}`);
-    
     const requestBody: any = {
       post: texts.facebook, // Default text
-      platforms: ["facebook", "instagram", "reddit"],
+      platforms: ["facebook", "instagram", "twitter"],
       facebookOptions: {
         text: texts.facebook
       },
       instagramOptions: {
         text: texts.instagram
       },
-      redditOptions: {
-        title: redditTitle,
-        text: texts.reddit,
-        subreddit: subreddit
+      twitterOptions: {
+        text: texts.twitter
       }
     };
 
@@ -236,7 +189,7 @@ async function postToAyrshare(
       requestBody.mediaUrls = [imageUrl];
     }
 
-    console.log("📤 Posting to Ayrshare:", JSON.stringify({ platforms: requestBody.platforms, hasImage: !!imageUrl }));
+    console.log("Posting to Ayrshare:", JSON.stringify({ platforms: requestBody.platforms, hasImage: !!imageUrl }));
 
     const response = await fetch("https://api.ayrshare.com/api/post", {
       method: "POST",
@@ -254,7 +207,7 @@ async function postToAyrshare(
       return { success: false, results: result, error: result.message || "API error" };
     }
 
-    console.log("✅ Ayrshare post successful:", JSON.stringify(result));
+    console.log("Ayrshare post successful:", JSON.stringify(result));
     return { success: true, results: result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -271,7 +224,7 @@ serve(async (req) => {
 
   try {
     const data: ArticleData = await req.json();
-    console.log("📥 Received article data:", JSON.stringify({ title: data.title, category: data.category }));
+    console.log("Received article data:", JSON.stringify({ title: data.title, category: data.category }));
 
     // Validate required fields
     if (!data.title || !data.excerpt || !data.url) {
@@ -282,11 +235,11 @@ serve(async (req) => {
     }
 
     // Generate platform-optimized texts
-    console.log("🤖 Generating platform texts with AI...");
+    console.log("Generating platform texts with AI...");
     const texts = await generatePlatformTexts(data);
 
-    // Post to Ayrshare (con subreddit dinamico per categoria)
-    const ayrshareResult = await postToAyrshare(texts, data.imageUrl, data.category);
+    // Post to Ayrshare
+    const ayrshareResult = await postToAyrshare(texts, data.imageUrl);
 
     // Log to database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -294,7 +247,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (data.articleId) {
-      const platforms = ['facebook', 'instagram', 'reddit'];
+      const platforms = ['facebook', 'instagram', 'twitter'];
       
       // Find results from Ayrshare response
       const postIds = ayrshareResult.results?.postIds || [];
@@ -314,13 +267,13 @@ serve(async (req) => {
         });
       }
       
-      console.log("📊 Logged results to social_posts table");
+      console.log("Logged results to social_posts table");
     }
 
     return new Response(
       JSON.stringify({
         success: ayrshareResult.success,
-        platforms: ['facebook', 'instagram', 'reddit'],
+        platforms: ['facebook', 'instagram', 'twitter'],
         results: ayrshareResult.results,
         error: ayrshareResult.error
       }),
@@ -328,7 +281,7 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("❌ Error in post-to-ayrshare:", errorMessage);
+    console.error("Error in post-to-ayrshare:", errorMessage);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
