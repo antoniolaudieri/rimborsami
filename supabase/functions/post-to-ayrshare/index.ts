@@ -22,6 +22,20 @@ interface PlatformTexts {
   twitter: string;
 }
 
+// Truncate Twitter text to max 260 chars (leaving room for link added by Ayrshare)
+function truncateTwitterText(text: string, maxLength: number = 260): string {
+  if (text.length <= maxLength) return text;
+  
+  // Find a good break point (space, punctuation)
+  let cutoff = maxLength - 3;
+  while (cutoff > 0 && text[cutoff] !== ' ' && text[cutoff] !== '.' && text[cutoff] !== ',') {
+    cutoff--;
+  }
+  if (cutoff < 100) cutoff = maxLength - 3; // Fallback if no good break point
+  
+  return text.substring(0, cutoff).trim() + '...';
+}
+
 // Generate platform-optimized texts using AI
 async function generatePlatformTexts(data: ArticleData): Promise<PlatformTexts> {
   const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -55,25 +69,27 @@ INSTAGRAM (100-150 parole):
 - Focus su storie di successo e diritti
 - Call-to-action: "Link in bio"
 
-TWITTER/X (max 260 caratteri):
-- Tono diretto e incisivo
-- NO emoji
-- 2 hashtag rilevanti
-- Vai dritto al punto con il beneficio principale
-- Il link viene aggiunto automaticamente da Ayrshare
+TWITTER/X (MASSIMO 200 CARATTERI - OBBLIGATORIO):
+- BREVISSIMO, massimo 200 caratteri totali
+- Una frase sola, diretta
+- 2 hashtag corti
+- NO link (viene aggiunto automaticamente)
+- Esempio: "Rimborso Amazon non ricevuto dopo 30 giorni? Ecco come ottenerlo. #Rimborso #Amazon"
 
 Rispondi SOLO con un JSON valido:
 {
   "facebook": "testo per facebook...",
   "instagram": "testo per instagram...",
-  "twitter": "testo per twitter..."
+  "twitter": "testo BREVE per twitter (max 200 caratteri)"
 }`;
 
     const userPrompt = `Genera i post per questo articolo:
 Titolo: ${data.title}
 Categoria: ${data.category || 'other'}
 Descrizione: ${data.excerpt}
-URL: ${data.url}`;
+URL: ${data.url}
+
+IMPORTANTE: Il testo per Twitter deve essere MASSIMO 200 caratteri!`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -88,7 +104,7 @@ URL: ${data.url}`;
           { role: 'user', content: userPrompt }
         ],
         max_tokens: 1500,
-        temperature: 0.8,
+        temperature: 0.7,
       }),
     });
 
@@ -115,10 +131,14 @@ URL: ${data.url}`;
     const parsed = JSON.parse(jsonMatch[0]);
     console.log("AI generated platform texts successfully");
     
+    // ALWAYS truncate Twitter text to ensure compliance
+    const twitterText = truncateTwitterText(parsed.twitter || generateFallbackTexts(data).twitter, 260);
+    console.log(`Twitter text length: ${twitterText.length} chars`);
+    
     return {
       facebook: parsed.facebook || generateFallbackTexts(data).facebook,
       instagram: parsed.instagram || generateFallbackTexts(data).instagram,
-      twitter: parsed.twitter || generateFallbackTexts(data).twitter,
+      twitter: twitterText,
     };
   } catch (error) {
     console.error("AI generation error:", error);
@@ -128,6 +148,9 @@ URL: ${data.url}`;
 
 // Fallback texts if AI fails
 function generateFallbackTexts(data: ArticleData): PlatformTexts {
+  // Create a short Twitter text from title
+  const shortTitle = data.title.length > 150 ? data.title.substring(0, 147) + '...' : data.title;
+  
   return {
     facebook: `${data.title}
 
@@ -149,11 +172,7 @@ Scopri tutti i dettagli nella guida completa! Link in bio.
 
 #DirittiConsumatori #Rimborso #Risarcimento #ConsumerRights #Italia #Soldi #Diritti #TutelaConsumatori`,
 
-    twitter: `${data.title.substring(0, 200)}
-
-Scopri come: ${data.url}
-
-#DirittiConsumatori #Rimborso`
+    twitter: `${shortTitle} #DirittiConsumatori #Rimborso`
   };
 }
 
@@ -170,6 +189,13 @@ async function postToAyrshare(
   }
 
   try {
+    // Final safety check: ensure Twitter text is under 280 chars
+    const safeTwitterText = texts.twitter.length > 275 
+      ? texts.twitter.substring(0, 272) + '...'
+      : texts.twitter;
+    
+    console.log(`Final Twitter text (${safeTwitterText.length} chars): ${safeTwitterText}`);
+    
     const requestBody: any = {
       post: texts.facebook, // Default text
       platforms: ["facebook", "instagram", "twitter"],
@@ -180,7 +206,7 @@ async function postToAyrshare(
         text: texts.instagram
       },
       twitterOptions: {
-        text: texts.twitter
+        text: safeTwitterText
       }
     };
 
@@ -262,7 +288,7 @@ serve(async (req) => {
           platform: platform,
           status: platformError ? 'error' : (platformResult?.status === 'success' ? 'posted' : 'error'),
           post_id: platformResult?.id || null,
-          error_message: platformError?.message || ayrshareResult.error || null,
+          error_message: platformError?.message || null,
           posted_at: platformResult?.status === 'success' ? new Date().toISOString() : null
         });
       }
@@ -270,9 +296,12 @@ serve(async (req) => {
       console.log("Logged results to social_posts table");
     }
 
+    // Check if all platforms succeeded
+    const allSuccess = !ayrshareResult.results?.errors?.length && ayrshareResult.success;
+
     return new Response(
       JSON.stringify({
-        success: ayrshareResult.success,
+        success: allSuccess,
         platforms: ['facebook', 'instagram', 'twitter'],
         results: ayrshareResult.results,
         error: ayrshareResult.error
