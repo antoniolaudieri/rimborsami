@@ -191,19 +191,15 @@ async function postToAyrshare(
   }
 
   try {
+    // Only Facebook and Instagram for now (Reddit requires a valid subreddit)
     const requestBody: any = {
       post: texts.facebook, // Default text
-      platforms: ["facebook", "instagram", "reddit"],
+      platforms: ["facebook", "instagram"],
       facebookOptions: {
         text: texts.facebook
       },
       instagramOptions: {
         text: texts.instagram
-      },
-      redditOptions: {
-        title: texts.reddit.split('\n')[0].substring(0, 300), // First line as title
-        text: texts.reddit,
-        subreddit: "consumatori" // Italian consumer rights subreddit
       }
     };
 
@@ -270,20 +266,23 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (data.articleId) {
-      const platforms = ['facebook', 'instagram', 'reddit'];
+      const platforms = ['facebook', 'instagram'];
+      
+      // Find results from Ayrshare response
+      const postIds = ayrshareResult.results?.postIds || [];
+      const errors = ayrshareResult.results?.errors || [];
       
       for (const platform of platforms) {
-        const platformResult = ayrshareResult.results?.postIds?.[platform] || 
-                               ayrshareResult.results?.id;
-        const platformError = ayrshareResult.results?.errors?.[platform];
+        const platformResult = postIds.find((p: any) => p.platform === platform);
+        const platformError = errors.find((e: any) => e.platform === platform);
         
         await supabase.from('social_posts').insert({
           article_id: data.articleId,
           platform: platform,
-          status: platformError ? 'error' : (ayrshareResult.success ? 'posted' : 'error'),
-          post_id: platformResult || null,
-          error_message: platformError || ayrshareResult.error || null,
-          posted_at: ayrshareResult.success && !platformError ? new Date().toISOString() : null
+          status: platformError ? 'error' : (platformResult?.status === 'success' ? 'posted' : 'error'),
+          post_id: platformResult?.id || null,
+          error_message: platformError?.message || ayrshareResult.error || null,
+          posted_at: platformResult?.status === 'success' ? new Date().toISOString() : null
         });
       }
       
@@ -293,7 +292,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: ayrshareResult.success,
-        platforms: ['facebook', 'instagram', 'reddit'],
+        platforms: ['facebook', 'instagram'],
         results: ayrshareResult.results,
         error: ayrshareResult.error
       }),
