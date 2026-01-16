@@ -191,15 +191,22 @@ async function postToAyrshare(
   }
 
   try {
-    // Only Facebook and Instagram for now (Reddit requires a valid subreddit)
+    // Reddit title from first line of text (max 300 chars)
+    const redditTitle = texts.reddit.split('\n')[0].substring(0, 300);
+    
     const requestBody: any = {
       post: texts.facebook, // Default text
-      platforms: ["facebook", "instagram"],
+      platforms: ["facebook", "instagram", "reddit"],
       facebookOptions: {
         text: texts.facebook
       },
       instagramOptions: {
         text: texts.instagram
+      },
+      redditOptions: {
+        title: redditTitle,
+        text: texts.reddit,
+        subreddit: "italy" // Main Italian subreddit
       }
     };
 
@@ -266,7 +273,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (data.articleId) {
-      const platforms = ['facebook', 'instagram'];
+      const platforms = ['facebook', 'instagram', 'reddit'];
       
       // Find results from Ayrshare response
       const postIds = ayrshareResult.results?.postIds || [];
@@ -292,7 +299,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: ayrshareResult.success,
-        platforms: ['facebook', 'instagram'],
+        platforms: ['facebook', 'instagram', 'reddit'],
         results: ayrshareResult.results,
         error: ayrshareResult.error
       }),
