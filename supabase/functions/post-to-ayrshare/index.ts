@@ -7,6 +7,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Mappa categoria -> subreddit (senza approvazione richiesta)
+const SUBREDDIT_MAP: Record<string, string> = {
+  'flight': 'ViaggiITA',
+  'transport': 'ViaggiITA',
+  'telecom': 'bollette',
+  'energy': 'bollette',
+  'bank': 'ItaliaPersonalFinance',
+  'insurance': 'ItaliaPersonalFinance',
+  'ecommerce': 'CasualIT',
+  'tech': 'CasualIT',
+  'automotive': 'CasualIT',
+  'warranty': 'CasualIT',
+  'class_action': 'ItaliaPersonalFinance',
+  'other': 'CasualIT'
+};
+
 interface ArticleData {
   title: string;
   excerpt: string;
@@ -181,7 +197,8 @@ Spero possa essere utile a qualcuno.`
 // Post to Ayrshare
 async function postToAyrshare(
   texts: PlatformTexts, 
-  imageUrl?: string
+  imageUrl?: string,
+  category?: string
 ): Promise<{ success: boolean; results: any; error?: string }> {
   const ayrshareApiKey = Deno.env.get('AYRSHARE_API_KEY');
   
@@ -193,6 +210,10 @@ async function postToAyrshare(
   try {
     // Reddit title from first line of text (max 300 chars)
     const redditTitle = texts.reddit.split('\n')[0].substring(0, 300);
+    
+    // Determina il subreddit in base alla categoria
+    const subreddit = SUBREDDIT_MAP[category || 'other'] || SUBREDDIT_MAP['other'];
+    console.log(`📍 Selected subreddit: r/${subreddit} for category: ${category}`);
     
     const requestBody: any = {
       post: texts.facebook, // Default text
@@ -206,7 +227,7 @@ async function postToAyrshare(
       redditOptions: {
         title: redditTitle,
         text: texts.reddit,
-        subreddit: "italy" // Main Italian subreddit
+        subreddit: subreddit
       }
     };
 
@@ -264,8 +285,8 @@ serve(async (req) => {
     console.log("🤖 Generating platform texts with AI...");
     const texts = await generatePlatformTexts(data);
 
-    // Post to Ayrshare
-    const ayrshareResult = await postToAyrshare(texts, data.imageUrl);
+    // Post to Ayrshare (con subreddit dinamico per categoria)
+    const ayrshareResult = await postToAyrshare(texts, data.imageUrl, data.category);
 
     // Log to database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
