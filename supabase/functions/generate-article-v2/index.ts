@@ -1040,6 +1040,30 @@ serve(async (req) => {
       // Don't fail the article creation if social post fails
     }
 
+    // Post to Ayrshare (Facebook, Instagram, Reddit)
+    try {
+      console.log("📤 Posting to Ayrshare (FB, IG, Reddit)...");
+      const ayrshareResponse = await supabase.functions.invoke('post-to-ayrshare', {
+        body: {
+          title: truncatedTitle,
+          excerpt: truncatedExcerpt,
+          url: articleUrl,
+          imageUrl: featuredImageUrl,
+          category: targetCategory,
+          articleId: insertedArticle?.id
+        }
+      });
+      
+      if (ayrshareResponse.error) {
+        console.error("Ayrshare post failed:", ayrshareResponse.error);
+      } else {
+        console.log("✅ Ayrshare posts successful:", ayrshareResponse.data);
+      }
+    } catch (ayrshareError) {
+      console.error("Ayrshare post error:", ayrshareError);
+      // Don't fail the article creation if social post fails
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
