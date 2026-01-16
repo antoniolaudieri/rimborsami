@@ -189,25 +189,23 @@ async function postToAyrshare(
   }
 
   try {
-    // Final safety check: ensure Twitter text is under 280 chars
-    const safeTwitterText = texts.twitter.length > 275 
-      ? texts.twitter.substring(0, 272) + '...'
+    // Final safety check: ensure Twitter text is under 250 chars (Ayrshare adds "[Sent with Free Plan]" prefix ~20 chars)
+    const safeTwitterText = texts.twitter.length > 250 
+      ? texts.twitter.substring(0, 247) + '...'
       : texts.twitter;
     
     console.log(`Final Twitter text (${safeTwitterText.length} chars): ${safeTwitterText}`);
     
+    // Use object format for post to specify different text per platform
+    // This is the correct Ayrshare approach - twitterOptions is for metadata only
     const requestBody: any = {
-      post: texts.facebook, // Default text
-      platforms: ["facebook", "instagram", "twitter"],
-      facebookOptions: {
-        text: texts.facebook
+      post: {
+        facebook: texts.facebook,
+        instagram: texts.instagram,
+        twitter: safeTwitterText,
+        default: texts.facebook
       },
-      instagramOptions: {
-        text: texts.instagram
-      },
-      twitterOptions: {
-        text: safeTwitterText
-      }
+      platforms: ["facebook", "instagram", "twitter"]
     };
 
     // Add media if available
