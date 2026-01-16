@@ -1016,7 +1016,7 @@ serve(async (req) => {
     console.log("✅ Article published successfully:", insertedArticle?.slug);
 
     // Auto-post to LinkedIn
-    const articleUrl = `https://rimborsami.lovable.app/news/${uniqueSlug}`;
+    const articleUrl = `https://rimborsami.app/news/${uniqueSlug}`;
     try {
       console.log("📤 Posting to LinkedIn...");
       const linkedinResponse = await supabase.functions.invoke('post-to-linkedin', {
