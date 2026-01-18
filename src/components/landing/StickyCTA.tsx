@@ -10,12 +10,12 @@ const StickyCTA = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show after scrolling past hero section (approximately 600px)
-      const scrolled = window.scrollY > 600;
+      // Show after scrolling past hero section (approximately 400px on mobile)
+      const scrolled = window.scrollY > 400;
       setIsVisible(scrolled && !isDismissed);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isDismissed]);
 
@@ -26,24 +26,24 @@ const StickyCTA = () => {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 md:hidden"
+          transition={{ type: "spring", damping: 30, stiffness: 400 }}
+          className="fixed bottom-0 left-0 right-0 z-50 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden"
         >
-          <div className="bg-card/95 backdrop-blur-lg border border-border rounded-2xl p-4 shadow-2xl">
-            <div className="flex items-center justify-between gap-3">
+          <div className="bg-card/98 backdrop-blur-xl border border-border/80 rounded-2xl p-3 shadow-2xl">
+            <div className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">Scopri i tuoi rimborsi</p>
-                <p className="text-xs text-muted-foreground">Verifica gratuita in 2 min</p>
+                <p className="font-semibold text-sm">Scopri i tuoi rimborsi</p>
+                <p className="text-[11px] text-muted-foreground">Verifica gratuita • 2 min</p>
               </div>
-              <Button variant="hero" size="sm" className="shrink-0" asChild>
+              <Button variant="hero" size="sm" className="shrink-0 text-sm px-4 py-5" asChild>
                 <Link to="/auth?mode=signup">
-                  Inizia
+                  Inizia ora
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
               <button 
                 onClick={() => setIsDismissed(true)}
-                className="p-1 hover:bg-muted rounded-full transition-colors"
+                className="p-1.5 hover:bg-muted rounded-full transition-colors shrink-0"
                 aria-label="Chiudi"
               >
                 <X className="w-4 h-4 text-muted-foreground" />
@@ -65,7 +65,7 @@ export const StickyTopBar = () => {
       setIsVisible(window.scrollY > 600);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
