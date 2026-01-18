@@ -45,7 +45,10 @@ Deno.serve(async (req) => {
 
     const baseUrl = "https://rimborsami.app";
 
-    // Generate XML sitemap
+    // Get unique categories from opportunities for category pages
+    const categories = [...new Set(opportunities?.map(o => o.category) || [])];
+
+    // Generate XML sitemap - only public pages, not individual opportunities (they require login)
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Opportunities Index Page -->
@@ -54,18 +57,6 @@ Deno.serve(async (req) => {
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  ${opportunities?.map((opp) => {
-    const lastMod = opp.updated_at || opp.created_at;
-    const categorySlug = categoryLabels[opp.category] || opp.category;
-    
-    return `
-  <url>
-    <loc>${baseUrl}/opportunita/${categorySlug}/${opp.id}</loc>
-    <lastmod>${lastMod ? new Date(lastMod).toISOString() : new Date().toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-  }).join("") || ""}
 </urlset>`;
 
     console.log(`Generated opportunities sitemap with ${opportunities?.length || 0} opportunities`);
