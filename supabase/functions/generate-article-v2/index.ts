@@ -196,30 +196,50 @@ const SEO_CATEGORIES: Record<string, {
   }
 };
 
-// Visual elements for unique image generation
-const COMPOSITIONS = [
-  "close-up macro shot with shallow depth of field",
-  "wide establishing shot showing full scene",
-  "dramatic diagonal composition with leading lines",
-  "centered symmetrical view with balanced elements",
-  "rule of thirds off-center dynamic framing",
-  "birds eye view from above looking down",
-  "low angle hero shot looking up"
-];
+// ========================================
+// RIMBORSAMI.APP BRAND IDENTITY GUIDELINES
+// ========================================
+const RIMBORSAMI_BRAND_STYLE = `
+RIMBORSAMI.APP BRAND IDENTITY (MANDATORY - MUST FOLLOW):
+- Primary color: Emerald green (#2B9F6F - HSL 158 64% 42%) - represents trust, money, success
+- Accent color: Warm gold (#F5B625 - HSL 43 96% 56%) - represents victory, recovered money
+- Secondary: Deep emerald (#1a6b4a) for depth, Light mint (#e8f5f0) for backgrounds
+- Style: Clean, professional, trustworthy, modern Italian consumer rights design
+- Mood: Empowering, positive, money recovery success, Italian consumer protection
+- Core elements: Subtle emerald green gradients, gold highlights for success/money themes
+- Aesthetic: Premium editorial photography with integrated brand colors
+- ALWAYS: Include emerald green tones in background, lighting, or key elements
+- ALWAYS: Add subtle gold/warm accents for emphasis on success moments
+- NEVER: Use competitor brand colors as dominant (red, blue, orange)
+`;
 
-const LIGHTING_MOODS = [
-  "golden hour warm sunset lighting",
-  "cool blue morning natural light",
-  "dramatic side lighting with deep shadows",
-  "soft diffused studio lighting",
-  "vibrant colorful accent lighting"
-];
-
-const CAMERA_ANGLES = [
-  "straight on professional angle",
-  "slight dutch angle for dynamic feel",
-  "45 degree perspective view",
-  "over the shoulder contextual view"
+// Brand-consistent visual styles (reduced randomness for coherent brand identity)
+const BRAND_CONSISTENT_STYLES = [
+  {
+    composition: "clean centered subject with soft emerald gradient background",
+    lighting: "soft natural daylight with subtle warm golden rim highlights",
+    angle: "straight-on professional editorial view"
+  },
+  {
+    composition: "minimal flat lay with emerald green props and gold accents",
+    lighting: "bright studio lighting with green-tinted color temperature",
+    angle: "overhead documentary style"
+  },
+  {
+    composition: "dynamic diagonal with emerald-gold color blocking",
+    lighting: "cinematic lighting with warm golden key light",
+    angle: "slight low angle for empowerment feeling"
+  },
+  {
+    composition: "wide establishing shot with green-tinted atmospheric depth",
+    lighting: "golden hour warm lighting with emerald shadows",
+    angle: "45 degree perspective view"
+  },
+  {
+    composition: "rule of thirds with emerald accent elements",
+    lighting: "soft diffused lighting with mint green fill",
+    angle: "straight on professional angle"
+  }
 ];
 
 function buildSpecificElements(category: string, company: string): string {
@@ -297,7 +317,7 @@ function generateSlug(title: string): string {
     .replace(/-$/, "");
 }
 
-// Image generation function
+// Image generation function with brand consistency
 async function generateImage(
   articleTitle: string,
   company: string,
@@ -308,31 +328,40 @@ async function generateImage(
   supabaseUrl: string
 ): Promise<string | null> {
   try {
-    const composition = COMPOSITIONS[Math.floor(Math.random() * COMPOSITIONS.length)];
-    const lighting = LIGHTING_MOODS[Math.floor(Math.random() * LIGHTING_MOODS.length)];
-    const cameraAngle = CAMERA_ANGLES[Math.floor(Math.random() * CAMERA_ANGLES.length)];
+    // Select from brand-consistent styles instead of random combinations
+    const brandStyle = BRAND_CONSISTENT_STYLES[Math.floor(Math.random() * BRAND_CONSISTENT_STYLES.length)];
     const specificElements = buildSpecificElements(category, company);
 
     const imagePrompt = `Create a UNIQUE professional blog header image 16:9 aspect ratio.
 
-ARTICLE TITLE: "${articleTitle}"
-COMPANY/BRAND FOCUS: ${company}
-CATEGORY: ${category}
+${RIMBORSAMI_BRAND_STYLE}
 
-VISUAL ELEMENTS (MUST INCLUDE):
+ARTICLE CONTEXT:
+- Title: "${articleTitle}"
+- Company/Brand Focus: ${company}
+- Category: ${category}
+- Keyword: ${primaryKeyword}
+
+VISUAL ELEMENTS TO INCLUDE:
 ${specificElements}
 
-UNIQUE STYLE REQUIREMENTS:
-- Composition: ${composition}
-- Lighting: ${lighting}
-- Camera angle: ${cameraAngle}
-- Color palette: Modern with ${category} industry professional tones
+BRAND-ALIGNED STYLE (MANDATORY):
+- Composition: ${brandStyle.composition}
+- Lighting: ${brandStyle.lighting}
+- Camera angle: ${brandStyle.angle}
+
+COLOR REQUIREMENTS (CRITICAL):
+- Dominant tones: Emerald green (#2B9F6F) in backgrounds, lighting, or key elements
+- Accent highlights: Warm gold (#F5B625) for success/money related elements
+- Supporting: Mint green (#e8f5f0) for soft areas, deep emerald (#1a6b4a) for depth
+- Color grading: Green-gold harmonious palette throughout the image
 
 STRICT RULES:
-- ABSOLUTELY NO text, NO words, NO letters, NO numbers visible
-- High quality photorealistic editorial photography style
-- Ultra high resolution, vibrant colors
-- Make this image memorable and unique`;
+- ABSOLUTELY NO text, NO words, NO letters, NO numbers visible anywhere
+- Professional editorial photography style - premium quality
+- Ultra high resolution with vibrant brand colors
+- Image must feel part of Rimborsami.app visual identity
+- Avoid generic stock photo look - make it distinctive and branded`;
 
     console.log(`Generating image for: ${articleTitle}`);
 
@@ -494,7 +523,7 @@ Rispondi SOLO in formato JSON:
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
+      model: "google/gemini-2.5-flash",
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -659,7 +688,7 @@ Rispondi SOLO in formato JSON valido:
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
