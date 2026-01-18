@@ -34,8 +34,8 @@ serve(async (req) => {
 
     console.log(`Articles published today: ${articlesToday || 0}`);
 
-    // Target: 2 articles per day maximum (reduced for quality)
-    const targetDaily = 2;
+    // Target: 1 article per day (optimized for cost and quality)
+    const targetDaily = 1;
     const remaining = targetDaily - (articlesToday || 0);
 
     if (remaining <= 0) {
