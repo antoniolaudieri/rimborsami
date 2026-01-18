@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    const baseUrl = "https://rimborsami.lovable.app";
+    const baseUrl = "https://rimborsami.app";
 
     // Generate XML sitemap
     const xml = `<?xml version="1.0" encoding="UTF-8"?>

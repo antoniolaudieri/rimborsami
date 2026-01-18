@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNewsArticle } from '@/hooks/useNewsArticles';
 import { NewsCTA } from '@/components/news/NewsCTA';
 import { OpportunityCTA } from '@/components/news/OpportunityCTA';
+import { InsuranceAffiliate } from '@/components/news/InsuranceAffiliate';
 import { RelatedArticles } from '@/components/news/RelatedArticles';
 import { ShareDropdown } from '@/components/news/ShareDropdown';
 import { AuthorByline } from '@/components/news/AuthorByline';
@@ -439,6 +440,13 @@ export default function NewsArticle() {
                       </Badge>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Affiliate CTA for flight articles */}
+              {article.category === 'flight' && (
+                <div className="mt-8">
+                  <InsuranceAffiliate articleSlug={article.slug} source="article" />
                 </div>
               )}
 
