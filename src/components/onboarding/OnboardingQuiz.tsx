@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -11,7 +12,9 @@ import {
   Car, 
   Shield,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Clock,
+  Users
 } from "lucide-react";
 
 interface QuizOption {
@@ -170,14 +173,28 @@ const OnboardingQuiz = () => {
             Stima basata su dati storici
           </div>
         </div>
+
+        {/* Urgenza e social proof */}
+        <div className="flex items-center justify-center gap-4 mb-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Clock className="w-4 h-4 text-amber-500" />
+            <span>Verifica in 2 min</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Users className="w-4 h-4 text-primary" />
+            <span>127K+ utenti</span>
+          </div>
+        </div>
         
-        <Button variant="hero" size="xl" className="w-full group">
-          Scopri i dettagli
-          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+        <Button variant="hero" size="xl" className="w-full group" asChild>
+          <Link to={`/auth?mode=signup&estimate=${estimate.min}-${estimate.max}`}>
+            Sblocca i tuoi rimborsi gratis
+            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+          </Link>
         </Button>
         
         <p className="text-xs text-muted-foreground mt-4">
-          Collega email e documenti per una stima più precisa
+          ✓ Gratuito • ✓ Senza impegno • ✓ 100% sicuro
         </p>
       </motion.div>
     );

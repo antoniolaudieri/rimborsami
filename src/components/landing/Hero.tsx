@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Sparkles, TrendingUp, Star } from "lucide-react";
+import { ArrowRight, Shield, Sparkles, TrendingUp, Star, Clock, Users } from "lucide-react";
 import AppRating from "./AppRating";
 
 const Hero = () => {
@@ -18,11 +18,25 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left">
-            {/* Badge */}
+            {/* Live counter - NEW */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              className="flex items-center justify-center lg:justify-start gap-2 text-sm text-muted-foreground mb-4"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span>247 persone stanno verificando i loro rimborsi</span>
+            </motion.div>
+
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
             >
               <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-secondary rounded-full border border-primary/20 mb-4 sm:mb-6">
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
@@ -55,22 +69,45 @@ const Hero = () => {
               class action a cui hai diritto. Automaticamente.
             </motion.p>
 
-            {/* CTA buttons */}
+            {/* CTA buttons with urgency */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-6 sm:mb-8 px-4 sm:px-0"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-4 px-4 sm:px-0"
             >
               <Button variant="hero" size="lg" className="group w-full sm:w-auto" asChild>
                 <Link to="/auth?mode=signup">
-                  Scopri quanto puoi recuperare
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  <Clock className="w-4 h-4 mr-2" />
+                  Verifica gratis in 2 minuti
+                  <ArrowRight className="w-5 h-5 ml-1 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
                 <a href="#come-funziona">Come funziona</a>
               </Button>
+            </motion.div>
+
+            {/* Micro-testimonial - NEW */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+              className="flex items-center justify-center lg:justify-start gap-3 mb-6 sm:mb-8"
+            >
+              <div className="flex -space-x-2">
+                {["M", "L", "G"].map((initial, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white border-2 border-background"
+                  >
+                    {initial}
+                  </div>
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground italic">
+                "Ho recuperato €847 in 12 giorni" - Marco R.
+              </span>
             </motion.div>
 
             {/* App rating */}

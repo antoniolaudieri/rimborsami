@@ -1,11 +1,57 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, Shield, Sparkles, Zap } from "lucide-react";
+import { Check, Shield, Sparkles, Zap, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// Countdown timer hook
+const useCountdown = () => {
+  const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 14, minutes: 32 });
+
+  useEffect(() => {
+    // Get or set initial countdown end time
+    const stored = localStorage.getItem("pricingCountdownEnd");
+    let endTime: number;
+    
+    if (stored) {
+      endTime = parseInt(stored);
+    } else {
+      // Set countdown to 3 days from now
+      endTime = Date.now() + 3 * 24 * 60 * 60 * 1000;
+      localStorage.setItem("pricingCountdownEnd", endTime.toString());
+    }
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = endTime - now;
+
+      if (diff <= 0) {
+        // Reset countdown
+        const newEndTime = Date.now() + 3 * 24 * 60 * 60 * 1000;
+        localStorage.setItem("pricingCountdownEnd", newEndTime.toString());
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setTimeLeft({ days, hours, minutes });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return timeLeft;
+};
 
 const plans: {
   name: string;
   price: string;
+  originalPrice?: string;
   period: string;
   billingNote?: string;
   description: string;
@@ -55,6 +101,7 @@ const plans: {
   {
     name: "Pro",
     price: "€6.00",
+    originalPrice: "€9.99",
     period: "al mese",
     billingNote: "Fatturato annualmente (€71.99/anno)",
     description: "Il miglior valore. Risparmia oltre il 40%.",
@@ -74,6 +121,8 @@ const plans: {
 ];
 
 const Pricing = () => {
+  const countdown = useCountdown();
+
   return (
     <section className="py-12 sm:py-16 lg:py-24 bg-gradient-hero-bg" id="prezzi">
       <div className="container px-4 sm:px-6">
@@ -92,6 +141,22 @@ const Pricing = () => {
             Paghi solo se funziona. Con la nostra garanzia, recuperi almeno 
             quanto speso nel primo anno o ti rimborsiamo.
           </p>
+        </motion.div>
+
+        {/* Countdown urgency */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="flex justify-center mb-8 sm:mb-10 lg:mb-12"
+        >
+          <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-destructive/10 rounded-full border border-destructive/30">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+            <span className="font-semibold text-destructive text-sm sm:text-base">
+              Offerta scade tra: {countdown.days}g {countdown.hours}h {countdown.minutes}m
+            </span>
+          </div>
         </motion.div>
 
         {/* Guarantee badge */}
@@ -150,8 +215,13 @@ const Pricing = () => {
                 {plan.name}
               </h3>
 
-              {/* Price */}
+              {/* Price with anchor */}
               <div className="mb-1 sm:mb-2">
+                {plan.originalPrice && (
+                  <span className="text-lg text-muted-foreground line-through mr-2">
+                    {plan.originalPrice}
+                  </span>
+                )}
                 <span className="font-display text-3xl sm:text-4xl font-bold">{plan.price}</span>
                 <span className="text-muted-foreground ml-1 text-sm sm:text-base">/{plan.period}</span>
               </div>

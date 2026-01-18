@@ -10,6 +10,9 @@ import Testimonials from "@/components/landing/Testimonials";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
+import StickyCTA from "@/components/landing/StickyCTA";
+import ExitIntentPopup from "@/components/landing/ExitIntentPopup";
+import SocialProofToast from "@/components/landing/SocialProofToast";
 
 const Index = () => {
   // Update document title and meta for SPA navigation
@@ -50,6 +53,11 @@ const Index = () => {
         </article>
       </main>
       <Footer />
+      
+      {/* Conversion optimization components */}
+      <StickyCTA />
+      <ExitIntentPopup />
+      <SocialProofToast />
     </div>
   );
 };
