@@ -175,8 +175,8 @@ const Pricing = () => {
           </div>
         </motion.div>
 
-        {/* Pricing cards - stacked on mobile, horizontal scroll on tablet */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
+        {/* Pricing cards - horizontal scroll on mobile */}
+        <div className="flex overflow-x-auto gap-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:gap-6 max-w-5xl sm:mx-auto scrollbar-hide pb-2 sm:pb-0">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
@@ -184,7 +184,7 @@ const Pricing = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              className={`relative bg-card rounded-xl sm:rounded-2xl p-4 sm:p-6 border ${
+              className={`flex-shrink-0 w-[280px] sm:w-auto relative bg-card rounded-xl sm:rounded-2xl p-4 sm:p-6 border ${
                 plan.popular 
                   ? "border-primary shadow-glow" 
                   : "border-border/50"
