@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const baseUrl = "https://rimborsami.lovable.app";
+    const baseUrl = "https://rimborsami.app";
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const today = new Date().toISOString();
 
@@ -23,6 +23,10 @@ Deno.serve(async (req) => {
   </sitemap>
   <sitemap>
     <loc>${supabaseUrl}/functions/v1/sitemap-news</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${supabaseUrl}/functions/v1/sitemap-opportunities</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>`;

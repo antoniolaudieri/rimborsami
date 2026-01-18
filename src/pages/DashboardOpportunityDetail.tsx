@@ -14,6 +14,8 @@ import { Paywall } from '@/components/Paywall';
 import { CompanyLogo } from '@/components/opportunities/CompanyLogo';
 import DataCollectionForm from '@/components/opportunities/DataCollectionForm';
 import OutcomeFeedback from '@/components/opportunities/OutcomeFeedback';
+import { InsuranceAffiliate } from '@/components/news/InsuranceAffiliate';
+import { UtilityComparator } from '@/components/opportunities/UtilityComparator';
 import { generateRequestPdf } from '@/lib/generateRequestPdf';
 import {
   ArrowLeft,
@@ -643,6 +645,34 @@ export default function DashboardOpportunityDetail() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Category-specific affiliate widgets */}
+          {opp?.category === 'flight' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <InsuranceAffiliate 
+                source="opportunity" 
+                variant="compact" 
+              />
+            </motion.div>
+          )}
+
+          {(opp?.category === 'energy' || opp?.category === 'telecom') && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <UtilityComparator 
+                category={opp.category as 'energy' | 'telecom'}
+                opportunityId={opportunity.id}
+                source="opportunity"
+              />
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
