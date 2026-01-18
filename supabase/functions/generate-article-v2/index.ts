@@ -365,6 +365,7 @@ STRICT RULES:
 
     console.log(`Generating image for: ${articleTitle}`);
 
+    // Step 1: Generate the base article image
     const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
@@ -381,9 +382,63 @@ STRICT RULES:
     }
 
     const imageData = await imageResponse.json();
-    const base64Image = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    let base64Image = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     if (!base64Image) return null;
 
+    // Step 2: Add watermark/logo overlay using image editing
+    console.log("Adding Rimborsami watermark overlay...");
+    
+    const watermarkPrompt = `Add a subtle, professional watermark to this image.
+
+WATERMARK SPECIFICATIONS:
+- Position: Bottom-right corner of the image
+- Content: A small, elegant "R" monogram letter in a circular badge
+- Style: Semi-transparent (about 30-40% opacity), modern minimalist design
+- Colors: White or light mint green (#e8f5f0) with subtle drop shadow
+- Size: Small and discrete - approximately 5-8% of image width
+- Look: Premium brand watermark, like high-end photography studios use
+
+CRITICAL RULES:
+- Keep the watermark subtle and professional - NOT distracting
+- Do NOT alter the main image content in any way
+- The watermark should be visible but not dominant
+- Maintain the original image quality and colors
+- The "R" should look like a refined brand monogram`;
+
+    try {
+      const watermarkResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [{
+            role: "user",
+            content: [
+              { type: "text", text: watermarkPrompt },
+              { type: "image_url", image_url: { url: base64Image } }
+            ]
+          }],
+          modalities: ["image", "text"]
+        }),
+      });
+
+      if (watermarkResponse.ok) {
+        const watermarkData = await watermarkResponse.json();
+        const watermarkedImage = watermarkData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        if (watermarkedImage) {
+          base64Image = watermarkedImage;
+          console.log("Watermark added successfully");
+        } else {
+          console.log("Watermark generation returned no image, using original");
+        }
+      } else {
+        console.log("Watermark API call failed, using original image");
+      }
+    } catch (watermarkError) {
+      console.log("Watermark error, using original image:", watermarkError);
+    }
+
+    // Step 3: Upload final image to storage
     const base64Match = base64Image.match(/^data:image\/(\w+);base64,(.+)$/);
     if (!base64Match) return null;
 
