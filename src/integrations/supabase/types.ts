@@ -731,6 +731,7 @@ export type Database = {
       social_posts: {
         Row: {
           article_id: string | null
+          content_type: string | null
           created_at: string | null
           error_message: string | null
           id: string
@@ -741,6 +742,7 @@ export type Database = {
         }
         Insert: {
           article_id?: string | null
+          content_type?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
@@ -751,6 +753,7 @@ export type Database = {
         }
         Update: {
           article_id?: string | null
+          content_type?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string

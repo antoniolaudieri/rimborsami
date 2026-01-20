@@ -14,16 +14,173 @@ interface ArticleData {
   articleId?: string;
 }
 
+type ContentType = 'attraction' | 'education' | 'conversion';
+
+// Determine content type - LinkedIn favors education and thought leadership
+function determineLinkedInContentType(category: string = 'other'): ContentType {
+  // LinkedIn distribution: 50% education, 30% attraction, 20% conversion
+  const rand = Math.random();
+  
+  // Categories that work well for specific types on LinkedIn
+  const categoryBias: Record<string, ContentType> = {
+    flight: 'attraction',      // Emotional stories work
+    energy: 'education',       // Technical depth appreciated
+    bank: 'education',         // Professional audience wants insights
+    telecom: 'education',      
+    ecommerce: 'attraction',   // Relatable problems
+    class_action: 'education'  // Legal/professional content
+  };
+  
+  if (rand < 0.3 && categoryBias[category]) {
+    return categoryBias[category];
+  }
+  
+  if (rand < 0.5) return 'education';
+  if (rand < 0.8) return 'attraction';
+  return 'conversion';
+}
+
+// Get category-specific pain points and hooks
+function getCategoryContent(category: string): { 
+  painPoint: string; 
+  solution: string; 
+  stat: string;
+  question: string;
+} {
+  const content: Record<string, { painPoint: string; solution: string; stat: string; question: string }> = {
+    flight: {
+      painPoint: "Volo cancellato all'ultimo. Ore di attesa in aeroporto. E alla fine ti offrono solo un voucher da 50 euro.",
+      solution: "Recuperare fino a 600 euro di rimborso in meno di 5 minuti",
+      stat: "Solo il 10% dei passeggeri reclama il rimborso che gli spetta",
+      question: "Ti e mai capitato di rinunciare a un rimborso perche sembrava troppo complicato?"
+    },
+    energy: {
+      painPoint: "Bolletta da 800 euro. Nessuna spiegazione. Il servizio clienti che rimbalza tra operatori per ore.",
+      solution: "Analizzare la bolletta e identificare addebiti illegittimi in 60 secondi",
+      stat: "2 miliardi di euro: tanto pagano ogni anno gli italiani in bollette sbagliate",
+      question: "Quante volte hai pagato una bolletta senza controllarla davvero?"
+    },
+    bank: {
+      painPoint: "Commissioni nascoste che compaiono ogni mese. Piccole cifre che in un anno diventano centinaia di euro.",
+      solution: "Identificare commissioni illegittime e recuperare quanto ti spetta",
+      stat: "Il 67% degli italiani paga commissioni bancarie che non dovrebbe",
+      question: "Hai mai controllato davvero ogni riga del tuo estratto conto?"
+    },
+    telecom: {
+      painPoint: "Servizi premium attivati senza consenso. Bolletta raddoppiata. E la beffa di non riuscire a disattivarli.",
+      solution: "Bloccare i servizi non richiesti e ottenere il rimborso automatico",
+      stat: "3 milioni di italiani pagano ogni mese servizi telefonici mai richiesti",
+      question: "Hai mai trovato addebiti misteriosi sulla bolletta del telefono?"
+    },
+    ecommerce: {
+      painPoint: "Ordine pagato. Settimane di attesa. Il pacco non arriva mai. E l'assistenza clienti che sparisce.",
+      solution: "Aprire un reclamo efficace e ottenere il rimborso completo",
+      stat: "Su 100 pacchi persi, solo 12 persone ottengono un rimborso completo",
+      question: "Quanto tempo hai perso a inseguire un pacco che non arrivava?"
+    },
+    class_action: {
+      painPoint: "Migliaia di consumatori danneggiati dalla stessa azienda. Ognuno da solo non ha voce.",
+      solution: "Unirsi ad altri consumatori per ottenere giustizia collettiva",
+      stat: "Una singola class action ha fatto recuperare 47 milioni di euro ai consumatori italiani",
+      question: "Sai che potresti avere diritto a un risarcimento senza fare nulla da solo?"
+    }
+  };
+  
+  return content[category] || {
+    painPoint: "Soldi persi, ore di burocrazia, stress infinito. E alla fine la sensazione di non poter fare nulla.",
+    solution: "Recuperare i tuoi soldi in pochi minuti, senza stress",
+    stat: "L'80% degli italiani non reclama rimborsi che gli spettano di diritto",
+    question: "Quante volte hai rinunciato a soldi che ti spettavano?"
+  };
+}
+
 // Generate engaging, human-like post text using AI
-async function generateEngagingPost(data: ArticleData): Promise<string> {
+async function generateEngagingPost(data: ArticleData, contentType: ContentType): Promise<string> {
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
   
   if (!lovableApiKey) {
     console.log("No LOVABLE_API_KEY, using fallback post format");
-    return generateFallbackPost(data);
+    return generateFallbackPost(data, contentType);
   }
 
+  const categoryContent = getCategoryContent(data.category);
+
   try {
+    let systemPrompt = '';
+    
+    if (contentType === 'attraction') {
+      systemPrompt = `Sei un esperto di content marketing virale per LinkedIn. Scrivi per Rimborsami.app, piattaforma italiana per recuperare rimborsi.
+
+PRINCIPIO FONDAMENTALE: Vendi SCORCIATOIE, non vitamine!
+"Recupera 600 euro in 2 minuti" batte "Conosci i tuoi diritti" sempre.
+
+STRUTTURA OBBLIGATORIA:
+1. HOOK (prima riga): Inizia con una verita scioccante o una domanda provocatoria
+   Esempio: "${categoryContent.stat}" oppure "${categoryContent.question}"
+2. STORIA/SITUAZIONE: Descrivi una situazione comune e frustrante (3-4 righe)
+3. PLOT TWIST: Rivela che esiste una soluzione inaspettatamente semplice
+4. BENEFICIO CONCRETO: Cosa ottiene chi agisce (soldi, tempo, serenita)
+5. CTA: Invita a leggere/commentare/seguire
+
+REGOLE:
+- Tono: conversazionale, autentico, come un post personale
+- NO frasi corporate o da marketing ("scopri come", "non perdere")
+- MAX 1-2 emoji, solo se naturali
+- 2-3 hashtag pertinenti alla fine
+- 150-220 parole
+- INCLUDI SEMPRE il link all'articolo`;
+    
+    } else if (contentType === 'education') {
+      systemPrompt = `Sei un thought leader nel settore dei diritti dei consumatori su LinkedIn. Scrivi per Rimborsami.app.
+
+OBIETTIVO: Costruire autorita condividendo conoscenza pratica e distruggendo miti.
+
+STRUTTURA OBBLIGATORIA:
+1. HOOK: Domanda o affermazione che sfida una convinzione comune
+   Esempio: "${categoryContent.question}"
+2. MITO DA SFATARE: "Molti pensano che... Ma la realta e..."
+3. INSIGHT PRATICO: 2-3 punti concreti che il lettore puo usare subito
+4. DATO/STATISTICA: "${categoryContent.stat}"
+5. RIFLESSIONE: Connetti al problema sistemico piu ampio
+6. CTA SOFT: Invita a commentare o a leggere di piu
+
+REGOLE:
+- Tono: esperto ma accessibile, mai arrogante
+- Mostra di sapere cose che altri non sanno
+- Distruggi la convinzione "ci vuole troppo tempo/e troppo complicato"
+- NON vendere direttamente
+- MAX 1 emoji
+- 2-3 hashtag alla fine
+- 180-250 parole
+- INCLUDI il link all'articolo`;
+
+    } else { // conversion
+      systemPrompt = `Sei un copywriter specializzato in conversioni B2C su LinkedIn. Scrivi per Rimborsami.app.
+
+OBIETTIVO: Trasformare lettori frustrati in utenti attivi.
+
+STRUTTURA OBBLIGATORIA (PASC):
+1. PAIN (Dolore): Descrivi la situazione frustrante in modo vivido
+   "${categoryContent.painPoint}"
+2. AGITATE (Amplifica): Quanto costa NON agire (tempo, soldi, stress)
+3. SOLUTION (Soluzione): Presenta la scorciatoia
+   "${categoryContent.solution}"
+4. CTA (Call to Action): Azione specifica e facile
+
+MECCANISMO UNICO: "Rimborsami analizza la tua situazione in 60 secondi e ti dice esattamente cosa fare"
+
+SOCIAL PROOF: "Oltre 2.400 italiani hanno gia recuperato i loro soldi"
+
+REGOLE:
+- Parti SEMPRE dal dolore specifico, mai dalla soluzione
+- Tono: empatico ma deciso, urgente senza essere aggressivo
+- Mostra la trasformazione: da frustrato a sollevato
+- CTA chiaro: link + azione specifica
+- 120-180 parole
+- 2-3 hashtag alla fine
+- INCLUDI SEMPRE il link`;
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -33,31 +190,7 @@ async function generateEngagingPost(data: ArticleData): Promise<string> {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          {
-            role: "system",
-            content: `Sei un esperto di comunicazione social per un servizio italiano che aiuta i consumatori a ottenere rimborsi.
-
-OBIETTIVO: Scrivi post LinkedIn che sembrino scritti da una persona reale, non da un'IA.
-
-REGOLE FONDAMENTALI:
-- Inizia SEMPRE con un hook che parla di un problema reale (domanda retorica, situazione comune, dato sorprendente)
-- Usa un tono conversazionale, come se parlassi con un amico
-- Evita frasi corporate o da marketing ("scopri come", "non perdere", "clicca qui")
-- Varia lo stile: a volte breve e diretto, a volte più narrativo
-- Usa 1-2 emoji al massimo, in modo naturale
-- Massimo 2-3 hashtag pertinenti alla fine
-- Lunghezza ideale: 100-200 parole
-- NON usare mai: "Scopri come far valere i tuoi diritti", "Leggi l'articolo", "Link in bio"
-- Parla dei BENEFICI concreti (soldi recuperati, tempo risparmiato, stress evitato)
-- INCLUDI SEMPRE il link all'articolo nel testo del post
-
-STILI DA ALTERNARE:
-1. "Storia personale": "La settimana scorsa ho aiutato Marco a recuperare 400€ da..."
-2. "Domanda provocatoria": "Hai mai ricevuto una bolletta che ti sembrava troppo alta?"
-3. "Fatto sorprendente": "Il 70% degli italiani non sa che può chiedere un rimborso per..."
-4. "Consiglio pratico": "Un consiglio che do sempre: conserva sempre le ricevute..."
-5. "Problema comune": "Capita spesso: il volo viene cancellato e ti offrono solo un voucher..."`
-          },
+          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: `Scrivi un post LinkedIn per questo articolo:
@@ -67,101 +200,101 @@ RIASSUNTO: ${data.excerpt}
 CATEGORIA: ${data.category}
 URL ARTICOLO: ${data.url}
 
-Ricorda: il post deve sembrare scritto da una persona vera, non da un'IA. Sii autentico e conversazionale. Includi il link all'articolo nel post.`
+TIPO CONTENUTO: ${contentType.toUpperCase()}
+
+Ricorda: il post deve sembrare scritto da una persona vera. Includi il link all'articolo.`
           }
         ],
-        max_tokens: 500,
+        max_tokens: 600,
+        temperature: 0.8,
       }),
     });
 
     if (!response.ok) {
       console.error("AI generation failed:", await response.text());
-      return generateFallbackPost(data);
+      return generateFallbackPost(data, contentType);
     }
 
     const result = await response.json();
     const generatedText = result.choices?.[0]?.message?.content?.trim();
     
     if (!generatedText) {
-      return generateFallbackPost(data);
+      return generateFallbackPost(data, contentType);
     }
 
-    // Make sure the URL is included if AI forgot it
+    // Make sure the URL is included
     let finalText = generatedText;
     if (!finalText.includes(data.url)) {
       finalText += `\n\n${data.url}`;
     }
 
-    console.log("AI generated post:", finalText);
+    console.log(`AI generated ${contentType} LinkedIn post:`, finalText);
     return finalText;
   } catch (error) {
     console.error("Error generating post with AI:", error);
-    return generateFallbackPost(data);
+    return generateFallbackPost(data, contentType);
   }
 }
 
-// Fallback templates when AI is not available
-function generateFallbackPost(data: ArticleData): string {
-  const templates = [
-    // Template 1: Question hook
-    `Sai già cosa fare se ${getCategoryQuestion(data.category)}?\n\nMolti non lo sanno, ma hai diritto a un rimborso.\n\nHo scritto una guida pratica che spiega passo passo come ottenerlo:\n${data.url}\n\n#${getCategoryHashtag(data.category)} #diritticonsumatori`,
-    
-    // Template 2: Problem-solution
-    `${getCategoryProblem(data.category)}\n\nBuona notizia: puoi recuperare quei soldi.\n\nNella guida trovi tutto quello che ti serve sapere 👇\n${data.url}\n\n#rimborsi #consumatori`,
-    
-    // Template 3: Practical tip
-    `Un consiglio che do spesso a chi mi chiede di ${getCategoryAction(data.category)}:\n\nnon aspettare troppo. I termini per chiedere il rimborso scadono.\n\nQui trovi tutti i dettagli:\n${data.url}\n\n#${getCategoryHashtag(data.category)}`,
-  ];
+// Fallback templates based on content type
+function generateFallbackPost(data: ArticleData, contentType: ContentType): string {
+  const content = getCategoryContent(data.category);
+  
+  if (contentType === 'attraction') {
+    return `${content.stat}
 
-  return templates[Math.floor(Math.random() * templates.length)];
-}
+E sai qual e la cosa piu frustrante?
 
-function getCategoryQuestion(category: string): string {
-  const questions: Record<string, string> = {
-    flight: "il tuo volo viene cancellato all'ultimo minuto",
-    energy: "la bolletta ti sembra troppo alta",
-    bank: "la banca ti addebita commissioni che non riconosci",
-    telecom: "l'operatore telefonico ti attiva servizi non richiesti",
-    ecommerce: "il pacco non arriva o arriva danneggiato",
-    class_action: "scopri di essere stato danneggiato insieme a migliaia di altri consumatori",
-  };
-  return questions[category] || "un'azienda ti deve dei soldi";
-}
+${content.painPoint}
 
-function getCategoryProblem(category: string): string {
-  const problems: Record<string, string> = {
-    flight: "Volo cancellato. Ore di attesa. Nessuna spiegazione.",
-    energy: "Bolletta arrivata e il totale non torna. Ti suona familiare?",
-    bank: "Commissioni nascoste che spuntano dal nulla sul conto.",
-    telecom: "Abbonamenti attivati senza il tuo consenso. Succede più spesso di quanto pensi.",
-    ecommerce: "Ordine pagato, pacco mai arrivato. E l'assistenza che non risponde.",
-    class_action: "Quando un'azienda danneggia migliaia di persone, insieme si è più forti.",
-  };
-  return problems[category] || "Hai pagato per qualcosa che non hai ricevuto.";
-}
+Ma ecco il plot twist: ${content.solution}.
 
-function getCategoryAction(category: string): string {
-  const actions: Record<string, string> = {
-    flight: "rimborsi per voli",
-    energy: "bollette e conguagli",
-    bank: "problemi con la banca",
-    telecom: "problemi con l'operatore telefonico",
-    ecommerce: "acquisti online",
-    class_action: "azioni collettive",
-  };
-  return actions[category] || "recuperare soldi";
-}
+Non servono avvocati. Non servono ore di telefonate.
+Solo sapere come fare.
 
-function getCategoryHashtag(category: string): string {
-  const hashtags: Record<string, string> = {
-    flight: "rimborsoaereo",
-    energy: "bollette",
-    bank: "banche",
-    telecom: "telefonia",
-    ecommerce: "acquistionline",
-    class_action: "classaction",
-  };
-  return hashtags[category] || "rimborsi";
+${data.excerpt}
+
+Leggi la guida completa: ${data.url}
+
+#DirittiConsumatori #Rimborso #Italia`;
+  }
+  
+  if (contentType === 'education') {
+    return `${content.question}
+
+Ecco cosa ho imparato aiutando centinaia di persone:
+
+1. Le aziende contano sul fatto che tu non conosca i tuoi diritti
+2. La maggior parte delle richieste viene accolta SE fatta correttamente
+3. Il tempo che pensi di perdere e molto meno di quello che immagini
+
+${content.stat}
+
+Il sistema e fatto per scoraggiarti. Ma una volta che sai come funziona, tutto cambia.
+
+${data.excerpt}
+
+Approfondisci qui: ${data.url}
+
+#DirittiConsumatori #Educazione #ConsumerRights`;
+  }
+  
+  // conversion
+  return `${content.painPoint}
+
+Lo so perche lo sento ogni giorno.
+
+E so anche cosa pensi: "Non ne vale la pena", "Ci metto una vita", "Tanto non funziona".
+
+Ma se ti dicessi che ${content.solution}?
+
+Oltre 2.400 italiani lo hanno gia fatto con Rimborsami.app.
+
+Non devi fare tutto da solo.
+
+Clicca qui per scoprire se hai diritto a un rimborso: ${data.url}
+
+#Rimborso #Azione #SoldiRecuperati`;
 }
 
 async function postToLinkedIn(data: ArticleData, postText: string): Promise<{ success: boolean; postId?: string; error?: string }> {
@@ -174,7 +307,6 @@ async function postToLinkedIn(data: ArticleData, postText: string): Promise<{ su
 
   console.log("Posting as person ID:", personId);
 
-  // LinkedIn API v2 - Create a share as personal profile
   const postBody: any = {
     author: `urn:li:person:${personId}`,
     lifecycleState: "PUBLISHED",
@@ -248,7 +380,6 @@ async function postToLinkedIn(data: ArticleData, postText: string): Promise<{ su
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -261,7 +392,6 @@ Deno.serve(async (req) => {
     const data: ArticleData = await req.json();
     console.log("Received article data:", data);
 
-    // Validate required fields
     if (!data.title || !data.excerpt || !data.url) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: title, excerpt, url" }),
@@ -269,16 +399,20 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Determine content strategy type for LinkedIn
+    const contentType = determineLinkedInContentType(data.category);
+    console.log(`Selected LinkedIn content type: ${contentType} for category: ${data.category}`);
+
     // Generate engaging post text
     console.log("Generating engaging post text...");
-    const postText = await generateEngagingPost(data);
+    const postText = await generateEngagingPost(data, contentType);
     console.log("Generated post text:", postText);
 
     // Post to LinkedIn
     const result = await postToLinkedIn(data, postText);
     console.log("LinkedIn post result:", result);
 
-    // Log the social post attempt
+    // Log the social post attempt with content_type
     if (data.articleId) {
       await supabase.from("social_posts").insert({
         article_id: data.articleId,
@@ -286,7 +420,8 @@ Deno.serve(async (req) => {
         post_id: result.postId || null,
         status: result.success ? "posted" : "failed",
         error_message: result.error || null,
-        posted_at: result.success ? new Date().toISOString() : null
+        posted_at: result.success ? new Date().toISOString() : null,
+        content_type: contentType
       });
     }
 
@@ -302,6 +437,7 @@ Deno.serve(async (req) => {
         success: true, 
         postId: result.postId,
         postText: postText,
+        contentType: contentType,
         message: "Article posted to LinkedIn successfully" 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
