@@ -128,15 +128,16 @@ PRINCIPIO FONDAMENTALE: Vendi SCORCIATOIE, non vitamine!
 - "Recupera 600 euro in 2 minuti" > "Conosci i tuoi diritti"
 - "Risolvi tutto con un click" > "Informati sulla normativa"
 
-STRUTTURA OBBLIGATORIA:
-1. HOOK D'IMPATTO (primissima riga): verita scioccante o dato sorprendente che genera curiosita
-   Esempio: "${hooks.shock}"
-2. OPEN LOOP: anticipa che esiste una soluzione automatica/veloce (senza svelarla subito)
-3. AGITAZIONE: amplifica brevemente il problema comune
-4. TEASER SOLUZIONE: accenna alla scorciatoia
-5. CTA: invita a seguire/leggere per scoprire come
+USA QUESTA STRUTTURA (ma NON scrivere le etichette nel post!):
+1. Inizia con una verita scioccante o dato sorprendente: "${hooks.shock}"
+2. Anticipa che esiste una soluzione automatica/veloce (senza svelarla subito)
+3. Amplifica brevemente il problema comune
+4. Accenna alla scorciatoia
+5. Invita a seguire/leggere per scoprire come
 
-REGOLE:
+REGOLE CRITICHE:
+- NON scrivere MAI etichette come "HOOK:", "OPEN LOOP:", "AGITAZIONE:", "CTA:" nel post
+- Il post deve essere fluido e naturale, come se lo scrivesse una persona vera
 - Scrivi in italiano naturale, conversazionale
 - NO emoji (massimo 1-2 se serve)
 - Tono: tra l'indignato e l'empowering
@@ -158,15 +159,16 @@ PRINCIPIO: Distruggi le convinzioni limitanti del target:
 - "E troppo complicato" -> spiega in modo semplice
 - "Non ne vale la pena" -> mostra i numeri reali
 
-STRUTTURA OBBLIGATORIA:
-1. PROBLEMA COMUNE che il target riconosce subito
-   Esempio: "${hooks.question}"
-2. CONTENUTO EDUCATIVO: "3 cose che non sai su..." o "Ecco perche..."
-3. DIMOSTRAZIONE: spiega un concetto tecnico in modo semplice (crea autorita)
-4. CONFRONTO: vantaggio automatizzato vs fare tutto manualmente
-5. CTA SOFT: invita a approfondire (non vendere direttamente)
+USA QUESTA STRUTTURA (ma NON scrivere le etichette nel post!):
+1. Inizia con un problema comune che il target riconosce subito: "${hooks.question}"
+2. Condividi contenuto educativo: "3 cose che non sai su..." o "Ecco perche..."
+3. Spiega un concetto tecnico in modo semplice (crea autorita)
+4. Mostra il vantaggio automatizzato vs fare tutto manualmente
+5. Invita a approfondire (non vendere direttamente)
 
-REGOLE:
+REGOLE CRITICHE:
+- NON scrivere MAI etichette come "PROBLEMA:", "CONTENUTO:", "DIMOSTRAZIONE:", "CTA:" nel post
+- Il post deve essere fluido e naturale, come se lo scrivesse una persona vera
 - Scrivi in italiano professionale ma accessibile
 - NO emoji in eccesso (max 1-2)
 - Tono: esperto che condivide conoscenza, non venditore
@@ -188,15 +190,16 @@ PRINCIPIO: La vendita e una SCORCIATOIA al dolore, non una vitamina.
 - Presenta la SOLUZIONE come la via piu veloce
 - CTA che invita all'AZIONE immediata
 
-STRUTTURA OBBLIGATORIA:
-1. DOLORE SPECIFICO (prima riga): descrivi una situazione frustrante
-   Esempio: "${hooks.pain}"
-2. AMPLIFICAZIONE: quanto tempo/soldi/stress costa non risolvere
-3. MECCANISMO UNICO: "Rimborsami scioglie la burocrazia con un click"
-4. SOCIAL PROOF: "Oltre 2.400 rimborsi ottenuti" (o dato simile)
-5. CTA CONVERSAZIONALE: "Commenta RIMBORSO" o "Scrivi 'INFO' per ricevere..."
+USA QUESTA STRUTTURA (ma NON scrivere le etichette nel post!):
+1. Inizia descrivendo una situazione frustrante: "${hooks.pain}"
+2. Amplifica: quanto tempo/soldi/stress costa non risolvere
+3. Presenta il meccanismo unico: "Rimborsami scioglie la burocrazia con un click"
+4. Inserisci social proof: "Oltre 2.400 rimborsi ottenuti"
+5. Chiudi con CTA conversazionale: "Commenta RIMBORSO" o "Scrivi 'INFO' per ricevere..."
 
-REGOLE:
+REGOLE CRITICHE:
+- NON scrivere MAI etichette come "DOLORE:", "AMPLIFICAZIONE:", "SOCIAL PROOF:", "CTA:" nel post
+- Il post deve essere fluido e naturale, come se lo scrivesse una persona vera
 - Scrivi in italiano diretto e urgente
 - NO emoji (massimo 1)
 - Tono: empatico ma deciso
