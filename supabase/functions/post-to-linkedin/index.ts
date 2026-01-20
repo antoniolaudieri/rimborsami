@@ -159,19 +159,19 @@ REGOLE:
 
 OBIETTIVO: Trasformare lettori frustrati in utenti attivi.
 
-STRUTTURA OBBLIGATORIA (PASC):
-1. PAIN (Dolore): Descrivi la situazione frustrante in modo vivido
-   "${categoryContent.painPoint}"
-2. AGITATE (Amplifica): Quanto costa NON agire (tempo, soldi, stress)
-3. SOLUTION (Soluzione): Presenta la scorciatoia
-   "${categoryContent.solution}"
-4. CTA (Call to Action): Azione specifica e facile
+USA QUESTA STRUTTURA (ma NON scrivere le etichette nel post!):
+1. Inizia descrivendo la situazione frustrante in modo vivido: "${categoryContent.painPoint}"
+2. Amplifica il dolore: quanto costa NON agire (tempo, soldi, stress)
+3. Presenta la scorciatoia/soluzione: "${categoryContent.solution}"
+4. Chiudi con una call to action specifica e facile
 
 MECCANISMO UNICO: "Rimborsami analizza la tua situazione in 60 secondi e ti dice esattamente cosa fare"
 
-SOCIAL PROOF: "Oltre 2.400 italiani hanno gia recuperato i loro soldi"
+SOCIAL PROOF DA INSERIRE: "Oltre 2.400 italiani hanno gia recuperato i loro soldi"
 
-REGOLE:
+REGOLE CRITICHE:
+- NON scrivere MAI etichette come "PAIN:", "AGITATE:", "SOLUTION:", "CTA:", "SOCIAL PROOF:" nel post
+- Il post deve essere fluido e naturale, come se lo scrivesse una persona vera
 - Parti SEMPRE dal dolore specifico, mai dalla soluzione
 - Tono: empatico ma deciso, urgente senza essere aggressivo
 - Mostra la trasformazione: da frustrato a sollevato
