@@ -105,12 +105,45 @@ function getCategoryHook(category: string): { shock: string; question: string; p
   };
 }
 
+// Helper function to call Google AI directly
+async function callGoogleAI(prompt: string, systemPrompt?: string): Promise<string> {
+  const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+  
+  if (!GOOGLE_AI_KEY) {
+    throw new Error("GOOGLE_AI_API_KEY not configured");
+  }
+
+  const fullPrompt = systemPrompt 
+    ? `${systemPrompt}\n\n${prompt}`
+    : prompt;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+        generationConfig: { temperature: 0.8, maxOutputTokens: 2000 }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google AI API error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
 // Generate platform-optimized texts using AI with structured strategy
 async function generatePlatformTexts(data: ArticleData, contentType: ContentType): Promise<PlatformTexts> {
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+  const googleAiKey = Deno.env.get('GOOGLE_AI_API_KEY');
   
-  if (!lovableApiKey) {
-    console.log("No Lovable API key, using fallback texts");
+  if (!googleAiKey) {
+    console.log("No Google AI key, using fallback texts");
     return generateFallbackTexts(data, contentType);
   }
 
@@ -227,30 +260,7 @@ Rispondi SOLO con JSON valido:
   "twitter": "testo BREVE per twitter (max 200 caratteri)"
 }`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 2000,
-        temperature: 0.8,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("AI API error:", response.status);
-      return generateFallbackTexts(data, contentType);
-    }
-
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content;
+    const content = await callGoogleAI(userPrompt, systemPrompt);
     
     if (!content) {
       console.error("No content from AI");
