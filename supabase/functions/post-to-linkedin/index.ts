@@ -94,12 +94,12 @@ function getCategoryContent(category: string): {
   };
 }
 
-// Generate engaging, human-like post text using AI
+// Generate engaging, human-like post text using Groq AI
 async function generateEngagingPost(data: ArticleData, contentType: ContentType): Promise<string> {
-  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+  const groqApiKey = Deno.env.get("GROQ_API_KEY");
   
-  if (!lovableApiKey) {
-    console.log("No LOVABLE_API_KEY, using fallback post format");
+  if (!groqApiKey) {
+    console.log("No GROQ_API_KEY, using fallback post format");
     return generateFallbackPost(data, contentType);
   }
 
@@ -181,14 +181,14 @@ REGOLE CRITICHE:
 - INCLUDI SEMPRE il link`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
+        Authorization: `Bearer ${groqApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
           {

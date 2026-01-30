@@ -105,45 +105,49 @@ function getCategoryHook(category: string): { shock: string; question: string; p
   };
 }
 
-// Helper function to call Google AI directly
-async function callGoogleAI(prompt: string, systemPrompt?: string): Promise<string> {
-  const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+// Helper function to call Groq AI
+async function callGroqAI(prompt: string, systemPrompt?: string): Promise<string> {
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
   
-  if (!GOOGLE_AI_KEY) {
-    throw new Error("GOOGLE_AI_API_KEY not configured");
+  if (!GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY not configured");
   }
 
-  const fullPrompt = systemPrompt 
-    ? `${systemPrompt}\n\n${prompt}`
-    : prompt;
+  const messages: Array<{role: string; content: string}> = [];
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt });
+  }
+  messages.push({ role: "user", content: prompt });
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 2000 }
-      })
-    }
-  );
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${GROQ_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages,
+      temperature: 0.8,
+      max_tokens: 2000
+    })
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Google AI API error: ${response.status} - ${errorText}`);
+    throw new Error(`Groq API error: ${response.status} - ${errorText}`);
   }
 
   const result = await response.json();
-  return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return result.choices?.[0]?.message?.content || "";
 }
 
 // Generate platform-optimized texts using AI with structured strategy
 async function generatePlatformTexts(data: ArticleData, contentType: ContentType): Promise<PlatformTexts> {
-  const googleAiKey = Deno.env.get('GOOGLE_AI_API_KEY');
+  const groqApiKey = Deno.env.get('GROQ_API_KEY');
   
-  if (!googleAiKey) {
-    console.log("No Google AI key, using fallback texts");
+  if (!groqApiKey) {
+    console.log("No Groq API key, using fallback texts");
     return generateFallbackTexts(data, contentType);
   }
 
@@ -260,7 +264,7 @@ Rispondi SOLO con JSON valido:
   "twitter": "testo BREVE per twitter (max 200 caratteri)"
 }`;
 
-    const content = await callGoogleAI(userPrompt, systemPrompt);
+    const content = await callGroqAI(userPrompt, systemPrompt);
     
     if (!content) {
       console.error("No content from AI");

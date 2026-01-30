@@ -6,37 +6,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper function to call Google AI directly
-async function callGoogleAI(prompt: string, systemPrompt?: string, model: string = "gemini-2.0-flash"): Promise<string> {
-  const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+// Helper function to call Groq AI
+async function callGroqAI(prompt: string, systemPrompt?: string, model: string = "llama-3.3-70b-versatile"): Promise<string> {
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
   
-  if (!GOOGLE_AI_KEY) {
-    throw new Error("GOOGLE_AI_API_KEY not configured");
+  if (!GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY not configured");
   }
 
-  const fullPrompt = systemPrompt 
-    ? `${systemPrompt}\n\n${prompt}`
-    : prompt;
+  const messages: Array<{role: string; content: string}> = [];
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt });
+  }
+  messages.push({ role: "user", content: prompt });
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
-      })
-    }
-  );
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${GROQ_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.7,
+      max_tokens: 8192
+    })
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Google AI API error: ${response.status} - ${errorText}`);
+    throw new Error(`Groq API error: ${response.status} - ${errorText}`);
   }
 
   const result = await response.json();
-  return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return result.choices?.[0]?.message?.content || "";
 }
 
 // Helper to clean and parse JSON from AI responses
@@ -639,8 +643,8 @@ Rispondi SOLO in formato JSON:
   "company": "${company}"
 }`;
 
-  console.log("Running SEO Agent (gemini-2.0-flash)...");
-  const content = await callGoogleAI(prompt);
+  console.log("Running SEO Agent (Groq llama-3.3-70b)...");
+  const content = await callGroqAI(prompt);
   
   try {
     return parseAIJson(content);
@@ -787,8 +791,8 @@ Rispondi SOLO in formato JSON valido:
   "internalLinks": ["/quiz", "/opportunities"]
 }`;
 
-  console.log("Running Editorial Agent (gemini-2.0-flash)...");
-  const content = await callGoogleAI(userPrompt, systemPrompt);
+  console.log("Running Editorial Agent (Groq llama-3.3-70b)...");
+  const content = await callGroqAI(userPrompt, systemPrompt);
   
   return parseAIJson(content);
 }
@@ -852,10 +856,10 @@ Rispondi SOLO in formato JSON:
   "issues": ["problema 1", "problema 2"] o []
 }`;
 
-  console.log("Running Quality Agent (gemini-2.0-flash)...");
+  console.log("Running Quality Agent (Groq llama-3.3-70b)...");
   
   try {
-    const content = await callGoogleAI(prompt);
+    const content = await callGroqAI(prompt);
     return parseAIJson(content);
   } catch (e) {
     // Fallback with structural checks
