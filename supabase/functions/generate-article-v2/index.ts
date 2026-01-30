@@ -6,6 +6,75 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper function to call Google AI directly
+async function callGoogleAI(prompt: string, systemPrompt?: string, model: string = "gemini-2.0-flash"): Promise<string> {
+  const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+  
+  if (!GOOGLE_AI_KEY) {
+    throw new Error("GOOGLE_AI_API_KEY not configured");
+  }
+
+  const fullPrompt = systemPrompt 
+    ? `${systemPrompt}\n\n${prompt}`
+    : prompt;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google AI API error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+// Helper to clean and parse JSON from AI responses
+function parseAIJson(content: string): any {
+  // Remove markdown code blocks
+  let cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  
+  // Find JSON object
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error("No JSON object found in AI response");
+  }
+  
+  let jsonStr = jsonMatch[0];
+  
+  // Try to fix common JSON issues
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    // Try to fix trailing commas
+    jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+    
+    // Try to fix unescaped quotes in strings (common AI issue)
+    // This is a simplified fix - replaces newlines in content values
+    jsonStr = jsonStr.replace(/:\s*"([^"]*?)"/g, (match, content) => {
+      const escaped = content.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+      return `: "${escaped}"`;
+    });
+    
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e2) {
+      console.error("JSON parse failed even after cleaning. First 500 chars:", jsonStr.substring(0, 500));
+      throw new Error(`JSON parse error: ${e2 instanceof Error ? e2.message : 'Unknown error'}`);
+    }
+  }
+}
+
 // Category to author mapping
 const CATEGORY_AUTHOR_MAP: Record<string, string[]> = {
   flight: ["luca-benedetti", "sara-marchetti", "federico-colombo"],
@@ -463,7 +532,6 @@ CRITICAL RULES:
 
 // Agent 1: Advanced SEO Research
 async function agentSEO(
-  apiKey: string,
   category: string,
   categoryData: typeof SEO_CATEGORIES[string],
   recentArticles: { title: string; primary_keyword: string }[]
@@ -571,27 +639,13 @@ Rispondi SOLO in formato JSON:
   "company": "${company}"
 }`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`SEO Agent failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "";
+  console.log("Running SEO Agent (gemini-2.0-flash)...");
+  const content = await callGoogleAI(prompt);
   
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
+  try {
+    return parseAIJson(content);
+  } catch (e) {
+    console.log("SEO Agent JSON parsing failed, using fallback");
     const randomKeyword = availableKeywords[Math.floor(Math.random() * availableKeywords.length)];
     return {
       keyword: randomKeyword,
@@ -606,13 +660,10 @@ Rispondi SOLO in formato JSON:
       company,
     };
   }
-
-  return JSON.parse(jsonMatch[0]);
 }
 
 // Agent 2: Advanced Editorial Writer
 async function agentEditorial(
-  apiKey: string,
   brief: {
     keyword: string;
     searchIntent: string;
@@ -736,42 +787,14 @@ Rispondi SOLO in formato JSON valido:
   "internalLinks": ["/quiz", "/opportunities"]
 }`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Editorial Agent failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "";
+  console.log("Running Editorial Agent (gemini-2.0-flash)...");
+  const content = await callGoogleAI(userPrompt, systemPrompt);
   
-  // Clean JSON from markdown code blocks
-  let cleanContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-  
-  const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Editorial Agent returned invalid JSON");
-  }
-
-  return JSON.parse(jsonMatch[0]);
+  return parseAIJson(content);
 }
 
 // Agent 3: Quality Check & Deduplication
 async function agentQualityCheck(
-  apiKey: string,
   article: {
     title: string;
     content: string;
@@ -829,27 +852,12 @@ Rispondi SOLO in formato JSON:
   "issues": ["problema 1", "problema 2"] o []
 }`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Quality Check Agent failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "";
+  console.log("Running Quality Agent (gemini-2.0-flash)...");
   
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
+  try {
+    const content = await callGoogleAI(prompt);
+    return parseAIJson(content);
+  } catch (e) {
     // Fallback with structural checks
     const structureScore = [hasInfoBox, hasFAQ, hasTable, hasBlockquote, hasInternalLinks].filter(Boolean).length;
     return {
@@ -859,8 +867,6 @@ Rispondi SOLO in formato JSON:
       issues: wordCount < 1000 ? ["Articolo potrebbe essere più lungo"] : [],
     };
   }
-
-  return JSON.parse(jsonMatch[0]);
 }
 
 serve(async (req) => {
@@ -923,9 +929,8 @@ serve(async (req) => {
     console.log(`Selected category: ${targetCategory}`);
 
     // AGENT 1: Advanced SEO Research
-    console.log("Running SEO Agent (gemini-2.5-pro)...");
+    console.log("Running SEO Agent (gemini-2.0-flash)...");
     const seoBrief = await agentSEO(
-      lovableApiKey,
       targetCategory,
       categoryData,
       recentArticles?.map((a) => ({ title: a.title, primary_keyword: a.primary_keyword })) || []
@@ -954,9 +959,8 @@ serve(async (req) => {
     const selectedOpportunity = opportunities?.[Math.floor(Math.random() * (opportunities?.length || 1))] || null;
 
     // AGENT 2: Advanced Editorial Writing
-    console.log("Running Editorial Agent (gemini-2.5-pro)...");
+    console.log("Running Editorial Agent (gemini-2.0-flash)...");
     const articleContent = await agentEditorial(
-      lovableApiKey,
       seoBrief,
       targetCategory,
       selectedOpportunity ? {
@@ -970,9 +974,8 @@ serve(async (req) => {
     console.log("Article generated:", articleContent.title);
 
     // AGENT 3: Quality Check
-    console.log("Running Quality Check Agent...");
+    console.log("Running Quality Check Agent (gemini-2.0-flash)...");
     const qualityResult = await agentQualityCheck(
-      lovableApiKey,
       {
         title: articleContent.title,
         content: articleContent.content,
