@@ -1,109 +1,133 @@
 
+# Piano: Aumento Traffico + Ottimizzazione Conversioni
 
-# Piano: Generazione Articoli senza Lovable AI
+## Contesto Attuale
+- **Traffico**: ~12 visitatori/giorno (in calo)
+- **Registrazioni**: 3 totali (~1% conversione)
+- **Contenuti**: 65 articoli pubblicati, cron attivi per 2 articoli/giorno
+- **Social**: Automazione configurata (Ayrshare + LinkedIn) ma probabilmente inattiva
 
-## Obiettivo
-Sostituire Lovable AI Gateway con API dirette di provider AI (es. Google AI, OpenAI, o provider economici/gratuiti).
+---
 
-## Opzioni Disponibili
+## PARTE 1: Aumento Acquisizione Traffico
 
-| Provider | Costo | Pro | Contro |
-|----------|-------|-----|--------|
-| **Google AI (Gemini)** | ~$0.001-0.003/1K tokens | Stesso modello usato ora, veloce | Richiede API key Google |
-| **OpenAI** | ~$0.002-0.01/1K tokens | Alta qualità | Più costoso |
-| **Groq** | Gratuito (rate limited) | Velocissimo, gratis | Rate limit severi |
-| **Together AI** | ~$0.0002/1K tokens | Molto economico | Qualità leggermente inferiore |
-| **Mistral AI** | ~$0.0004/1K tokens | Buon rapporto qualità/prezzo | Meno potente per italiano |
+### 1.1 Riattivare Pubblicazione Social Automatica
+La generazione articoli è attiva (cron alle 09:00 e 15:00), ma la pubblicazione social dopo ogni articolo non è automatica.
 
-## Soluzione Raccomandata: Google AI Diretto
+**Azione**: Modificare `generate-article-v2` per chiamare automaticamente `post-to-ayrshare` e `post-to-linkedin` dopo ogni articolo generato con successo.
 
-Google AI Studio offre una quota gratuita generosa e prezzi molto bassi.
+### 1.2 Migliorare SEO Tecnico
+**Azioni**:
+- Aggiungere meta tags Open Graph dinamici per ogni pagina
+- Implementare breadcrumbs strutturati per la navigazione
+- Verificare che sitemap e robots.txt siano correttamente indicizzati
 
-### Implementazione Tecnica
+### 1.3 Aggiungere Condivisione Articoli
+**Azione**: Aggiungere pulsanti di condivisione social su ogni articolo news per aumentare la viralità organica.
 
-#### 1. Ottenere API Key Google AI
-- Vai su https://aistudio.google.com/apikey
-- Crea una nuova API key (gratuito)
-- Aggiungi come secret: `GOOGLE_AI_API_KEY`
+---
 
-#### 2. Modifiche all'Edge Function
+## PARTE 2: Ottimizzazione Funnel Conversione
 
-**File:** `supabase/functions/generate-article-v2/index.ts`
+### 2.1 Aggiungere Login con Google (Priorità Alta)
+Riduce drasticamente l'attrito alla registrazione (1 click vs 4 campi + conferma email).
 
-Sostituire tutte le chiamate da:
-```typescript
-// DA (Lovable AI Gateway)
-const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-  headers: { Authorization: `Bearer ${lovableApiKey}` },
-  body: JSON.stringify({ model: "google/gemini-2.5-flash", ... })
-});
+**Implementazione**:
+- Configurare Google OAuth tramite Lovable Cloud
+- Aggiungere pulsante "Continua con Google" nella pagina Auth
+- Mantenere anche l'opzione email/password come fallback
+
+### 2.2 Semplificare il Funnel
+**Problema attuale**: 
+```text
+Landing → Quiz (4 step) → Auth → Onboarding Quiz → Dashboard
 ```
 
-A:
-```typescript
-// A (Google AI Diretto)
-const GOOGLE_AI_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-const response = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_KEY}`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7 }
-    })
-  }
-);
+**Nuovo flusso**:
+```text
+Landing → Auth (con Google 1-click) → Dashboard
+         ↓
+      Quiz opzionale (inline o post-login)
 ```
 
-#### 3. Funzioni da Modificare
+**Azioni**:
+- Rendere il quiz pre-signup opzionale (non bloccare la registrazione)
+- Spostare l'onboarding quiz dentro la dashboard come step consigliato
 
-| Funzione | Linee | Chiamate AI |
-|----------|-------|-------------|
-| `agentSEO()` | 465-611 | 1 chiamata |
-| `agentEditorial()` | 614-800+ | 1 chiamata |
-| `agentQuality()` | ~850-950 | 1 chiamata |
-| `generateImage()` | 321-461 | 2 chiamate (immagine + watermark) |
+### 2.3 CTA Ubique su Desktop + Mobile
+**Problema**: StickyCTA è solo mobile, ExitIntentPopup è solo desktop.
 
-#### 4. Gestione Immagini
+**Azioni**:
+- Aggiungere `StickyTopBar` anche su Index (già esiste ma non è usato)
+- Mostrare ExitIntentPopup anche su mobile (con adattamento UI)
 
-Per le immagini, due opzioni:
+### 2.4 Micro-conversioni Alternative
+Per chi non vuole registrarsi subito, catturare comunque il lead.
 
-**Opzione A:** Continuare con Lovable AI solo per immagini (costo minore)
+**Azione**: Aggiungere opzione "Ricevi la guida gratuita via email" come alternativa soft alla registrazione completa.
 
-**Opzione B:** Usare immagini stock gratuite da Unsplash/Pexels via API
-```typescript
-const imageUrl = `https://source.unsplash.com/1200x630/?${encodeURIComponent(keyword)}`;
+---
+
+## Dettagli Tecnici
+
+### File da Modificare
+
+| File | Modifica |
+|------|----------|
+| `supabase/functions/generate-article-v2/index.ts` | Aggiungere chiamata a post-to-ayrshare e post-to-linkedin dopo generazione articolo |
+| `src/pages/Auth.tsx` | Aggiungere pulsante Google OAuth + semplificare UI |
+| `src/contexts/AuthContext.tsx` | Aggiungere metodo `signInWithGoogle` |
+| `src/pages/Index.tsx` | Importare e usare `StickyTopBar` |
+| `src/components/landing/ExitIntentPopup.tsx` | Abilitare anche su mobile con UI adattata |
+| `src/components/landing/StickyCTA.tsx` | Verificare che sia attivo anche su tablet |
+
+### Configurazione Google OAuth
+Utilizzeremo la soluzione gestita di Lovable Cloud (non richiede configurazione manuale).
+
+### Flusso Social Automatico Post-Articolo
+
+```text
+┌──────────────────────────────────────────────────────────┐
+│                   CRON (09:00 / 15:00)                   │
+└────────────────────────────┬─────────────────────────────┘
+                             │
+                             ▼
+                   ┌─────────────────────┐
+                   │  generate-article-v2 │
+                   │  (Groq AI)           │
+                   └──────────┬──────────┘
+                              │ Articolo salvato
+                              ▼
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+    ┌─────────────────┐             ┌─────────────────┐
+    │ post-to-ayrshare │             │ post-to-linkedin │
+    │ (FB, IG, X)      │             │ (LinkedIn)       │
+    └─────────────────┘             └─────────────────┘
 ```
 
-#### 5. Stessa Modifica per Post Social
+---
 
-**Files:**
-- `supabase/functions/post-to-linkedin/index.ts`
-- `supabase/functions/post-to-ayrshare/index.ts`
+## Impatto Atteso
 
-### Costi Stimati
+| Metrica | Attuale | Obiettivo 30gg |
+|---------|---------|----------------|
+| Visitatori/giorno | 12 | 50-100 |
+| Tasso conversione | 1% | 5-8% |
+| Registrazioni/mese | 3 | 75-240 |
 
-| Scenario | Lovable AI | Google AI Diretto |
-|----------|------------|-------------------|
-| 1 articolo (4 chiamate) | ~0.02-0.04 crediti | ~$0.01-0.02 |
-| 30 articoli/mese | ~1 credito | ~$0.30-0.60 |
-| Post social (30/mese) | ~0.5 crediti | ~$0.15 |
+---
 
-### Passaggi di Implementazione
+## Priorità Implementazione
 
-1. Creare API key su Google AI Studio
-2. Aggiungere secret `GOOGLE_AI_API_KEY`
-3. Creare helper function per chiamate Google AI
-4. Aggiornare `generate-article-v2` con nuovo provider
-5. Aggiornare `post-to-linkedin` e `post-to-ayrshare`
-6. Testare generazione singolo articolo
-7. (Opzionale) Sostituire generazione immagini con Unsplash
+1. **Google OAuth** - Massimo impatto su conversioni
+2. **Social automatico** - Traffico gratuito
+3. **CTA desktop** - Quick win
+4. **Semplificazione funnel** - Rimuove barriere
 
-### Note Importanti
+---
 
-- La quota gratuita Google AI è di ~60 richieste/minuto
-- I modelli Gemini 2.0 Flash sono equivalenti a quelli usati da Lovable AI
-- Nessun impatto sulla qualità degli articoli
-- Mantieni `LOVABLE_API_KEY` come fallback se preferisci
-
+## Dipendenze
+- Nessuna nuova API key richiesta (Google OAuth è gestito da Lovable Cloud)
+- Tutti i secret necessari sono già configurati (GROQ_API_KEY, AYRSHARE_API_KEY, LINKEDIN_*)
