@@ -8,28 +8,33 @@ const ExitIntentPopup = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [hasShown, setHasShown] = useState(false);
   const [answer, setAnswer] = useState<"yes" | "no" | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const showPopup = useCallback(() => {
+    // Check if user hasn't seen this recently
+    const lastShown = localStorage.getItem("exitPopupShown");
+    const now = Date.now();
+    
+    // Don't show if shown in last 24 hours
+    if (lastShown && now - parseInt(lastShown) < 24 * 60 * 60 * 1000) {
+      return;
+    }
+    
+    setIsVisible(true);
+    setHasShown(true);
+    localStorage.setItem("exitPopupShown", now.toString());
+  }, []);
 
   const handleMouseLeave = useCallback((e: MouseEvent) => {
     // Only trigger when mouse moves to top of viewport (exit intent)
     if (e.clientY <= 10 && !hasShown) {
-      // Check if user hasn't seen this recently
-      const lastShown = localStorage.getItem("exitPopupShown");
-      const now = Date.now();
-      
-      // Don't show if shown in last 24 hours
-      if (lastShown && now - parseInt(lastShown) < 24 * 60 * 60 * 1000) {
-        return;
-      }
-      
-      setIsVisible(true);
-      setHasShown(true);
-      localStorage.setItem("exitPopupShown", now.toString());
+      showPopup();
     }
-  }, [hasShown]);
+  }, [hasShown, showPopup]);
 
+  // Desktop: exit intent via mouse leave
   useEffect(() => {
-    // Only add listener on desktop
-    if (window.innerWidth < 768) return;
+    if (isMobile) return;
     
     // Delay adding listener to avoid triggering immediately
     const timeout = setTimeout(() => {
@@ -40,7 +45,52 @@ const ExitIntentPopup = () => {
       clearTimeout(timeout);
       document.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [handleMouseLeave]);
+  }, [handleMouseLeave, isMobile]);
+
+  // Detect mobile and set up mobile trigger (scroll up after scrolling down)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Mobile: trigger after significant scroll and back-scroll (exit intent simulation)
+  useEffect(() => {
+    if (!isMobile || hasShown) return;
+
+    let maxScroll = 0;
+    let triggered = false;
+
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      const pageHeight = document.body.scrollHeight - window.innerHeight;
+      
+      // Track max scroll position
+      if (currentScroll > maxScroll) {
+        maxScroll = currentScroll;
+      }
+      
+      // Trigger if user scrolled at least 50% of page and then scrolled back up significantly
+      const scrolledPercentage = maxScroll / pageHeight;
+      const scrolledBack = maxScroll - currentScroll > 200;
+      
+      if (scrolledPercentage > 0.5 && scrolledBack && !triggered) {
+        triggered = true;
+        showPopup();
+      }
+    };
+
+    // Delay adding listener
+    const timeout = setTimeout(() => {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    }, 10000); // Wait 10 seconds on mobile before enabling
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isMobile, hasShown, showPopup]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -70,7 +120,7 @@ const ExitIntentPopup = () => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative bg-card rounded-3xl p-8 max-w-md w-full shadow-2xl border border-border"
+            className="relative bg-card rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border max-h-[90vh] overflow-y-auto"
           >
             {/* Close button */}
             <button
