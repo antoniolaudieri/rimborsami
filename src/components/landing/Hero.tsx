@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Sparkles, TrendingUp, Star, Clock, Users } from "lucide-react";
-import AppRating from "./AppRating";
+import { ArrowRight, Shield, Sparkles, Clock, Search, FileText, Zap } from "lucide-react";
 
 const Hero = () => {
   return (
     <section className="relative min-h-[85svh] sm:min-h-[100svh] bg-gradient-hero-bg overflow-hidden">
-      {/* Background decorations - smaller on mobile */}
+      {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-20 -right-20 w-32 sm:w-72 lg:w-96 h-32 sm:h-72 lg:h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute top-1/2 -left-10 w-24 sm:w-56 lg:w-72 h-24 sm:h-56 lg:h-72 bg-accent/10 rounded-full blur-3xl" />
@@ -17,21 +16,7 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left">
-            {/* Live counter - smaller on mobile */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex items-center justify-center lg:justify-start gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              <span>247 persone stanno verificando ora</span>
-            </motion.div>
-
-            {/* Badge - compact on mobile */}
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -40,12 +25,12 @@ const Hero = () => {
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary rounded-full border border-primary/20 mb-3 sm:mb-6">
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 <span className="text-[11px] sm:text-sm font-medium text-secondary-foreground">
-                  Oltre €500M recuperati
+                  Analisi gratuita in 60 secondi
                 </span>
               </div>
             </motion.div>
 
-            {/* Main heading - optimized for mobile */}
+            {/* Main heading */}
             <motion.h1
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -57,7 +42,7 @@ const Hero = () => {
               <span className="text-gradient-hero">dei soldi.</span>
             </motion.h1>
 
-            {/* Subtitle - shorter on mobile */}
+            {/* Subtitle */}
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -68,12 +53,12 @@ const Hero = () => {
               <span className="hidden sm:inline">Rimborsami scansiona le tue email per trovare rimborsi, compensazioni e class action a cui hai diritto. Automaticamente.</span>
             </motion.p>
 
-            {/* CTA buttons - single CTA on mobile */}
+            {/* CTA buttons */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-3 sm:mb-4"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-4 sm:mb-8"
             >
               <Button variant="hero" size="lg" className="group w-full sm:w-auto text-[15px] py-6 sm:py-3" asChild>
                 <Link to="/auth?mode=signup">
@@ -87,36 +72,21 @@ const Hero = () => {
               </Button>
             </motion.div>
 
-            {/* Micro-testimonial - compact on mobile */}
+            {/* Trust badges */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
-              className="flex items-center justify-center lg:justify-start gap-2 sm:gap-3 mb-4 sm:mb-8"
+              className="flex items-center justify-center lg:justify-start gap-4 text-xs sm:text-sm text-muted-foreground"
             >
-              <div className="flex -space-x-2">
-                {["M", "L", "G"].map((initial, i) => (
-                  <div
-                    key={i}
-                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-[10px] sm:text-xs font-bold text-white border-2 border-background"
-                  >
-                    {initial}
-                  </div>
-                ))}
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-primary" />
+                <span>100% GDPR</span>
               </div>
-              <span className="text-xs sm:text-sm text-muted-foreground italic">
-                "€847 in 12 giorni" - Marco R.
-              </span>
-            </motion.div>
-
-            {/* App rating - smaller on mobile */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="flex justify-center lg:justify-start"
-            >
-              <AppRating rating={4.8} reviews="2.500+" />
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-primary" />
+                <span>Gratis per iniziare</span>
+              </div>
             </motion.div>
           </div>
 
@@ -143,13 +113,11 @@ const Hero = () => {
                   
                   {/* App content mockup */}
                   <div className="p-4 space-y-4 min-h-[500px]">
-                    {/* Header */}
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground">Puoi recuperare fino a</p>
                       <p className="text-3xl font-display font-bold text-gradient-hero">€1.247</p>
                     </div>
                     
-                    {/* Opportunity cards */}
                     {[
                       { title: "Ryanair - Volo in ritardo", amount: "€400", category: "Voli", urgent: true },
                       { title: "TIM - Bolletta errata", amount: "€127", category: "Telecom", urgent: false },
@@ -175,7 +143,6 @@ const Hero = () => {
                       </motion.div>
                     ))}
 
-                    {/* CTA button */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -207,27 +174,11 @@ const Hero = () => {
                   </div>
                 </div>
               </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1 }}
-                className="absolute -right-12 bottom-32 bg-card rounded-xl p-3 shadow-lg border border-border/50"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-3 h-3 fill-accent text-accent" />
-                    ))}
-                  </div>
-                  <span className="text-xs font-medium">4.8</span>
-                </div>
-              </motion.div>
             </div>
           </motion.div>
         </div>
 
-        {/* Stats cards - more compact on mobile */}
+        {/* Stats cards - real data */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -235,9 +186,9 @@ const Hero = () => {
           className="mt-6 sm:mt-16 grid grid-cols-3 gap-2 sm:gap-6 max-w-3xl mx-auto"
         >
           {[
-            { value: "127K+", label: "Utenti" },
-            { value: "€54M", label: "Recuperati" },
-            { value: "4.8★", label: "Rating" },
+            { icon: Search, value: "66+", label: "Opportunità attive" },
+            { icon: FileText, value: "6", label: "Categorie" },
+            { icon: Zap, value: "2 min", label: "Per iniziare" },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -246,6 +197,7 @@ const Hero = () => {
               transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
               className="bg-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 shadow-md border border-border/50 text-center"
             >
+              <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto mb-1" />
               <div className="text-lg sm:text-3xl font-display font-bold text-gradient-hero mb-0.5">
                 {stat.value}
               </div>
@@ -254,7 +206,7 @@ const Hero = () => {
           ))}
         </motion.div>
 
-        {/* Mobile trust badges - inline */}
+        {/* Mobile trust badges */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -266,8 +218,8 @@ const Hero = () => {
             <span>GDPR</span>
           </div>
           <div className="flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5 text-primary" />
-            <span>€847 medio</span>
+            <Zap className="w-3.5 h-3.5 text-primary" />
+            <span>100% gratuito</span>
           </div>
         </motion.div>
       </div>
