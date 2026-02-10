@@ -12,7 +12,7 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 import StickyCTA, { StickyTopBar } from "@/components/landing/StickyCTA";
 import ExitIntentPopup from "@/components/landing/ExitIntentPopup";
-import SocialProofToast from "@/components/landing/SocialProofToast";
+// SocialProofToast rimosso - mostrava notifiche false
 
 const Index = () => {
   // Update document title and meta for SPA navigation
