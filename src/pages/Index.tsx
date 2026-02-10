@@ -22,7 +22,7 @@ const Index = () => {
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute("content", "Scopri automaticamente rimborsi e compensazioni che ti spettano: voli cancellati, bollette errate, class action. Oltre €54M recuperati per gli italiani. Inizia gratis.");
+      metaDescription.setAttribute("content", "Scopri automaticamente rimborsi e compensazioni che ti spettano: voli cancellati, bollette errate, class action. Analisi gratuita in 2 minuti.");
     }
   }, []);
 
