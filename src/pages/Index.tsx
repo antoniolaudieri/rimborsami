@@ -58,7 +58,7 @@ const Index = () => {
       <StickyTopBar />
       <StickyCTA />
       <ExitIntentPopup />
-      <SocialProofToast />
+      {/* SocialProofToast rimosso */}
     </div>
   );
 };
