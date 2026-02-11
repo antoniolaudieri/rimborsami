@@ -59,3 +59,9 @@ verify_jwt = false
 
 [functions.post-to-linkedin]
 verify_jwt = false
+
+[functions.content-repurposer]
+verify_jwt = false
+
+[functions.viral-scheduler]
+verify_jwt = false

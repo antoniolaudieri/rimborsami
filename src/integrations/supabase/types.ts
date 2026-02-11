@@ -103,6 +103,44 @@ export type Database = {
         }
         Relationships: []
       }
+      content_reposts: {
+        Row: {
+          article_id: string | null
+          created_at: string
+          format: string
+          id: string
+          platform: string
+          post_text: string
+          posted_at: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string
+          format: string
+          id?: string
+          platform: string
+          post_text: string
+          posted_at?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string
+          format?: string
+          id?: string
+          platform?: string
+          post_text?: string
+          posted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_reposts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string

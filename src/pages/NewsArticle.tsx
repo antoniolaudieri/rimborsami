@@ -6,6 +6,7 @@ import { OpportunityCTA } from '@/components/news/OpportunityCTA';
 import { InsuranceAffiliate } from '@/components/news/InsuranceAffiliate';
 import { RelatedArticles } from '@/components/news/RelatedArticles';
 import { ShareDropdown } from '@/components/news/ShareDropdown';
+import { ArticleShareCTA } from '@/components/news/ArticleShareCTA';
 import { AuthorByline } from '@/components/news/AuthorByline';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -422,6 +423,13 @@ export default function NewsArticle() {
                   [&_td:not(:last-child)]:border-r [&_td:not(:last-child)]:border-border/30"
                 dangerouslySetInnerHTML={{ __html: article.content }}
                 itemProp="articleBody"
+              />
+
+              {/* Share CTA */}
+              <ArticleShareCTA 
+                title={article.title}
+                excerpt={article.excerpt}
+                url={articleUrl}
               />
 
               {/* Related Articles - Full width on mobile */}
