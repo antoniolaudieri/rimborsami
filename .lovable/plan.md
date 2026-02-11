@@ -1,118 +1,145 @@
 
-# Piano Definitivo: Risolvere Traffico e Conversioni
+# Bot Virale per Rimborsami.app
 
-## Diagnosi Reale (cosa funziona e cosa no)
+## Stato Attuale
+- **Contenuti**: 71 articoli pubblicati, 2 al giorno (cron 09:00 + 15:00)
+- **Social attivi**: LinkedIn (36 post), Facebook (27 post), Twitter (18 post) - tutti funzionanti
+- **Problema**: ogni articolo genera solo 1 post per piattaforma. Dopo la pubblicazione, il contenuto "muore"
 
-### Funziona
-- Generazione articoli: 69 articoli pubblicati, cron attivo
-- Pubblicazione social: 75 post pubblicati con successo (LinkedIn, Facebook, Twitter)
-- Google OAuth: gia configurato nella pagina Auth
-
-### NON Funziona
-
-#### Problema 1: Numeri falsi sulla landing page (CRITICO)
-La landing page mostra dati completamente inventati che distruggono la credibilita:
-- "127K+ Utenti" -- in realta sono 3
-- "euro 54M Recuperati" -- in realta euro 0
-- "2.500+ recensioni" con rating 4.8 -- non esistono recensioni
-- "247 persone stanno verificando ora" -- falso
-- "euro 2.847.650+ Recuperati 2024" -- falso
-- "12.847+ Rimborsi" -- falso
-- "Oltre euro 500M recuperati" -- falso
-- Testimonial con nomi inventati e importi falsi
-
-**Perche questo e un problema**: un visitatore che vede "127K utenti" e poi una pagina senza comunita reale capisce immediatamente che i dati sono falsi. Questo distrugge ogni fiducia e fa scappare le persone.
-
-#### Problema 2: Solo 1 articolo al giorno
-Il cron delle 15:00 non sembra generare articoli (solo il cron delle 09:00 funziona). Negli ultimi 7 giorni: solo 4 articoli.
-
-#### Problema 3: Funnel ancora troppo lungo
-Il quiz pre-signup nella landing page rimane un passaggio che aggiunge frizione inutile.
-
-#### Problema 4: Nessun traffico organico
-Con un dominio nuovo e pochi backlink, Google non posiziona ancora il sito. I social generano impression ma pochi click.
+## Il Problema Fondamentale
+Pubblichi 2 articoli al giorno = 6 post social totali. Per diventare virale servono:
+- **Volume**: 10-15 post/giorno per piattaforma
+- **Varieta**: formati diversi (tip, thread, sondaggio, dato del giorno)
+- **Riciclo**: i 71 articoli esistenti sono una miniera non sfruttata
+- **Engagement**: contenuti che generano commenti e condivisioni
 
 ---
 
-## Soluzione in 4 Interventi
+## Piano: 3 Nuove Edge Functions
 
-### Intervento 1: Sostituire numeri falsi con dati credibili (Priorita MASSIMA)
-Sostituire tutte le metriche inventate con dati realistici per un progetto appena lanciato, oppure rimuoverle.
+### 1. `content-repurposer` - Ricicla contenuti esistenti
+Prende articoli gia pubblicati e li trasforma in micro-contenuti diversi:
 
-**File: `src/components/landing/Hero.tsx`**
-- Rimuovere "247 persone stanno verificando ora" (contatore live falso)
-- Cambiare "Oltre euro 500M recuperati" con qualcosa di credibile tipo "Analisi gratuita in 60 secondi"
-- Cambiare le stat card da "127K+ Utenti / euro 54M Recuperati / 4.8 Rating" a metriche verificabili come "66+ Opportunita attive / 6 Categorie / Gratis per iniziare"
-- Rimuovere la micro-testimonial falsa "euro 847 in 12 giorni - Marco R."
+- **"Dato del giorno"**: estrae una statistica dall'articolo e crea un post visivo
+- **"Lo sapevi che..."**: trasforma un paragrafo in un tip rapido
+- **"Thread"**: spezza un articolo lungo in 3-4 tweet concatenati
+- **"Sondaggio"**: crea una domanda a partire dall'argomento dell'articolo
+- **"Mito vs Realta"**: format educativo che funziona bene su tutti i social
 
-**File: `src/components/landing/Testimonials.tsx`**
-- Rimuovere i contatori animati falsi (euro 2.847.650, 12.847 rimborsi)
-- Rimuovere "237 italiani oggi" (contatore live falso che si incrementa ogni 5 secondi)
-- Sostituire le testimonial inventate con copy onesto tipo "Scopri le opportunita di rimborso disponibili"
-- Rimuovere "127K+ Utenti" dal footer stats
+Frequenza: 3-4 post extra al giorno, pescando da articoli vecchi (non ripetere lo stesso articolo per 14 giorni).
 
-**File: `src/components/landing/AppRating.tsx`**
-- Rimuovere o modificare il componente "2.500+ recensioni 4.8 stelle" (non ci sono recensioni)
+### 2. `viral-scheduler` - Orchestratore centrale
+Un cron che gira 4 volte al giorno (08:00, 12:00, 17:00, 20:00) e decide cosa pubblicare:
 
-### Intervento 2: Semplificare il funnel di registrazione
-**File: `src/components/landing/QuizSection.tsx`**
-- Trasformare la sezione quiz nella landing da "obbligatoria" a "opzionale" - cambiare il CTA del quiz per portare direttamente alla registrazione invece che al quiz completo
+- **08:00**: Dato del giorno / Tip mattutino (contenuto leggero)
+- **12:00**: Contenuto educativo riciclato (pausa pranzo = alto engagement)
+- **17:00**: Post dall'articolo del pomeriggio (gia attivo) + micro-contenuto extra
+- **20:00**: Sondaggio / domanda serale (genera commenti)
 
-**File: `src/pages/Index.tsx`**
-- I CTA principali devono puntare direttamente a `/auth?mode=signup` (gia fanno cosi, verificare che il QuizSection non devii)
+Logica interna:
+- Tiene traccia degli articoli gia riciclati (tabella `content_reposts`)
+- Evita di ripetere lo stesso contenuto troppo spesso
+- Alterna i formati per non risultare ripetitivo
+- Ruota le piattaforme (non tutto su tutti i canali)
 
-### Intervento 3: Verificare e fixare il cron delle 15:00
-Controllare che il cron `generate-article-afternoon` funzioni. Il body `{"source": "cron"}` potrebbe non essere gestito correttamente dalla edge function.
+### 3. `engagement-hooks` - Contenuti interattivi sul sito
+Aggiunge elementi virali direttamente nel sito:
 
-**File: `supabase/functions/generate-article-v2/index.ts`**
-- Verificare che il parametro `source: "cron"` venga gestito e che l'articolo venga generato senza necessita di parametri aggiuntivi
-
-### Intervento 4: Migliorare il copy della landing per conversione
-Con numeri reali, il copy deve puntare su:
-- Il problema (le aziende ti devono soldi - questo va bene)
-- La soluzione (scansione automatica - va bene)
-- La facilita (gratuito, 2 minuti - va bene)
-- La concretezza (66 opportunita reali in 6 categorie)
+- **"Quanto potresti recuperare?"** - Mini calcolatore in ogni articolo che invita a condividere il risultato
+- **Share incentivato**: dopo la lettura di un articolo, mostra "Condividi e aiuta un amico a recuperare i suoi soldi" con pulsanti piu prominenti
+- **Counter sociale**: mostra quante volte un articolo e stato condiviso (social proof reale)
 
 ---
 
 ## Dettagli Tecnici
 
-### File da Modificare
+### Nuova tabella: `content_reposts`
+
+| Colonna | Tipo | Descrizione |
+|---------|------|-------------|
+| id | uuid | PK |
+| article_id | uuid | FK a news_articles |
+| format | text | tipo di contenuto (tip, thread, poll, dato, mito) |
+| platform | text | dove e stato pubblicato |
+| post_text | text | testo generato |
+| posted_at | timestamptz | quando e stato pubblicato |
+| created_at | timestamptz | default now() |
+
+### File da creare
+
+| File | Scopo |
+|------|-------|
+| `supabase/functions/content-repurposer/index.ts` | Genera micro-contenuti da articoli esistenti usando Groq AI |
+| `supabase/functions/viral-scheduler/index.ts` | Cron orchestratore che decide cosa pubblicare e quando |
+
+### File da modificare
 
 | File | Modifica |
 |------|----------|
-| `src/components/landing/Hero.tsx` | Rimuovere contatore live falso, badge "500M", stat card con numeri falsi, micro-testimonial. Sostituire con dati reali (66 opportunita, 6 categorie, 69 guide) |
-| `src/components/landing/Testimonials.tsx` | Rimuovere contatori animati falsi, contatore "oggi", testimonial inventate. Sostituire con sezione "Opportunita disponibili" o "Come funziona" |
-| `src/components/landing/AppRating.tsx` | Rimuovere o ridimensionare (nessuna review reale) |
-| `src/components/landing/SocialProofToast.tsx` | Disabilitare o rimuovere (mostra notifiche di azioni false) |
-| `src/components/landing/QuizSection.tsx` | CTA diretto a registrazione, quiz opzionale |
-| `supabase/functions/generate-article-v2/index.ts` | Verificare gestione parametro "source: cron" per il cron delle 15 |
+| `src/pages/NewsArticle.tsx` | Aggiungere mini-calcolatore "Quanto potresti recuperare?" + share piu prominente a fine articolo |
+| `src/components/news/ShareDropdown.tsx` | Aggiungere contesto motivazionale ("Aiuta un amico!") e tracking condivisioni |
+| `supabase/config.toml` | Aggiungere config per le 2 nuove edge functions |
 
-### Cosa NON toccare
-- La struttura della pagina (header, features, how it works, FAQ, footer) -- funzionano
-- Il sistema di generazione articoli -- funziona
-- La pubblicazione social -- funziona
-- Google OAuth -- gia implementato
-- CTA sticky mobile/desktop -- gia implementati
+### Cron Jobs da aggiungere (SQL)
+4 esecuzioni giornaliere del viral-scheduler:
+- 08:00, 12:00, 17:00, 20:00 (orari italiani di picco engagement)
+
+### Flusso del Viral Scheduler
+
+```text
+CRON (4x/giorno)
+     |
+     v
+viral-scheduler
+     |
+     +-- Controlla: "Ho gia postato in questo slot oggi?"
+     |
+     +-- Seleziona formato (tip/thread/poll/dato/mito)
+     |
+     +-- Seleziona articolo (non usato negli ultimi 14gg)
+     |
+     v
+content-repurposer
+     |
+     +-- Genera testo con Groq AI
+     |
+     +-- Adatta per piattaforma (FB/IG/X/LinkedIn)
+     |
+     v
+post-to-ayrshare + post-to-linkedin
+     |
+     +-- Salva in content_reposts
+     |
+     v
+Da 6 post/giorno a 14-18 post/giorno
+```
 
 ---
 
 ## Impatto Atteso
 
-| Area | Prima | Dopo |
-|------|-------|------|
-| Credibilita landing | Numeri falsi evidenti | Dati reali e verificabili |
-| Bounce rate | ~75% (la gente capisce che e fake) | 50-60% (landing onesta) |
-| Conversione | 1% | 3-5% (fiducia + funnel corto) |
-| Articoli/giorno | 1 | 2 (fix cron 15:00) |
-| Post social/giorno | 3 (solo mattina) | 6 (mattina + pomeriggio) |
+| Metrica | Ora | Dopo 30gg |
+|---------|-----|-----------|
+| Post social/giorno | 6 | 14-18 |
+| Formati contenuto | 1 (articolo) | 6 (tip, thread, poll, dato, mito, articolo) |
+| Articoli "riciclati" | 0 | 71 (tutto il catalogo) |
+| Impression stimate | ~500/giorno | 3.000-5.000/giorno |
+| Click al sito | ~5/giorno | 30-50/giorno |
 
 ---
 
 ## Ordine di Implementazione
 
-1. **Rimuovere numeri falsi** -- impatto immediato sulla credibilita
-2. **Disabilitare SocialProofToast** -- rimuove notifiche false
-3. **Fix cron 15:00** -- raddoppia i contenuti
-4. **Semplificare quiz** -- riduce frizione funnel
+1. **Tabella `content_reposts`** - tracking dei contenuti riciclati
+2. **`content-repurposer`** - il motore che genera micro-contenuti
+3. **`viral-scheduler`** - l'orchestratore dei tempi
+4. **Cron jobs** - attivare i 4 slot giornalieri
+5. **Share migliorato** - CTA piu efficaci sugli articoli
+6. **Mini calcolatore** - elemento virale nell'articolo
+
+---
+
+## Dipendenze
+- Nessuna nuova API key (usa Groq + Ayrshare + LinkedIn gia configurati)
+- Nessun nuovo servizio esterno
+- Solo logica aggiuntiva e scheduling piu frequente
