@@ -1,54 +1,145 @@
 
-# Diagnosi: Perché Non Pubblica Più
+# Bot Virale per Rimborsami.app
 
-## Problemi Trovati
+## Stato Attuale
+- **Contenuti**: 71 articoli pubblicati, 2 al giorno (cron 09:00 + 15:00)
+- **Social attivi**: LinkedIn (36 post), Facebook (27 post), Twitter (18 post) - tutti funzionanti
+- **Problema**: ogni articolo genera solo 1 post per piattaforma. Dopo la pubblicazione, il contenuto "muore"
 
-### 1. Generazione articoli ROTTA (dal 24 febbraio)
-I cron partono ogni giorno (09:00 e 15:00) ma la edge function `generate-article-v2` restituisce **errore 500**:
-```
-"JSON parse error: Expected ',' or '}' after property value in JSON at position 1183"
-```
-L'AI (Gemini) genera JSON malformato che il parser non riesce a correggere. Risultato: **0 articoli negli ultimi 3 giorni**, quindi **0 post social**.
-
-### 2. Bot Virale MAI attivato
-I cron job per `viral-scheduler` (08:00, 12:00, 17:00, 20:00) **non sono mai stati creati** nel database. La tabella `content_reposts` è vuota. Le edge functions esistono ma nessuno le chiama.
-
-### 3. Conseguenza
-- 0 articoli nuovi = 0 post social = 0 traffico dai social
-- Bot virale inattivo = nessun riciclo dei 77 articoli esistenti
+## Il Problema Fondamentale
+Pubblichi 2 articoli al giorno = 6 post social totali. Per diventare virale servono:
+- **Volume**: 10-15 post/giorno per piattaforma
+- **Varieta**: formati diversi (tip, thread, sondaggio, dato del giorno)
+- **Riciclo**: i 71 articoli esistenti sono una miniera non sfruttata
+- **Engagement**: contenuti che generano commenti e condivisioni
 
 ---
 
-## Piano di Fix
+## Piano: 3 Nuove Edge Functions
 
-### Fix 1: Rendere il parser JSON più robusto
-Migliorare `parseAIJson()` in `generate-article-v2` per gestire i JSON malformati dall'AI:
-- Aggiungere pulizia di caratteri di controllo
-- Gestire newline non escapate nelle stringhe
-- Aggiungere fallback con regex per estrarre i campi chiave se il parse fallisce completamente
+### 1. `content-repurposer` - Ricicla contenuti esistenti
+Prende articoli gia pubblicati e li trasforma in micro-contenuti diversi:
 
-### Fix 2: Attivare i 4 cron del Bot Virale
-Creare i cron job SQL per chiamare `viral-scheduler` 4 volte al giorno:
-- 07:00 UTC (08:00 IT) - Dato del giorno
-- 11:00 UTC (12:00 IT) - Contenuto pausa pranzo
-- 16:00 UTC (17:00 IT) - Post pomeridiano
-- 19:00 UTC (20:00 IT) - Sondaggio serale
+- **"Dato del giorno"**: estrae una statistica dall'articolo e crea un post visivo
+- **"Lo sapevi che..."**: trasforma un paragrafo in un tip rapido
+- **"Thread"**: spezza un articolo lungo in 3-4 tweet concatenati
+- **"Sondaggio"**: crea una domanda a partire dall'argomento dell'articolo
+- **"Mito vs Realta"**: format educativo che funziona bene su tutti i social
 
-### Fix 3: Test immediato
-- Chiamare `generate-article-v2` per verificare che il fix funzioni
-- Chiamare `viral-scheduler` per verificare che il bot parta
+Frequenza: 3-4 post extra al giorno, pescando da articoli vecchi (non ripetere lo stesso articolo per 14 giorni).
+
+### 2. `viral-scheduler` - Orchestratore centrale
+Un cron che gira 4 volte al giorno (08:00, 12:00, 17:00, 20:00) e decide cosa pubblicare:
+
+- **08:00**: Dato del giorno / Tip mattutino (contenuto leggero)
+- **12:00**: Contenuto educativo riciclato (pausa pranzo = alto engagement)
+- **17:00**: Post dall'articolo del pomeriggio (gia attivo) + micro-contenuto extra
+- **20:00**: Sondaggio / domanda serale (genera commenti)
+
+Logica interna:
+- Tiene traccia degli articoli gia riciclati (tabella `content_reposts`)
+- Evita di ripetere lo stesso contenuto troppo spesso
+- Alterna i formati per non risultare ripetitivo
+- Ruota le piattaforme (non tutto su tutti i canali)
+
+### 3. `engagement-hooks` - Contenuti interattivi sul sito
+Aggiunge elementi virali direttamente nel sito:
+
+- **"Quanto potresti recuperare?"** - Mini calcolatore in ogni articolo che invita a condividere il risultato
+- **Share incentivato**: dopo la lettura di un articolo, mostra "Condividi e aiuta un amico a recuperare i suoi soldi" con pulsanti piu prominenti
+- **Counter sociale**: mostra quante volte un articolo e stato condiviso (social proof reale)
 
 ---
 
-## File da modificare
+## Dettagli Tecnici
+
+### Nuova tabella: `content_reposts`
+
+| Colonna | Tipo | Descrizione |
+|---------|------|-------------|
+| id | uuid | PK |
+| article_id | uuid | FK a news_articles |
+| format | text | tipo di contenuto (tip, thread, poll, dato, mito) |
+| platform | text | dove e stato pubblicato |
+| post_text | text | testo generato |
+| posted_at | timestamptz | quando e stato pubblicato |
+| created_at | timestamptz | default now() |
+
+### File da creare
+
+| File | Scopo |
+|------|-------|
+| `supabase/functions/content-repurposer/index.ts` | Genera micro-contenuti da articoli esistenti usando Groq AI |
+| `supabase/functions/viral-scheduler/index.ts` | Cron orchestratore che decide cosa pubblicare e quando |
+
+### File da modificare
 
 | File | Modifica |
 |------|----------|
-| `supabase/functions/generate-article-v2/index.ts` | Fix `parseAIJson()` con sanitizzazione più aggressiva + fallback extraction |
-| Database (SQL) | Inserire 4 cron job per viral-scheduler |
+| `src/pages/NewsArticle.tsx` | Aggiungere mini-calcolatore "Quanto potresti recuperare?" + share piu prominente a fine articolo |
+| `src/components/news/ShareDropdown.tsx` | Aggiungere contesto motivazionale ("Aiuta un amico!") e tracking condivisioni |
+| `supabase/config.toml` | Aggiungere config per le 2 nuove edge functions |
 
-## Risultato atteso
-- Articoli: da 0 a 2/giorno (ripristino)
-- Post social da articoli: da 0 a 6/giorno (ripristino)
-- Post social da bot virale: da 0 a 4-8/giorno (nuovo)
-- Totale post: **10-14/giorno**
+### Cron Jobs da aggiungere (SQL)
+4 esecuzioni giornaliere del viral-scheduler:
+- 08:00, 12:00, 17:00, 20:00 (orari italiani di picco engagement)
+
+### Flusso del Viral Scheduler
+
+```text
+CRON (4x/giorno)
+     |
+     v
+viral-scheduler
+     |
+     +-- Controlla: "Ho gia postato in questo slot oggi?"
+     |
+     +-- Seleziona formato (tip/thread/poll/dato/mito)
+     |
+     +-- Seleziona articolo (non usato negli ultimi 14gg)
+     |
+     v
+content-repurposer
+     |
+     +-- Genera testo con Groq AI
+     |
+     +-- Adatta per piattaforma (FB/IG/X/LinkedIn)
+     |
+     v
+post-to-ayrshare + post-to-linkedin
+     |
+     +-- Salva in content_reposts
+     |
+     v
+Da 6 post/giorno a 14-18 post/giorno
+```
+
+---
+
+## Impatto Atteso
+
+| Metrica | Ora | Dopo 30gg |
+|---------|-----|-----------|
+| Post social/giorno | 6 | 14-18 |
+| Formati contenuto | 1 (articolo) | 6 (tip, thread, poll, dato, mito, articolo) |
+| Articoli "riciclati" | 0 | 71 (tutto il catalogo) |
+| Impression stimate | ~500/giorno | 3.000-5.000/giorno |
+| Click al sito | ~5/giorno | 30-50/giorno |
+
+---
+
+## Ordine di Implementazione
+
+1. **Tabella `content_reposts`** - tracking dei contenuti riciclati
+2. **`content-repurposer`** - il motore che genera micro-contenuti
+3. **`viral-scheduler`** - l'orchestratore dei tempi
+4. **Cron jobs** - attivare i 4 slot giornalieri
+5. **Share migliorato** - CTA piu efficaci sugli articoli
+6. **Mini calcolatore** - elemento virale nell'articolo
+
+---
+
+## Dipendenze
+- Nessuna nuova API key (usa Groq + Ayrshare + LinkedIn gia configurati)
+- Nessun nuovo servizio esterno
+- Solo logica aggiuntiva e scheduling piu frequente

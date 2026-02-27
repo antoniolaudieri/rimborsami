@@ -43,40 +43,127 @@ async function callGroqAI(prompt: string, systemPrompt?: string, model: string =
   return result.choices?.[0]?.message?.content || "";
 }
 
-// Helper to clean and parse JSON from AI responses
+// Helper to clean and parse JSON from AI responses - ROBUST version
 function parseAIJson(content: string): any {
-  // Remove markdown code blocks
-  let cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-  
-  // Find JSON object
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
+  // Step 1: Remove markdown code blocks
+  let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+
+  // Step 2: Find JSON boundaries
+  const jsonStart = cleaned.indexOf("{");
+  const jsonEnd = cleaned.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1) {
     throw new Error("No JSON object found in AI response");
   }
-  
-  let jsonStr = jsonMatch[0];
-  
-  // Try to fix common JSON issues
+  cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+
+  // Step 3: Try direct parse first
   try {
-    return JSON.parse(jsonStr);
-  } catch (e) {
-    // Try to fix trailing commas
-    jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
-    
-    // Try to fix unescaped quotes in strings (common AI issue)
-    // This is a simplified fix - replaces newlines in content values
-    jsonStr = jsonStr.replace(/:\s*"([^"]*?)"/g, (match, content) => {
-      const escaped = content.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
-      return `: "${escaped}"`;
-    });
-    
-    try {
-      return JSON.parse(jsonStr);
-    } catch (e2) {
-      console.error("JSON parse failed even after cleaning. First 500 chars:", jsonStr.substring(0, 500));
-      throw new Error(`JSON parse error: ${e2 instanceof Error ? e2.message : 'Unknown error'}`);
-    }
+    return JSON.parse(cleaned);
+  } catch (_e) {
+    // continue to cleaning
   }
+
+  // Step 4: Aggressive cleaning
+  // Remove control characters (the main culprit from logs)
+  cleaned = cleaned.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  
+  // Fix unescaped newlines/tabs inside JSON string values
+  // Strategy: walk through and escape newlines that are inside quotes
+  let result = "";
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+    if (inString) {
+      if (ch === "\n") { result += "\\n"; continue; }
+      if (ch === "\r") { result += "\\r"; continue; }
+      if (ch === "\t") { result += "\\t"; continue; }
+    }
+    result += ch;
+  }
+  cleaned = result;
+
+  // Fix trailing commas
+  cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+
+  // Step 5: Try parse again
+  try {
+    return JSON.parse(cleaned);
+  } catch (_e2) {
+    // continue to fallback
+  }
+
+  // Step 6: Balance braces/brackets
+  let braces = 0, brackets = 0;
+  for (const c of cleaned) {
+    if (c === "{") braces++;
+    if (c === "}") braces--;
+    if (c === "[") brackets++;
+    if (c === "]") brackets--;
+  }
+  while (brackets > 0) { cleaned += "]"; brackets--; }
+  while (braces > 0) { cleaned += "}"; braces--; }
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (_e3) {
+    // continue to regex fallback
+  }
+
+  // Step 7: Regex fallback - extract key fields directly
+  console.log("Attempting regex fallback extraction...");
+  const extractField = (field: string): string => {
+    const re = new RegExp(`"${field}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`);
+    const m = cleaned.match(re);
+    return m ? m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"') : "";
+  };
+
+  const title = extractField("title");
+  const content_val = extractField("content");
+  const metaDescription = extractField("metaDescription") || extractField("meta_description");
+  const excerpt = extractField("excerpt");
+  const primaryKeyword = extractField("primaryKeyword") || extractField("primary_keyword");
+
+  if (title && content_val) {
+    console.log("Regex fallback succeeded for title:", title.substring(0, 50));
+    // Extract arrays with simpler approach
+    const keywordsMatch = cleaned.match(/"keywords"\s*:\s*\[(.*?)\]/s);
+    const keywords = keywordsMatch
+      ? keywordsMatch[1].match(/"([^"]+)"/g)?.map(k => k.replace(/"/g, "")) || []
+      : [];
+
+    return {
+      title,
+      content: content_val,
+      metaDescription: metaDescription || title,
+      excerpt: excerpt || title,
+      primaryKeyword: primaryKeyword || "",
+      keywords,
+      searchIntent: extractField("searchIntent") || "informational",
+      faqSchema: [],
+      howtoSchema: null,
+      internalLinks: [],
+      editorialNotes: "",
+    };
+  }
+
+  console.error("All JSON parse methods failed. First 500 chars:", cleaned.substring(0, 500));
+  throw new Error("Failed to parse AI JSON response after all attempts");
 }
 
 // Category to author mapping
