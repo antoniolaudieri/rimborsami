@@ -736,8 +736,8 @@ Rispondi SOLO in formato JSON:
   "company": "${company}"
 }`;
 
-  console.log("Running SEO Agent (Groq llama-3.3-70b)...");
-  const content = await callGroqAI(prompt);
+  console.log("Running SEO Agent (Lovable AI)...");
+  const content = await callLovableAI(prompt);
   
   try {
     return parseAIJson(content);
@@ -884,8 +884,8 @@ Rispondi SOLO in formato JSON valido:
   "internalLinks": ["/quiz", "/opportunities"]
 }`;
 
-  console.log("Running Editorial Agent (Groq llama-3.3-70b)...");
-  const content = await callGroqAI(userPrompt, systemPrompt);
+  console.log("Running Editorial Agent (Lovable AI)...");
+  const content = await callLovableAI(userPrompt, systemPrompt);
   
   return parseAIJson(content);
 }
@@ -952,7 +952,7 @@ Rispondi SOLO in formato JSON:
   console.log("Running Quality Agent (Groq llama-3.3-70b)...");
   
   try {
-    const content = await callGroqAI(prompt);
+    const content = await callLovableAI(prompt);
     return parseAIJson(content);
   } catch (e) {
     // Fallback with structural checks
