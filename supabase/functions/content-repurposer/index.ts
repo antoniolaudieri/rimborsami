@@ -61,18 +61,18 @@ OPZIONE D: [Risposta 4]
 2-3 hashtag. Max 180 parole.`
 };
 
-async function callGroqAI(prompt: string, systemPrompt: string): Promise<string> {
-  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-  if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
+async function callLovableAI(prompt: string, systemPrompt: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${GROQ_API_KEY}`,
+      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
@@ -84,7 +84,9 @@ async function callGroqAI(prompt: string, systemPrompt: string): Promise<string>
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Groq API error: ${response.status} - ${err}`);
+    if (response.status === 429) throw new Error("Rate limit exceeded, retry later");
+    if (response.status === 402) throw new Error("AI credits exhausted");
+    throw new Error(`AI Gateway error: ${response.status} - ${err}`);
   }
 
   const result = await response.json();
@@ -188,7 +190,7 @@ Contenuto (primi 1500 char): ${(article.content || "").substring(0, 1500)}
 
 Link articolo: ${articleUrl}`;
 
-    const generatedText = await callGroqAI(userPrompt, systemPrompt);
+    const generatedText = await callLovableAI(userPrompt, systemPrompt);
     
     if (!generatedText) {
       return new Response(

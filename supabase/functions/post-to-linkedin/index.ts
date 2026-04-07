@@ -94,12 +94,12 @@ function getCategoryContent(category: string): {
   };
 }
 
-// Generate engaging, human-like post text using Groq AI
+// Generate engaging, human-like post text using Lovable AI Gateway (free)
 async function generateEngagingPost(data: ArticleData, contentType: ContentType): Promise<string> {
-  const groqApiKey = Deno.env.get("GROQ_API_KEY");
+  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
   
-  if (!groqApiKey) {
-    console.log("No GROQ_API_KEY, using fallback post format");
+  if (!lovableApiKey) {
+    console.log("No LOVABLE_API_KEY, using fallback post format");
     return generateFallbackPost(data, contentType);
   }
 
@@ -181,14 +181,14 @@ REGOLE CRITICHE:
 - INCLUDI SEMPRE il link`;
     }
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${groqApiKey}`,
+        Authorization: `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -211,7 +211,10 @@ Ricorda: il post deve sembrare scritto da una persona vera. Includi il link all'
     });
 
     if (!response.ok) {
-      console.error("AI generation failed:", await response.text());
+      const errText = await response.text();
+      if (response.status === 429) console.error("Rate limit exceeded");
+      if (response.status === 402) console.error("AI credits exhausted");
+      console.error("AI generation failed:", errText);
       return generateFallbackPost(data, contentType);
     }
 
