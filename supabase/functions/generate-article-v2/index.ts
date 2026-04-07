@@ -6,12 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper function to call Groq AI
-async function callGroqAI(prompt: string, systemPrompt?: string, model: string = "llama-3.3-70b-versatile"): Promise<string> {
-  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+// Helper function to call Lovable AI Gateway (free)
+async function callLovableAI(prompt: string, systemPrompt?: string, model: string = "google/gemini-2.5-flash"): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
-  if (!GROQ_API_KEY) {
-    throw new Error("GROQ_API_KEY not configured");
+  if (!LOVABLE_API_KEY) {
+    throw new Error("LOVABLE_API_KEY not configured");
   }
 
   const messages: Array<{role: string; content: string}> = [];
@@ -20,10 +20,10 @@ async function callGroqAI(prompt: string, systemPrompt?: string, model: string =
   }
   messages.push({ role: "user", content: prompt });
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${GROQ_API_KEY}`,
+      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
@@ -36,7 +36,13 @@ async function callGroqAI(prompt: string, systemPrompt?: string, model: string =
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+    if (response.status === 429) {
+      throw new Error("Rate limit exceeded, please try again later");
+    }
+    if (response.status === 402) {
+      throw new Error("AI credits exhausted, please add funds");
+    }
+    throw new Error(`AI Gateway error: ${response.status} - ${errorText}`);
   }
 
   const result = await response.json();

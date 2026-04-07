@@ -105,12 +105,12 @@ function getCategoryHook(category: string): { shock: string; question: string; p
   };
 }
 
-// Helper function to call Groq AI
-async function callGroqAI(prompt: string, systemPrompt?: string): Promise<string> {
-  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+// Helper function to call Lovable AI Gateway (free)
+async function callLovableAI(prompt: string, systemPrompt?: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
-  if (!GROQ_API_KEY) {
-    throw new Error("GROQ_API_KEY not configured");
+  if (!LOVABLE_API_KEY) {
+    throw new Error("LOVABLE_API_KEY not configured");
   }
 
   const messages: Array<{role: string; content: string}> = [];
@@ -119,14 +119,14 @@ async function callGroqAI(prompt: string, systemPrompt?: string): Promise<string
   }
   messages.push({ role: "user", content: prompt });
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${GROQ_API_KEY}`,
+      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: "google/gemini-2.5-flash",
       messages,
       temperature: 0.8,
       max_tokens: 2000
@@ -135,7 +135,9 @@ async function callGroqAI(prompt: string, systemPrompt?: string): Promise<string
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+    if (response.status === 429) throw new Error("Rate limit exceeded, retry later");
+    if (response.status === 402) throw new Error("AI credits exhausted");
+    throw new Error(`AI Gateway error: ${response.status} - ${errorText}`);
   }
 
   const result = await response.json();
@@ -144,10 +146,10 @@ async function callGroqAI(prompt: string, systemPrompt?: string): Promise<string
 
 // Generate platform-optimized texts using AI with structured strategy
 async function generatePlatformTexts(data: ArticleData, contentType: ContentType): Promise<PlatformTexts> {
-  const groqApiKey = Deno.env.get('GROQ_API_KEY');
+  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
   
-  if (!groqApiKey) {
-    console.log("No Groq API key, using fallback texts");
+  if (!lovableApiKey) {
+    console.log("No LOVABLE_API_KEY, using fallback texts");
     return generateFallbackTexts(data, contentType);
   }
 
@@ -264,7 +266,7 @@ Rispondi SOLO con JSON valido:
   "twitter": "testo BREVE per twitter (max 200 caratteri)"
 }`;
 
-    const content = await callGroqAI(userPrompt, systemPrompt);
+    const content = await callLovableAI(userPrompt, systemPrompt);
     
     if (!content) {
       console.error("No content from AI");
