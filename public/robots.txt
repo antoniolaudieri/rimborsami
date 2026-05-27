@@ -60,6 +60,8 @@ Disallow: /payment-success
 
 # Sitemap location
 Sitemap: https://rimborsami.app/sitemap.xml
+Sitemap: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/sitemap-news
+Sitemap: https://vizrvcmgqkpuwhxfienp.supabase.co/functions/v1/sitemap-opportunities
 
 # LLMs.txt for AI assistants - Standard llmstxt.org format
 # Static version with general platform information
