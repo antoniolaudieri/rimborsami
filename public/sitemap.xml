@@ -19,6 +19,48 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://rimborsami.app/redazione</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://rimborsami.app/news/autore/federico-colombo</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://rimborsami.app/news/autore/sara-marchetti</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://rimborsami.app/news/autore/martina-galli</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://rimborsami.app/news/autore/chiara-mantovani</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://rimborsami.app/news/autore/alessandro-ferrante</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://rimborsami.app/news/autore/luca-benedetti</loc>
+    <lastmod>2026-01-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://rimborsami.app/privacy</loc>
     <lastmod>2026-01-13</lastmod>
     <changefreq>monthly</changefreq>
