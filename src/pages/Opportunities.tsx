@@ -112,6 +112,40 @@ export default function Opportunities() {
         <title>Opportunità di Rimborso e Class Action Attive - Rimborsami</title>
         <meta name="description" content="Scopri tutte le opportunità di rimborso e class action attive in Italia: voli, bollette, banche, tech. Aggiornate quotidianamente." />
         <link rel="canonical" href="https://rimborsami.app/opportunita" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Opportunità di Rimborso e Class Action Attive",
+          description: "Elenco aggiornato delle opportunità di rimborso, compensazione e class action attive in Italia.",
+          url: "https://rimborsami.app/opportunita",
+          inLanguage: "it-IT",
+          isPartOf: { "@type": "WebSite", name: "Rimborsami", url: "https://rimborsami.app" },
+          mainEntity: {
+            "@type": "ItemList",
+            itemListOrder: "https://schema.org/ItemListOrderDescending",
+            numberOfItems: opportunities.length,
+            itemListElement: opportunities.map((opp, idx) => ({
+              "@type": "ListItem",
+              position: idx + 1,
+              item: {
+                "@type": "Service",
+                name: opp.title,
+                description: opp.short_description || undefined,
+                category: categoryLabels[opp.category] || opp.category,
+                url: `https://rimborsami.app/opportunita`,
+                provider: { "@type": "Organization", name: "Rimborsami" },
+                ...(opp.min_amount || opp.max_amount ? {
+                  offers: {
+                    "@type": "AggregateOffer",
+                    priceCurrency: "EUR",
+                    lowPrice: opp.min_amount || undefined,
+                    highPrice: opp.max_amount || undefined,
+                  },
+                } : {}),
+              },
+            })),
+          },
+        })}</script>
       </Helmet>
       <Header />
       
