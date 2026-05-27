@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { z } from 'zod';
 import Logo from '@/components/Logo';
+import { Helmet } from 'react-helmet-async';
 
 const loginSchema = z.object({
   email: z.string().email('Inserisci un indirizzo email valido'),
@@ -168,6 +169,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-hero-bg">
+      <Helmet>
+        <title>{isLogin ? 'Accedi' : 'Registrati'} - Rimborsami</title>
+        <meta name="description" content={isLogin ? 'Accedi al tuo account Rimborsami per gestire rimborsi, compensazioni e pratiche aperte.' : 'Crea un account gratuito su Rimborsami e scopri i rimborsi che ti spettano in 2 minuti.'} />
+        <link rel="canonical" href="https://rimborsami.app/auth" />
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
       {/* Header */}
       <header className="p-4 md:p-6">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">

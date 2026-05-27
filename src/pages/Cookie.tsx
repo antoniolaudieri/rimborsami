@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, Cookie } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +15,11 @@ import {
 export default function CookiePage() {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Cookie Policy - Rimborsami</title>
+        <meta name="description" content="Informativa cookie di Rimborsami: quali cookie usiamo, perché, e come gestirne le preferenze in linea con il GDPR." />
+        <link rel="canonical" href="https://rimborsami.app/cookie" />
+      </Helmet>
       <div className="container py-12 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

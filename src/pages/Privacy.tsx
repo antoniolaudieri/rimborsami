@@ -1,11 +1,17 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Privacy() {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Privacy Policy - Rimborsami</title>
+        <meta name="description" content="Scopri come Rimborsami tratta i tuoi dati personali: trasparenza, sicurezza, GDPR. Leggi la nostra Privacy Policy completa." />
+        <link rel="canonical" href="https://rimborsami.app/privacy" />
+      </Helmet>
       <div className="container py-12 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

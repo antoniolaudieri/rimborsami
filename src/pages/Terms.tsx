@@ -1,11 +1,17 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Terms() {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Termini di Servizio - Rimborsami</title>
+        <meta name="description" content="Termini e condizioni d'uso della piattaforma Rimborsami: diritti, obblighi e regole per utilizzare il servizio in Italia." />
+        <link rel="canonical" href="https://rimborsami.app/terms" />
+      </Helmet>
       <div className="container py-12 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

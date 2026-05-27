@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Shield, CheckCircle, XCircle, Mail, Clock, Euro } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Refund = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Garanzia Soddisfatti o Rimborsati - Rimborsami</title>
+        <meta name="description" content="Garanzia 12 mesi: se non recuperi almeno quanto hai speso per Premium, ti rimborsiamo l'intero costo dell'abbonamento." />
+        <link rel="canonical" href="https://rimborsami.app/refund" />
+      </Helmet>
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container px-4 sm:px-6 py-4">
