@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/landing/Header";
@@ -107,6 +108,11 @@ export default function Opportunities() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Opportunità di Rimborso e Class Action Attive - Rimborsami</title>
+        <meta name="description" content="Scopri tutte le opportunità di rimborso e class action attive in Italia: voli, bollette, banche, tech. Aggiornate quotidianamente." />
+        <link rel="canonical" href="https://rimborsami.app/opportunita" />
+      </Helmet>
       <Header />
       
       <main className="pt-24 pb-20">
